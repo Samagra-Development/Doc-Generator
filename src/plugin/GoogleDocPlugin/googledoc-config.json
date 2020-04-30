@@ -1,0 +1,14 @@
+{
+  "GOOGLE_APPLICATION_CREDENTIALS": "GoogleDocPlugin/gcs-creds.json",
+  "BUCKET": "covid19_samagra",
+  "URL": "https://script.google.com/macros/s/AKfycbw1Et6M-NEQ9nnPw5OqSt5kCCFg5orR1dsIZ0gRJB8YJTZj864/exec?",
+  "GOOGLECLOUDBASEURL": "https://storage.googleapis.com/covid19_samagra/",
+  "SHEETID":"1_iE1D8Pvsq7SQMMjHWhOhidGvkXENiluq01RXvb3n5g",
+  "SHEETNAME":"PDF generator excel",
+  "RANGE":"C1:AM37",
+  "MAPPINGDETAILS": "mappingDetails",
+  "OPTIONSSHEET": "optionsSheet",
+  "DOCTEMPLATEID": "1g7EvvBPsMi2kXyg0am-iRZ72DJNZNtyUrRwKieXhWn0",
+  "APPLICATIONID":"Covid19",
+  "DIRPATH": "uploadFiles/" 
+} 
