@@ -1,41 +1,41 @@
-﻿## 1. Architecture
+﻿---
+id: PDFModuleArchitecture
+title: Architecture
+sidebar_label: Architecture
+---
+
+## 1. Overview
 
 The following diagram illustrates the overall architecture of PDF Builder solution that allows various applications to interact with the PDF Builder solution to send requests and retrieve outputs.
 
-
 ![enter image description here](https://i.ibb.co/NSk5p2H/Architecture-Diagram-PDF-Builder.png)
 
+## 2. What are these things?
 
 A brief description of the function of each element of the architecture is provided below.
 
-a) **External Application**: Any mobile application, data storage and publishing platform that either request for pdf generation or search pdf status.
+- **External Application**: This is the exit part of the application. This could be any mobile application, server or publishing platform that searches pdf status and retrieves them async.
 
-b) **Auth Server**: It verifies whether request is made by verified user or not and return token.
+- **Auth Server**: It issues tokens to users verifies whether request is made to the srever is a verified request or not.
 
-c) **PDF Server**: It receives request and pass this data to database and send request to Pdf Base.
+- **PDF Server**: This is a simple server that authorises the request from any external application and returns the valid PDFs for that API request. This is essesntiallyt the interface to the outside world. It opens up APIs to the outputs of the PDF builder.
 
-d) **Queue Manager**: It save all the request and process it whenever possible.
+- **Queue Manager**: It does all the heavy lifting by actually running all the code to generate the PDF. Without this everything else is just a code layer.
 
-e) **Database**: It saves requested data and and progress of pdf generation process and if pdf is generated then it’s path is save.
+- **Database**: It saves requested data and and progress of pdf generation process and if pdf is generated then it’s path is save.
 
-f) **PDF Base**:It is middleware which takes data from database and interact with plugin for pdf generation and then send pdf data to database.
+- **Plugin**: This is more an application specific code. It has information on how to get the data from an external resourse, how to modifiy a particular resource and how to manage the outputs.
 
-g) **Plugin**:
+- **PDF Base**: The glue that holds them all. Manages the queue system, has interfaces to the plugin system, checks for authenticity of a plugin.
 
-1. **Request Fetcher**:It fetch variable mapping content from data source which can be excel sheet.
+- **Logging Module**: This module is responsible for getting the logs from all the other modules and pass this data to central logging system.
 
-2. **Variable Mapper**: This will fetch the mapping variables and option variable from the data source.
+- **Central Logging System**: All logs are then subsequently sent to a central logging system where they are archived, processed and monitored.
 
-3. **Pdf Creator**: This will map the data provided by the variable mapper with the data provided in the request(i.e by the request fetcher) and then encode mapped data in the url format and then call the app script which take the request and write all the content to doc and then return the pdf link to that doc.
+## 3. FAQs
 
-4. **Pdf Uploader**: It take pdf url from pdf creator and then upload this pdf to storage which can be disk storage or storage provided by some third party.
+To be added based on incoming feedback
 
-5. **Retrieve Pdf** : It take pdf name from pdfbase and return the pdf content.
+## 4. Coming Soon
 
-h) **Data Source**: It is source from where we get the data and it can be google sheet.
-
-i) **Storage**: Here we save the pdf .
-
-j) **Logging Module**: This module get logging data from pdf base,plugin,queue manager and pass this data to central logging system.
-
-k) **Central Logging System**: It will save error if any occur while proccessing request.
+Please review the following section to get information about planned updates to this module.

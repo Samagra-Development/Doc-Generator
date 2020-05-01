@@ -1,44 +1,58 @@
-# Installation and Setup
 
-1. Create a Virutal Environment and install the local dependencies `pip install -r requirements.txt`.
-2. Setup the PSQL server using the docker-compose.yml file.
-3. Update the credentials of PSQL in the config.py file.
-4. Setup the Google Credentials for service account credentials on google developer console.
-5. Enable the following API => Google Docs, Google Sheets, Google Cloud Storage.
-6. Configure consent screen.
-7. Creating a Oauth2 access token json from Google developer console.
-8. Updating the appa nd instance folder which have the same thing.
-9. Setting up Google App Scripts and publishing it as a web app. This will require you to be the admin of the app or it won't work. (See network tab on Google Chrome dev console if you have issues with it)
-10. Update the url in Config.py
+# PDF Builder
 
-# Template to PDF
+[![Open Source Love](https://camo.githubusercontent.com/d41b9884bd102b525c8fb9a8c3c8d3bbed2b67f0/68747470733a2f2f6261646765732e66726170736f66742e636f6d2f6f732f76312f6f70656e2d736f757263652e7376673f763d313033)](https://opensource.org/licenses/MIT)  [![License: MIT](https://camo.githubusercontent.com/3ccf4c50a1576b0dd30b286717451fa56b783512/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f4c6963656e73652d4d49542d79656c6c6f772e737667)](https://opensource.org/licenses/MIT)  
 
-Design Document available at - [https://docs.google.com/document/d/1hA9et-PveVmXZYZ4C3LAj_RfxdGPyRScRK3Aa3GHibY/edit](https://docs.google.com/document/d/1hA9et-PveVmXZYZ4C3LAj_RfxdGPyRScRK3Aa3GHibY/edit)
+-   [Overview](https://github.com/Samagra-Development/PDF-Package#overview)
+-   [Installation](https://github.com/Samagra-Development/PDF-Package#installation)
+-   [Contribute](https://github.com/Samagra-Development/PDF-Package#contribute)
+-   [License](https://github.com/Samagra-Development/PDF-Package#license)
 
-API Specifications available in the design document.
+## [](https://github.com/Samagra-Development/PDF-Package#overview)Overview
 
-# Limitations
+PDF Builder is offer a service for governance applications to generate PDF views of the information generated through independent systems to allow users to have access to printable views of the information.
 
-- No user authentication is available.
-- The template document should be available on the authenticated account’s drive. It won’t work if the doc is shared as read/write with the authenticated account.
-- If the options are using apostrophe then python and app script aren't parsing it. Eg. Teacher’s were good, is working great. But Teacher's are good, is not working well.
-- The image dimensions in app script are fixed 1:1.
-- The queue processing part is synchronous. It can be made asynchronous to make it fast OR multithreading can be implemented there.
-- Different templates are required for different versions of forms.
-- The intermediate google docs are created in the same location as that of template doc.
-- If app script failed due to any runtime error then a junk google doc is still created.
-- [Custom part] - The distance using udise is not yet calculated.
-- Google App script usage limitations (url fetching) (https://developers.google.com/apps-script/guides/services/quotas#current_limitations)
+## [](https://github.com/Samagra-Development/PDF-Package#installation)Installation
 
-# Monitoring
+ 1. Take Clone of repository
+ 2. From the root folder run the following command
+ 
+		 `pip install -r requirements.txt`
+ 3. To Fetch data from GoogleSheet run the following command from root folder
+ 
+		`python3 -m src.plugin.GoogleDocPlugin.server`
+ 4. To Fetch data from Form Response run the following command from root folder
+ 
+		`python3 -m src.plugin.ODKPlugin.server`
+ 5. To generate pdf from request run the following command from root folder
+ 
+		`python3 -m  src.pdfbase.main`
+		
+ ## [](https://github.com/Samagra-Development/PDF-Package#contribute)Contribute
 
-Below are a few of the things that needs to be continuously monitored, all these can be monitored by creating a testing route which keeps the results of all the following things:
+Please use the  [issues tracker](https://github.com/Samagra-Development/PDF-Package/issues)  to raise bug reports and feature requests. We'd love to see your pull requests, so send them in!
+## [](https://github.com/Samagra-Development/PDF-Package#license)License
 
-- Is the Data collection API alive? - It can be checked by sending a dummy data.
-- Is the check status API alive? - It can be checked by sending a dummy request.
-- Is the database working? - It can be checked by sending a count rows query.
-- Is the file downloading (from drive) working? - It can be checked by tracking the status of the dummy request sent in point 1.
-- Is the file uploading (to google cloud) working? - It can be checked by placing a file in uploadFiles directory and then checking if it is uploaded or not. If would be a success if the file is available at the following url - https://storage.googleapis.com/pdf-generator-1/fileName.pdf
-- Total number of failed requests in database? - It can be checked by sending a db query.
-- Queue size (unprocessed requests)? - It can be checked by sending a db query.
-- Is the data fetching from sheet working? - It can be checked by monitoring the dummy request sent in step 1.
+```
+MIT License
+
+Copyright (c) 2021 Pdf Package
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
