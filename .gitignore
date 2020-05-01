@@ -140,3 +140,6 @@ docker-compose.yml
 google-creds.json
 
 .vscode
+
+*/*/config.json
+config.json
