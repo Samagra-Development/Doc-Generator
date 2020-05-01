@@ -5,6 +5,7 @@
 
 -   [Overview](https://github.com/Samagra-Development/PDF-Package#overview)
 -   [Installation](https://github.com/Samagra-Development/PDF-Package#installation)
+-  [Usage](https://github.com/Samagra-Development/PDF-Package#usage)
 -   [Contribute](https://github.com/Samagra-Development/PDF-Package#contribute)
 -   [License](https://github.com/Samagra-Development/PDF-Package#license)
 
@@ -14,18 +15,25 @@ PDF Builder is offer a service for governance applications to generate PDF views
 
 ## [](https://github.com/Samagra-Development/PDF-Package#installation)Installation
 
- 1. Take Clone of repository
- 2. From the root folder run the following command
- 
-		 `pip install -r requirements.txt`
- 3. To Fetch data from GoogleSheet run the following command from root folder
- 
+ - Take Clone of repository
+ - From the root folder run the following command
+	`pip install -r requirements.txt`
+ - [Install postgres](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-18-04) and add database detail in src/db/config.py
+ - Go to folder src/db and run following command database table creation:
+		 
+	 - Create a migration repository with the following command:
+		`FLASK_APP=app.py flask db init`
+	 - Generate an initial migration:
+		`FLASK_APP=app.py flask db migrate`
+	 - Run migration:
+		 `FLASK_APP=app.py flask db upgrade` 
+
+ ## [](https://github.com/Samagra-Development/PDF-Package#usage)Usage	 	 
+ - To Fetch data from GoogleSheet run the following command from root folder
 		`python3 -m src.plugin.GoogleDocPlugin.server`
- 4. To Fetch data from Form Response run the following command from root folder
- 
+ - To Fetch data from Form Response run the following command from root folder
 		`python3 -m src.plugin.ODKPlugin.server`
- 5. To generate pdf from request run the following command from root folder
- 
+ - To generate pdf from request run the following command from root folder
 		`python3 -m  src.pdfbase.main`
 		
  ## [](https://github.com/Samagra-Development/PDF-Package#contribute)Contribute

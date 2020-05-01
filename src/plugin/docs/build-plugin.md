@@ -1,26 +1,27 @@
+---
+id: PDFBuildAPlugin
+title: Building A Plugin
+sidebar_label: Building A Plugin
+---
 
-Steps for building plugin 
-1.  Implements PdfPlugin Interface
-E.g
-GoogleDocPlugin/external.py file
+## 1. Overview
 
-```
-from pdfbase.internal import PDFPlugin
-from interface import implements
+We have defined what a plugin is [here](bla). Every now and then, you would feel the need to either build a plugin, extend a plugin or fix a broken plugin. To be able to do that, you need to have a very basic understanding of how a plugin works and what is the structure described in the following sections. If you want to look at the architecture of the whole thing first to get a bigger picture, please go [here](bla).
+
+## 2. Building your own plugin from scratch
+
+### 2.1 Building the actual plugin
+
+- All plugins implements `PDFPlugin` interface For example take a look at the source code of [GoogleDocPlugin/external.py](https://github.com/ChakshuGautam/PDF-Package/blob/master/src/plugin/GoogleDocPlugin/external.py) and see line number 16
+
+```python
 class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
 ```
 
+So what is a `PDFPlugin`? It looks something like this.
 
- 
-Code of pdfbase/internal.py file
- 
-	  class PDFPlugin(Interface): 
-    #FetchData.process() -> Dict  => Fetches "new" data from the database/server/websocket whatever and provides it in the form of dictionary, one PDF at a time.
-    #FetchMapping.process() -> Dict => Feches mapping and yeilds it in the form of dictionary
-    #BuildPDF.process() -> File => Function to build PDF and return a file
-    #UploadPDF.process(key, File) ->  => Fuction to save PDF
-    #RetrievePDF.process(key) -> File => Function to get the previously saved PDF from the key
-
+```python
+class PDFPlugin(Interface):
     def fetch_data(self):
         pass
 
@@ -34,82 +35,83 @@ Code of pdfbase/internal.py file
         pass
 
     def retrieve_PDF(self, key):
-        pass`
-   
-    
-2.  Define Body of Following function:
-	 1.  fetch_data: this will fetch new data from webserver and provide this data as dictionary and also combine configuration data and also provide tags if any.
-    2.  fetch_mapping: This will fetch value mapping and options mapping and combine this with data fetch dictionary and return this complete dictionary.
-    3.  build_PDF: It will take raw_data and file_name of pdf as input and return filename and pdfUrl.
-    4.  upload_PDF: This will upload pdf to server or to any other storage and return its filename.
-    5.  retrieve_PDF: This will take pdf name as input and return pdf content.
-3. If we need to add more function in class which needs to be accessible from pdfbase class then they should be first define in PDFPlugin interface.
-    
- E.g
+        pass
+```
 
-    from pdfbase.internal import PDFPlugin
-	from interface import implements
-	class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
+- Define Body of Following function: 1. **_fetch_data_**: this will fetch new data from webserver and provide this data as dictionary and also combine configuration data and also provide tags if any.
+  2.  **_fetch_mapping_**: This will fetch value mapping and options mapping and combine this with data fetch dictionary and return this complete dictionary.
+  3.  **_build_PDF_**: It will take raw_data and file_name of pdf as input and return filename and pdfUrl.
+  4.  **_upload_PDF_**: This will upload pdf to server or to any other storage and return its filename.
+  5.  **_retrieve_PDF_**: This will take pdf name as input and return pdf content.
 
-    def __init__(self):
-        with open(os.path.dirname(__file__) + '/googledoc-config.json') as json_file: 
-            config = json.load(json_file) 
-            self.config = config
-    def fetch_data(self):
-        #code for fetching data from sheet and add tags
-        return mappingValues,tags, error
+-. If we need to add more function in class which needs to be accessible from pdfbase class then they should be first define in PDFPlugin interface.
 
-    def fetch_mapping(self,data):
-        #return rawData which include mapping values and options values and passed data
-        return rawData, error
-    def build_PDF(self,raw_data,file_name):
-        #build pdf using googleapp script
-        return fileName,error,pdfUrl                    
-                
-    def upload_PDF(self, key,file):
-        #upload pdf to local server
-        return key,error              
-        
+### 2.2 Adding the plugin to the main system
 
-    def retrieve_PDF(self, key):
-	    #return pdf data
-        return filedata,error    
-        
+- Import PDFBuilder Class `from internal import PDFBuilder, PDFPlugin`
+- Import Plugin File `from GoogleDocPlugin.external import GoogleDocsSheetsPlugin`
 
-Steps For Adding this plugin in main file
+- Add this class as plugin of PdfBuilder class and also pass config if we need any
 
- 1. Import PDFBuilder Class
- 
- E.g
-
-	 `from internal import PDFBuilder, PDFPlugin`
- 2. Import Plugin File
- 
-E.g
-	`from GoogleDocPlugin.external import GoogleDocsSheetsPlugin`
-
- 3. Add this class as plugin of PdfBuilder class and also pass config if we need any
- 
-E.g 
-  ```
+```python
 config = {"retries": 1, "max_concurrency": 2}
-
-app =PDFBuilder(plugin=GoogleDocsSheetsPlugin(), config=config)
+app = PDFBuilder(plugin=GoogleDocsSheetsPlugin(), config=config)
 ```
 
- 4. Now call run method of PDFBuilder
- 
-E.g 
-`app.run()`
+### 2.3 Starting the system
 
-Now main.py will look like :
+Just run the following to test if everything is working fine. `app.run()`
 
-```
+Now `main.py` will look like :
+
+```python
 from .internal import PDFBuilder, PDFPlugin
 from plugin.GoogleDocPlugin.external import GoogleDocsSheetsPlugin
 
 if __name__ == "__main__":
     config = {"retries": 1, "max_concurrency": 2}
     app = PDFBuilder(plugin=GoogleDocsSheetsPlugin(), config=config)
-    app.run()	
+    app.run()
 ```
+
+## 3. Extending a Plugin already written
+
+A lot of times you wouldn't want to write the whole thing and would want to just extend some other plugin that is already written or maybe two and modify the parts that are not the same as the origin plugin. Here you can do this native python classes.
+
+- Import the plugin to your plugin folder `from GoogleDocPlugin.external import GoogleDocsSheetsPlugin`
+- Create plugin class by extending this superclass and not extending it though the interface. `class ODKPlugin(GoogleDocsSheetsPlugin)`
+- All the superclass method are available here. If we need to override the superclass method then we can simply add the method with same name and argument and we can also call the superclass method using super statement. for example : File [GoogleDocPlugin/external.py](https://github.com/ChakshuGautam/PDF-Package/blob/master/src/plugin/GoogleDocPlugin/external.py)
+
+```python
+from pdfbase.internal import PDFPlugin
+from interface import implements
+
+class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
+    def __init__(self):
+      with open(os.path.dirname(__file__) + '/googledoc-config.json') as json_file:
+          config = json.load(json_file)
+          self.config = config
+
+    def fetch_data(self):
+      return mappingValues,tags, error
+```
+
+File [ODKPlugin/external.py](https://github.com/ChakshuGautam/PDF-Package/blob/master/src/plugin/ODKPlugin/external.py)
+
+```python
+from GoogleDocPlugin.external import GoogleDocsSheetsPlugin
+
+class ODFPlugin(GoogleDocsSheetsPlugin):
+    def fetch_data(self):
+          return mappingValues,tags, error
+    def get_mapping_data(self):
+        super().fetch_data()`
+```
+
+## 3. FAQs
+
+To be added based on incoming feedback
+
+## 4. Coming Soon
+
+Please review the following section to get information about planned updates to this module.
