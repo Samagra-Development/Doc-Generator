@@ -1,0 +1,15 @@
+{
+  "GOOGLE_APPLICATION_CREDENTIALS": "GoogleDocPlugin/gcs-creds.json",
+  "BUCKET": "covid19_samagra",
+  "URL": "https://script.google.com/macros/s/AKfycbw1Et6M-NEQ9nnPw5OqSt5kCCFg5orR1dsIZ0gRJB8YJTZj864/exec?",
+  "GOOGLECLOUDBASEURL": "https://storage.googleapis.com/covid19_samagra/",
+  "SHEETID": "1pE02FhzQauPvvLY6oY7sXrjAOhkJgRAfCoKKaDc19es",
+  "MAPPINGDETAILS": "mappingDetails",
+  "OPTIONSSHEET": "optionsSheet",
+  "DOCTEMPLATEID": "1Cq1YiyTsDZizEJJkDEe_BmODQTtyoKcFNXJPOdBScX0",
+  "APPLICATIONID": "1111",
+  "DIRPATH": "uploadFiles/",
+  "ODKUSERNAME": "odkusername",
+  "ODKPASSWORD": "odkpassword",
+  "SESSIONCOOKIEBASEURL": "http://aggregate.cttsamagra.xyz:8080/Aggregate.html#submissions/filter///"
+}
