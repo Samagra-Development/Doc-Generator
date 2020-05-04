@@ -22,6 +22,6 @@ jobs:
     - name: Python Pylin GitHub Action
       uses: fylein/python-pylint-github-action@v1
       with:
-       args: pip3 freeze > requirements.txt && sudo pylint src/db/app.py
+       args: pip3 freeze > requirements.txt && pylint ../../src/db/app.py
 
    
