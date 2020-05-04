@@ -1,10 +1,13 @@
 on: [push, pull_request]
-name: Python Linting
+name: on push
 jobs:
-  PythonLinting:
-    name: Python linting
+  pythonPylintGithubAction:
+    name: Python Pylint Github Action
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - name: Konstruktoid Python linting
-        uses: konstruktoid/action-pylint@master
+    - uses: actions/checkout@master
+    - name: Python Pylint Github Action
+      uses: fylein/python-pylint-github-action@master
+      with:
+        args: pip3 install -r requirements.txt && pylint src
+        
