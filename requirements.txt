@@ -15,3 +15,7 @@ flask_sqlalchemy
 google-cloud-storage
 requests
 uwsgi
+queuelib
+pygraphviz
+ERAlchemy
+python-interface
