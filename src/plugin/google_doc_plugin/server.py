@@ -1,11 +1,11 @@
-import random, string, json
-from flask import Flask, request
-from flask import jsonify
+"""
+Receive Request from external application and save in queue
+"""
 from .app import create_app
-from queuelib import FifoDiskQueue
-import uuid
+from .external import GoogleDocsSheetsPlugin
+
 app = create_app()
-from .external import ODKSheetsPlugin
+
 
 
 ## Route for saksham samiksha
@@ -21,19 +21,19 @@ Following ODK forms are related to this route:
 8. SLO visit slo_v2
 """
 
-@app.route("/saksham-custom", methods=['POST'])
-def getPdfForSaksham():
-
-    obj = ODKSheetsPlugin()
+@app.route("/covid-custom", methods=['POST'])
+def get_pdf_covid19():
+    """
+    define route which save request in queue
+    """
+    obj = GoogleDocsSheetsPlugin()
     error = obj.fetch_data()
+    print('in googledoc')
     if not error:
         status = 'done'
     else:
-        status = error    
+        status = error
     return {'status':status}
-    
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=8080)
-
-
 # https://script.google.com/a/samagragovernance.in/macros/s/AKfycbz7NPxhAb-n2f-36KepyGxdpxnWzcak1OusVp5IGT3MjI1JC3t7/exec

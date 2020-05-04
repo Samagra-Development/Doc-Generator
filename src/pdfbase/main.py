@@ -1,8 +1,11 @@
-from .internal import PDFBuilder, PDFPlugin
-from plugin.GoogleDocPlugin.external import GoogleDocsSheetsPlugin
-from plugin.ODKPlugin.external import ODKSheetsPlugin
+"""
+Initializes pdf builder and start the server
+"""
+from .internal import PDFBuilder
+from ..plugin.google_doc_plugin.external import GoogleDocsSheetsPlugin
+from ..plugin.odk_plugin.external import ODKSheetsPlugin
 
 if __name__ == "__main__":
-    config = {"retries": 3, "max_concurrency": 2}
-    app = PDFBuilder(plugin=GoogleDocsSheetsPlugin(), config=config)
-    app.start()
+    CONFIG = {"retries": 20, "max_concurrency": 1}
+    APP = PDFBuilder(plugin=GoogleDocsSheetsPlugin(), config=CONFIG)
+    APP.start()

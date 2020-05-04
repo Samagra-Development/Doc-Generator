@@ -2,14 +2,14 @@ Steps for Extending Plugin
 
  1. Import Superclass in plugin file.
 		E.g 
-   from GoogleDocPlugin.external import GoogleDocsSheetsPlugin
+   from google_doc_plugin.external import GoogleDocsSheetsPlugin
     
 
  2. Create plugin class by extending this superclass.
 	E.g 
 	    class ODKPlugin(GoogleDocsSheetsPlugin):
  3. All the superclass method are available here. If we need to override the superclass method then we can simply add the method with same name and argument and we can also call superclass method using super statement
-  E.g File GoogleDocsPlugin/external.py
+  E.g File google_doc_plugin/external.py
  		
  		
 		from pdfbase.internal import PDFPlugin
@@ -23,11 +23,11 @@ Steps for Extending Plugin
 		def fetch_data(self):
         return mappingValues,tags, error
 `
-	File ODFPlugin/external.py
+	File odk_plugin/external.py
 	
 
-    from GoogleDocPlugin.external import GoogleDocsSheetsPlugin
-	    class ODFPlugin(GoogleDocsSheetsPlugin):
+    from google_doc_plugin.external import GoogleDocsSheetsPlugin
+	    class ODKPlugin(GoogleDocsSheetsPlugin):
 	                   
 		def fetch_data(self):
         return mappingValues,tags, error

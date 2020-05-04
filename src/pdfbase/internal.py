@@ -1,51 +1,73 @@
+"""
+Generate Pdf for all the request
+"""
 import json
-from queuelib import FifoDiskQueue
-import os.path,threading
-from interface import Interface
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 import uuid
-from db.app import db,create_app,get_db
-from db.models import pdfData, outputTable
+import os.path
+import threading
 from time import sleep
+from queuelib import FifoDiskQueue
+from interface import Interface
+from ..db.app import DB, get_db
+from ..db.models import PdfData, OutputTable
+
 
 class PDFPlugin(Interface):
 
-    # **FetchData.process() -> Dict  => Fetches "new" data from the database/server/websocket whatever and provides it in the form of dictionary, one PDF at a time.
-    # **FetchMapping.process() -> Dict => Feches mapping and yeilds it in the form of dictionary
-    # **BuildPDF.process() -> File => Function to build PDF and return a file
-    # **UploadPDF.process(key, File) ->  => Fuction to save PDF
-    # **RetrievePDF.process(key) -> File => Function to get the previously saved PDF from the key
+    ''' **FetchData.process() -> Dict  => Fetches "new" data from the database/server/websocket
+     whatever and provides it in the form of dictionary, one PDF at a time.
+     **FetchMapping.process() -> Dict => Feches mapping and yeilds it in the form of dictionary
+     **BuildPDF.process() -> File => Function to build PDF and return a file
+     **UploadPDF.process(key, File) ->  => Fuction to save PDF
+     **RetrievePDF.process(key) -> File => Function to get the previously saved PDF from the key'''
 
     def fetch_data(self):
-        pass
+        """
+        Fetches "new" data from the database/server/websocket
+        whatever and provides it in the form of dictionary, one PDF at a time
+        """
 
-    def fetch_mapping(self,data):
-        pass
+    def fetch_mapping(self, data):
+        """
+        Feches mapping and yeilds it in the form of dictionary
+        """
 
-    def build_PDF(self,raw_data,file_name):
-        pass
+    def build_pdf(self, raw_data, file_name):
+        """
+        Function to build PDF and return a file
+        """
 
-    def upload_PDF(self,key, file):
-        pass
+    def upload_pdf(self, key, file_url):
+        """
+        Fuction to save PDF
+        """
 
-    def retrieve_PDF(self, key):
-        pass
-    
+    def retrieve_pdf(self, key):
+        """
+        Function to get the previously saved PDF from the key
+        """
 
 class Config:
-
-    def get_default_config(self):
+    """
+    define configuration for pdf generation
+    """
+    @classmethod
+    def get_default_config(cls):
+        """
+        return default configuration
+        """
         config = {"retries": 1, "max_concurrency": 2}
         return config
 
-    def __init__(self, *, config=dict()):
+    def __init__(self, config=None):
 
         self.retries = config["retries"]
         self.max_concurrency = config["max_concurrency"]
 class PDFBuilder:
-    def __init__(self, *, plugin, config):
+    '''
+    initialize itself with any plugin and call its function for pdf generation
+    '''
+    def __init__(self, plugin, config):
         try:
             PDFPlugin.verify(type(plugin))
             self._plugin = plugin
@@ -53,12 +75,13 @@ class PDFBuilder:
             self._app = get_db()
         except:
             raise ValueError('Please provide a valid plugin. Needs to be an instance of PDFPlugin.')
-    def insertOutputTable(self,rec_unique_id, rec_instance_id, rec_doc_url,
-                      rec_raw_data, rec_tags, rec_doc_name, rec_pdf_version):
+    @classmethod
+    def _insert_output_table(cls, rec_unique_id, rec_instance_id, rec_doc_url,
+                             rec_raw_data, rec_tags, rec_doc_name, rec_pdf_version):
         error = None
         try:
             get_db()
-            dataForOutputTable = outputTable(
+            data_for_output_table = OutputTable(
                 unique_id=rec_unique_id,
                 instance_id=rec_instance_id,
                 doc_url=rec_doc_url,
@@ -67,144 +90,142 @@ class PDFBuilder:
                 doc_name=rec_doc_name,
                 pdf_version=rec_pdf_version
                 )
-            db.session.add(dataForOutputTable)  # Adds new request record to database
-            db.session.commit()  # Commits all changesgetConnection
-            #db.session.flush()
-        except:
+            DB.session.add(data_for_output_table)  # Adds new request record to database
+            DB.session.commit()  # Commits all changesgetConnection
+            #DB.session.flush()
+        except Exception as ex:
             error = 'Values not inserted in output table'
 
         return error
-        
-    def process_queue(self,qm, i, results):
+    def _process_queue(self, pdf_data):
+        """
+        function for generating pdf
+        """
         error = None
         try:
-            config = self._plugin.get_config()
             with self._app.app_context():
-                tries = qm.tries
+                tries = pdf_data.tries
                 tries += 1  # Incrementing the tries
-                qm.tries = tries
-                mapping_data = self._plugin.fetch_mapping(qm.raw_data)
-                mappingError = mapping_data[1]
+                pdf_data.tries = tries
+                mapping_data = self._plugin.fetch_mapping(pdf_data.raw_data)
+                mapping_error = mapping_data[1]
 
-                if not mappingError:
-                    qm.raw_data = mapping_data[0]
-                    qm.step = 1
-                    file_build = self._plugin.build_PDF(qm.raw_data,qm.instance_id)
-                    fileName = file_build[0]
-                    fileError = file_build[1]
-                    
-                                                                 
-                    if not fileError:
-                        qm.step = 2
-                        qm.doc_name = file_build[0]
-                        qm.doc_url = file_build[2]
-                        fileDownloaded = self._plugin.upload_PDF(fileName,qm.doc_url)
-                        fileName = fileDownloaded[0]
-                        fileError = fileDownloaded[1]
-                        if not fileError:
-                            qm.step = 3
-                            version = qm.pdf_version
+                if not mapping_error:
+                    pdf_data.raw_data = mapping_data[0]
+                    pdf_data.step = 1
+                    file_build = self._plugin.build_pdf(pdf_data.raw_data, pdf_data.instance_id)
+                    file_name = file_build[0]
+                    file_error = file_build[1]
+                    if not file_error:
+                        pdf_data.step = 2
+                        pdf_data.doc_name = file_build[0]
+                        pdf_data.doc_url = file_build[2]
+                        file_downloaded = self._plugin.upload_pdf(file_name, pdf_data.doc_url)
+                        file_name = file_downloaded[0]
+                        file_error = file_downloaded[1]
+                        if not file_error:
+                            pdf_data.step = 3
+                            version = pdf_data.pdf_version
                             version += 1
-                            qm.pdf_version = version
-                            qm.current_status = 'complete'
-                            qm.task_completed = True
+                            pdf_data.pdf_version = version
+                            pdf_data.current_status = 'complete'
+                            pdf_data.task_completed = True
                             # Now moving the above data to the Output table
-                            insertedToOutput = self.insertOutputTable(
-                                qm.unique_id, qm.instance_id, qm.doc_url,
-                                qm.raw_data, qm.tags,
-                                qm.doc_name, qm.pdf_version)
+                            inserted_to_output = self._insert_output_table(
+                                pdf_data.unique_id, pdf_data.instance_id, pdf_data.doc_url,
+                                pdf_data.raw_data, pdf_data.tags,
+                                pdf_data.doc_name, pdf_data.pdf_version)
 
-                            if not insertedToOutput:
-                                qm.error_encountered = ''
+                            if not inserted_to_output:
+                                pdf_data.error_encountered = ''
                             else:
-                                qm.error_encountered = insertedToOutput
-                                qm.task_completed = False
+                                pdf_data.error_encountered = inserted_to_output
+                                pdf_data.task_completed = False
                         else:
-                            qm.error_encountered = fileError
+                            pdf_data.error_encountered = file_error
                     else:
-                        qm.error_encountered = fileError       
+                        pdf_data.error_encountered = file_error
                 else:
-                    qm.error_encountered = mappingError    
-            
-        except Exception as e:
+                    pdf_data.error_encountered = mapping_error
+        except Exception as ex:
             error = "Unable to process queue"
 
-        return error,qm        
+        return error, pdf_data
     def start_queue(self):
+        """
+        function for getting all data from pdfdata table which are not completed yet
+        """
         while 1:
             results = []
-            qms = pdfData.query.filter(pdfData.tries < self._config.retries, pdfData.task_completed == False).limit(self._config.max_concurrency).all()
+            qms = PdfData.query.filter(PdfData.tries < self._config.retries,
+                                       PdfData.task_completed == False).limit(
+                                           self._config.max_concurrency).all()
             if not qms:
                 print("Sleeping for 10 seconds")
                 sleep(10)  # If no data is found in database sleep for 10 seconds
-                
+                #break
             else:
                 try:
                     i = 0
-                    for q in qms:
-                        resp = self.process_queue(q, i, results)
+                    for data in qms:
+                        resp = self._process_queue(data)
                         results.append(resp[1])
                         i += 1
-                    db.session.bulk_save_objects(results)
-                    db.session.commit()
+                    DB.session.bulk_save_objects(results)
+                    DB.session.commit()
                     break
 
-                except Exception as e:
-                    print(e)
-        
-                       
-        
-    def save_pdf_data(self,final_data,tags):
-        username = "Admin"
+                except Exception as ex:
+                    print(ex)
+    @classmethod
+    def _save_pdf_data(cls, final_data, tags):
         unique_ids = []
-        config = self._plugin.get_config()
-        
-        json_data = pdfData(
+        json_data = PdfData(
             raw_data=final_data,
-            tags = tags,
+            tags=tags,
             instance_id=uuid.uuid4())
-        
-        db.session.add(json_data)  # Adds new User record to database
-        db.session.flush()  # Pushing the object to the database so that it gets assigned a unique id
+        DB.session.add(json_data)  # Adds new User record to database
+        DB.session.flush() # Pushing the object to the database so that it gets assigned a unique id
         unique_ids.append(json_data.unique_id)
-        db.session.commit()  # Commits all changes
-        status = 'submitted'   
-        return {"status": status, "uniqueId": unique_ids}    
+        DB.session.commit()  # Commits all changes
+        status = 'submitted'
+        return {"status": status, "uniqueId": unique_ids}
     def run(self):
+        """
+        function for calling queue method which generate pdf
+        """
         print("Starting program")
         print("-" * 79)
         with self._app.app_context():
             self.start_queue()
-                
-        
-
         print("Program done")
         print()
-    def dataDownload(self):
+    def data_download(self):
+        """
+        function for saving data from queue into PdfData table
+        """
         print("Starting data download")
         print("-" * 79)
         with self._app.app_context():
             while 1:
-                q = FifoDiskQueue(os.path.dirname(__file__)+'/../queuedata')
-                data = q.pop()
-                q.close()
+                da_queue = FifoDiskQueue(os.path.dirname(__file__)+'/../queuedata')
+                data = da_queue.pop()
+                da_queue.close()
                 if not data:
                     print('sleep for 10')
-                    sleep(10) 
+                    sleep(10)
                     #break
                 else:
                     raw_data = json.loads(data.decode('utf-8'))
-                    self.save_pdf_data(raw_data['reqd_data'],raw_data['tags'])
-                    
+                    self._save_pdf_data(raw_data['reqd_data'], raw_data['tags'])
+                    break
     def start(self):
-        threads = []
-        t1 = threading.Thread(target=self.dataDownload) 
-        t2 = threading.Thread(target=self.run)
-        t1.start()
-        t2.start()
-        t1.join()
-        t2.join() 
-        '''error = self._plugin.fetch_data()
-        if error:
-            print("Error 5")'''            
+        """ function for calling data download
+        in one thread and run method in another thread """
+        dow_thread = threading.Thread(target=self.data_download)
+        run_thread = threading.Thread(target=self.run)
+        dow_thread.start()
+        run_thread.start()
+        dow_thread.join()
+        run_thread.join()
         
