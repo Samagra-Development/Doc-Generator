@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: GitHub Action for pylint
+name: Python Pylin GitHub Action
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
@@ -19,7 +19,9 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: cclauss/GitHub-Action-for-pylint@0.7.0
+    - name: Python Pylin GitHub Action
+      uses: fylein/python-pylint-github-action@v1
+      with:
+       args: pip3 install -r requirements.txt && pylint src
 
    
