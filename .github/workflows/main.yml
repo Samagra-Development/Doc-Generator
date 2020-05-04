@@ -6,8 +6,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - name: Python Pylint Github Action
-      uses: fylein/python-pylint-github-action@master
+    - name: GitHub Action for pylint
+      uses: cclauss/GitHub-Action-for-pylint@0.7.0
       with:
-        args: pip3 install -r requirements.txt && pylint src
+        args: pip install -r requirements.txt ; pylint **/*.py
         
