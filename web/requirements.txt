@@ -19,3 +19,5 @@ queuelib
 pygraphviz
 ERAlchemy
 python-interface
+boto3
+gspread

@@ -31,11 +31,11 @@ The first steps are to create the template and mapping data. The detailed docs t
 ### 2.2 Setting up the google services.
 
 1.  Setup the [Google Credentials for service account credentials](https://developers.google.com/identity/protocols/oauth2/service-account) on google developer console .
-2.  Copy Service account json credential in GoogleDocPlugin folder and name it as gcs-creds.json.
+2.  Copy Service account json credential in google_doc_plugin folder and name it as gcs-creds.json.
 3.  [Enable the following API](https://support.google.com/googleapi/answer/6158841?hl=en) => Google Docs, Google Sheets, Google Cloud Storage.
 4.  Creating a [Oauth2 access token json from Google developer console](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred).
-5.  Copy Oauth2 Credential json file (client_secret.json) and paste it in GoogleDocPlugin and name it as credentials.json.
-6.  Create a [Google App Script](https://developers.google.com/apps-script/overview#your_first_script) and delete all code and copy code from **google_app_script_code.js** file in GoogleDocPlugin and paste it on script editor and then publish it as a deploy as web app.Deploy as web app pop up opens and select "**Anyone,Even Anoynmous**" in **Who has access to the app** . (See network tab on Google Chrome dev console if you have issues with it)
+5.  Copy Oauth2 Credential json file (client_secret.json) and paste it in google_doc_plugin and name it as credentials.json.
+6.  Create a [Google App Script](https://developers.google.com/apps-script/overview#your_first_script) and delete all code and copy code from **google_app_script_code.js** file in google_doc_plugin and paste it on script editor and then publish it as a deploy as web app.Deploy as web app pop up opens and select "**Anyone,Even Anoynmous**" in **Who has access to the app** . (See network tab on Google Chrome dev console if you have issues with it)
 7.  Update the url in googledoc-config.json.
 8.  Create [Google Cloud Storage Bucket](https://cloud.google.com/storage/docs/creating-buckets#storage-create-bucket-console) and update the bucket name and GOOGLECLOUDBASEURL in googledoc-config.json.
 

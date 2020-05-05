@@ -12,7 +12,7 @@ We have defined what a plugin is [here](bla). Every now and then, you would feel
 
 ### 2.1 Building the actual plugin
 
-- All plugins implements `PDFPlugin` interface For example take a look at the source code of [GoogleDocPlugin/external.py](https://github.com/ChakshuGautam/PDF-Package/blob/master/src/plugin/GoogleDocPlugin/external.py) and see line number 16
+- All plugins implements `PDFPlugin` interface For example take a look at the source code of [google_doc_plugin/external.py](https://github.com/ChakshuGautam/PDF-Package/blob/master/src/plugin/google_doc_plugin/external.py) and see line number 16
 
 ```python
 class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
@@ -49,7 +49,7 @@ class PDFPlugin(Interface):
 ### 2.2 Adding the plugin to the main system
 
 - Import PDFBuilder Class `from internal import PDFBuilder, PDFPlugin`
-- Import Plugin File `from GoogleDocPlugin.external import GoogleDocsSheetsPlugin`
+- Import Plugin File `from google_doc_plugin.external import GoogleDocsSheetsPlugin`
 
 - Add this class as plugin of PdfBuilder class and also pass config if we need any
 
@@ -66,7 +66,7 @@ Now `main.py` will look like :
 
 ```python
 from .internal import PDFBuilder, PDFPlugin
-from plugin.GoogleDocPlugin.external import GoogleDocsSheetsPlugin
+from plugin.google_doc_plugin.external import GoogleDocsSheetsPlugin
 
 if __name__ == "__main__":
     config = {"retries": 1, "max_concurrency": 2}
@@ -78,9 +78,9 @@ if __name__ == "__main__":
 
 A lot of times you wouldn't want to write the whole thing and would want to just extend some other plugin that is already written or maybe two and modify the parts that are not the same as the origin plugin. Here you can do this native python classes.
 
-- Import the plugin to your plugin folder `from GoogleDocPlugin.external import GoogleDocsSheetsPlugin`
+- Import the plugin to your plugin folder `from google_doc_plugin.external import GoogleDocsSheetsPlugin`
 - Create plugin class by extending this superclass and not extending it though the interface. `class ODKPlugin(GoogleDocsSheetsPlugin)`
-- All the superclass method are available here. If we need to override the superclass method then we can simply add the method with same name and argument and we can also call the superclass method using super statement. for example : File [GoogleDocPlugin/external.py](https://github.com/ChakshuGautam/PDF-Package/blob/master/src/plugin/GoogleDocPlugin/external.py)
+- All the superclass method are available here. If we need to override the superclass method then we can simply add the method with same name and argument and we can also call the superclass method using super statement. for example : File [google_doc_plugin/external.py](https://github.com/ChakshuGautam/PDF-Package/blob/master/src/plugin/google_doc_plugin/external.py)
 
 ```python
 from pdfbase.internal import PDFPlugin
@@ -96,10 +96,10 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
       return mappingValues,tags, error
 ```
 
-File [ODKPlugin/external.py](https://github.com/ChakshuGautam/PDF-Package/blob/master/src/plugin/ODKPlugin/external.py)
+File [odk_plugin/external.py](https://github.com/ChakshuGautam/PDF-Package/blob/master/src/plugin/odk_plugin/external.py)
 
 ```python
-from GoogleDocPlugin.external import GoogleDocsSheetsPlugin
+from google_doc_plugin.external import GoogleDocsSheetsPlugin
 
 class ODFPlugin(GoogleDocsSheetsPlugin):
     def fetch_data(self):

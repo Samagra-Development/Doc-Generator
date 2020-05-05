@@ -1,11 +1,10 @@
-import random, string, json
-from flask import Flask, request
-from flask import jsonify
+"""
+Make a endpoint where we continuously receive request from another server
+"""
 from .app import create_app
-from queuelib import FifoDiskQueue
-import uuid
-app = create_app()
 from .external import ODKSheetsPlugin
+app = create_app()
+
 
 
 ## Route for saksham samiksha
@@ -22,16 +21,18 @@ Following ODK forms are related to this route:
 """
 
 @app.route("/saksham-custom", methods=['POST'])
-def getPdfForSaksham():
-
+def get_pdf_for_saksham():
+    """
+    receive request from another server and save it in queue
+    """
     obj = ODKSheetsPlugin()
     error = obj.fetch_data()
     if not error:
         status = 'done'
     else:
-        status = error    
+        status = error
     return {'status':status}
-    
+
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=8080)
 

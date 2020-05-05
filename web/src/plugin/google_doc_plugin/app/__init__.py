@@ -1,10 +1,14 @@
-class Config(object):
+"""
+Create Flask server for googledoc
+"""
+# app/__init__.py
+from flask import Flask
+
+class Config:
     """
     Common configurations
     """
-    SQLALCHEMY_DATABASE_URI='postgresql://auriga:auriga123@localhost:5432/auriga'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = 'p9Bv<3Eid9dQW#$&sdER25wSF2w4fs$i01'  # Secret API key
+
 class DevelopmentConfig(Config):
     """
     Development configurations
@@ -20,8 +24,17 @@ class ProductionConfig(Config):
     """
 
     DEBUG = False
-    
-app_config = {
+
+APP_CONFIG = {
     'development': DevelopmentConfig,
     'production': ProductionConfig
 }
+CONFIG_NAME = 'development'
+
+def create_app():
+    """
+    create server
+    """
+    app = Flask(__name__, instance_relative_config=True)
+    app.config.from_object(APP_CONFIG[CONFIG_NAME])
+    return app
