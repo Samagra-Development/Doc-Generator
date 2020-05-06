@@ -5,7 +5,6 @@ google-auth-oauthlib
 psycopg2-binary
 sqlalchemy
 flask_migrate
-pandas
 flask_script
 jsonify
 flask
@@ -16,8 +15,6 @@ google-cloud-storage
 requests
 uwsgi
 queuelib
-pygraphviz
-ERAlchemy
 python-interface
 boto3
 gspread
