@@ -9,5 +9,5 @@ jobs:
     - name: Python Pylin GitHub Action
       uses: kamalauriga/python-pylint-github-action@master
       with:
-        args: pip3 install -r web/requirements.txt && pylint web/src
+        args: pip install -r web/requirements.txt && pylint web/src
         
