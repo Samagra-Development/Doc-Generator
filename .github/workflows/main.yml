@@ -6,8 +6,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - name: Python Pylin GitHub Action
+    - name: Python Pylint GitHub Action
       uses: kamalauriga/python-pylint-github-action@master
       with:
-        args: pip install -r web/requirements.txt && pylint web/src
+        args: pip3 install -r web/requirements.txt && pylint web/src
         
