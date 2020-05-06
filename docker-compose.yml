@@ -1,0 +1,35 @@
+version: "3"
+services:
+  db:
+    image: postgres:latest
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    container_name: psql
+    environment:
+      - POSTGRES_USER=auriga
+      - POSTGRES_PASSWORD=auriga123
+      - POSTGRES_DB=auriga
+  pdf-builder:
+    image: &pdf-builder pdf-builder
+    build: ./src
+    command: "python3 -m src.pdfbase.main"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./web/:/usr/src/
+    depends_on:
+      - db
+
+  plugin:
+    image: *pdf-builder
+    build: ./src
+    command: "python3 -m src.plugin.google_doc_plugin.server run"
+    volumes:
+      - ./web/:/usr/src/
+    depends_on:
+      - db
+
+volumes:
+  db-data:
