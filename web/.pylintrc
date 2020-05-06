@@ -144,7 +144,14 @@ disable=print-statement,
         too-many-arguments,
         R0801,
         no-init,
-        broad-except
+        broad-except,
+        unused-variable,
+        singleton-comparison,
+        super-init-not-called,
+        wildcard-import,
+        unused-import,
+        unused-wildcard-import,
+        cyclic-import
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
