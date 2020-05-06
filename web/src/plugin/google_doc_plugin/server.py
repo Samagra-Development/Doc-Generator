@@ -35,5 +35,5 @@ def get_pdf_covid19():
         status = error
     return {'status':status}
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=8080)
+    app.run(host='0.0.0.0', port=5000)
 # https://script.google.com/a/samagragovernance.in/macros/s/AKfycbz7NPxhAb-n2f-36KepyGxdpxnWzcak1OusVp5IGT3MjI1JC3t7/exec

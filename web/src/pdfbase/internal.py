@@ -113,6 +113,7 @@ class PDFBuilder:
                 if not mapping_error:
                     pdf_data.raw_data = mapping_data[0]
                     pdf_data.step = 1
+                    print(pdf_data.raw_data)
                     file_build = self._plugin.build_pdf(pdf_data.raw_data, pdf_data.instance_id)
                     file_name = file_build[0]
                     file_error = file_build[1]
@@ -173,7 +174,7 @@ class PDFBuilder:
                         i += 1
                     DB.session.bulk_save_objects(results)
                     DB.session.commit()
-                    break
+                    #break
 
                 except Exception as ex:
                     print(ex)
@@ -217,8 +218,9 @@ class PDFBuilder:
                     #break
                 else:
                     raw_data = json.loads(data.decode('utf-8'))
+                    print(raw_data['reqd_data'])
                     self._save_pdf_data(raw_data['reqd_data'], raw_data['tags'])
-                    break
+                    #break
     def start(self):
         """ function for calling data download
         in one thread and run method in another thread """
