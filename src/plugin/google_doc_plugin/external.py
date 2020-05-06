@@ -90,7 +90,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         except SpreadsheetNotFound as ex:
             error = "Failed to fetch mapping detials"
             mapping_values = None
-            
+
         except Exception as ex:
             error = "Failed to fetch mapping detials"
             mapping_values = None
@@ -182,10 +182,10 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                 self.raw_data = raw_data
             else:
                 error = str(mapping_error) + str(options_error)
-                
+
         except Exception as ex:
             error = "Failed to fetch mapping detials"
-            
+
         return raw_data, error
     @classmethod
     def _map_data(cls, all_data, mapping_values, options_mapping):
@@ -302,7 +302,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                 error = mapping_error
         except Exception as ex:
             error = "Failed to generate pdf"
-            
+
         return pdf_name, error, pdf_url
 
     def upload_pdf(self, key, file_url):
@@ -336,7 +336,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             self._delete_file_drive(file_url)
         except Exception as ex:
             error = "Failed to download file from drive"
-            
+
         return key, error
 
     def retrieve_pdf(self, key):

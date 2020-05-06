@@ -1,0 +1,13 @@
+on: [push, pull_request]
+name: on push
+jobs:
+  pythonPylintGithubAction:
+    name: Python Pylint Github Action
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Python Pylint GitHub Action
+      uses: kamalauriga/python-pylint-github-action@master
+      with:
+        args: pip3 install -r web/requirements.txt && pylint --rcfile=web/.pylintrc web/src
+        
