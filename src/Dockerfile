@@ -6,6 +6,7 @@ WORKDIR /usr/src/
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV FLASK_APP db/app.py
 
 # install psycopg2 dependencies
 RUN apk update \
@@ -17,7 +18,9 @@ COPY ./requirements.txt /usr/src/requirements.txt
 RUN pip install -r requirements.txt
 
 COPY . /usr/src/
+#RUN chmod +x /usr/src/docker-entrypoint.sh
 
-RUN chmod +x /usr/src/docker-entrypoint.sh
+#ENTRYPOINT ["/usr/src/docker-entrypoint.sh"]
 
-ENTRYPOINT ["/usr/src/docker-entrypoint.sh"]
+CMD flask db upgrade && python3 -m pdfbase.main
+

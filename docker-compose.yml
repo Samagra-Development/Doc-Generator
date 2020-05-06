@@ -15,9 +15,7 @@ services:
   pdf-builder:
     image: &pdf-builder pdf-builder
     build: ./src
-    command: "python3 -m src.pdfbase.main"
-    ports:
-      - "5000:5000"
+    #command: "python3 -m pdfbase.main"
     volumes:
       - ./src/:/usr/src/
     depends_on:
@@ -25,8 +23,9 @@ services:
 
   plugin:
     image: *pdf-builder
-    build: ./src
-    command: "python3 -m src.plugin.google_doc_plugin.server run"
+    command: "python3 -m plugin.google_doc_plugin.server run"
+    ports:
+      - "5000:5000"
     volumes:
       - ./src/:/usr/src/
     depends_on:

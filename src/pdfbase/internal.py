@@ -8,8 +8,8 @@ import threading
 from time import sleep
 from queuelib import FifoDiskQueue
 from interface import Interface
-from ..db.app import DB, get_db
-from ..db.models import PdfData, OutputTable
+from db.app import DB, get_db
+from db.models import PdfData, OutputTable
 
 
 class PDFPlugin(Interface):
@@ -174,7 +174,7 @@ class PDFBuilder:
                         i += 1
                     DB.session.bulk_save_objects(results)
                     DB.session.commit()
-                    break
+                    #break
 
                 except Exception as ex:
                     print(ex)
@@ -218,16 +218,15 @@ class PDFBuilder:
                     #break
                 else:
                     raw_data = json.loads(data.decode('utf-8'))
-                    print(raw_data['reqd_data'])
                     self._save_pdf_data(raw_data['reqd_data'], raw_data['tags'])
-                    break
+                    #break
     def start(self):
         """ function for calling data download
         in one thread and run method in another thread """
-        dow_thread = threading.Thread(target=self.run)
-        #run_thread = threading.Thread(target=self.run)
+        dow_thread = threading.Thread(target=self.data_download)
+        run_thread = threading.Thread(target=self.run)
         dow_thread.start()
-        #run_thread.start()
+        run_thread.start()
         dow_thread.join()
-        #run_thread.join()
+        run_thread.join()
         
