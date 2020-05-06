@@ -11,6 +11,7 @@ services:
       - POSTGRES_USER=auriga
       - POSTGRES_PASSWORD=auriga123
       - POSTGRES_DB=auriga
+
   pdf-builder:
     image: &pdf-builder pdf-builder
     build: ./src
@@ -18,7 +19,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./web/:/usr/src/
+      - ./src/:/usr/src/
     depends_on:
       - db
 
@@ -27,7 +28,7 @@ services:
     build: ./src
     command: "python3 -m src.plugin.google_doc_plugin.server run"
     volumes:
-      - ./web/:/usr/src/
+      - ./src/:/usr/src/
     depends_on:
       - db
 
