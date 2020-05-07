@@ -1,5 +1,5 @@
 on: [push, pull_request]
-name: on push
+name: Pylint
 jobs:
   pythonPylintGithubAction:
     name: Python Pylint Github Action
