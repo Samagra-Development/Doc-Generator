@@ -113,7 +113,6 @@ class PDFBuilder:
                 if not mapping_error:
                     pdf_data.raw_data = mapping_data[0]
                     pdf_data.step = 1
-                    print(pdf_data.raw_data)
                     file_build = self._plugin.build_pdf(pdf_data.raw_data, pdf_data.instance_id)
                     file_name = file_build[0]
                     file_error = file_build[1]

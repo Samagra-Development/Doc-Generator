@@ -23,6 +23,7 @@ services:
 
   plugin:
     image: *pdf-builder
+    build: ./src
     command: "python3 -m plugin.google_doc_plugin.server run"
     ports:
       - "5000:5000"
