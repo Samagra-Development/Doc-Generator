@@ -1,6 +1,6 @@
+*-config.json
 queuedata/
 instance/
-migrations/
 uploadFiles/
 odkdata/
 token.pickle
