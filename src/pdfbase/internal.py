@@ -8,8 +8,8 @@ import threading
 from time import sleep
 from queuelib import FifoDiskQueue
 from interface import Interface
-from ..db.app import DB, get_db
-from ..db.models import PdfData, OutputTable
+from db.app import DB, get_db
+from db.models import PdfData, OutputTable
 
 
 class PDFPlugin(Interface):
@@ -113,7 +113,6 @@ class PDFBuilder:
                 if not mapping_error:
                     pdf_data.raw_data = mapping_data[0]
                     pdf_data.step = 1
-                    print(pdf_data.raw_data)
                     file_build = self._plugin.build_pdf(pdf_data.raw_data, pdf_data.instance_id)
                     file_name = file_build[0]
                     file_error = file_build[1]
@@ -218,7 +217,6 @@ class PDFBuilder:
                     #break
                 else:
                     raw_data = json.loads(data.decode('utf-8'))
-                    print(raw_data['reqd_data'])
                     self._save_pdf_data(raw_data['reqd_data'], raw_data['tags'])
                     #break
     def start(self):

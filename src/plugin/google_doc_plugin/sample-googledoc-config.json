@@ -3,14 +3,15 @@
   "BUCKET": "pdf-builder-samagra",
   "URL": "https://script.google.com/macros/s/AKfycbw1Et6M-NEQ9nnPw5OqSt5kCCFg5orR1dsIZ0gRJB8YJTZj864/exec?",
   "GOOGLECLOUDBASEURL": "https://storage.googleapis.com/covid19_samagra/",
-  "SHEETID": "12K4BSHk3B5MGwaWvhLr8xbgMk_0rFHvblOFwpCzuCsU",
+  "SHEETID": "12K4BSHk3B5MGwaWvhLr8xbgMk_0rFHvblOFwpCzskjas",
   "SHEETNAME": "PDF generator excel",
   "RANGE": "B1:AM37",
   "MAPPINGDETAILS": "mappingDetails",
   "OPTIONSSHEET": "optionsSheet",
-  "DOCTEMPLATEID": "1g7EvvBPsMi2kXyg0am-iRZ72DJNZNtyUrRwKieXhWn0",
+  "DOCTEMPLATEID": "1g7EvvBPsMi2kXyg0am-iRZ72DJNZNtyUrRwKiesfg",
   "APPLICATIONID": "Covid19",
   "DIRPATH": "/../../uploadFiles/",
-  "ACCESSKEY": "AKIAJZFKZICKJCYT3MIA",
-  "SECRETKEY": "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"
+  "ACCESSKEY": "asfgkasgfka",
+  "SECRETKEY": "klfjalfja",
+  "UPLOADTO" : "google"
 } 

@@ -14,8 +14,8 @@ from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 from interface import implements
 from queuelib import FifoDiskQueue
-from ...pdfbase.internal import PDFPlugin
-from ..file_uploader.file_uploader import FileUploader
+from pdfbase.internal import PDFPlugin
+from plugin.file_uploader.file_uploader import FileUploader
 # implement interface
 
 class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
@@ -46,7 +46,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                                                                      sheet_scopes)
             client = gspread.authorize(creds)
         except Exception as ex:
-            print('in except')
             print(ex)
         return client
     def _get_session_cookie(self):
@@ -91,10 +90,9 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         except SpreadsheetNotFound as ex:
             error = "Failed to fetch mapping detials"
             mapping_values = None
-            print(ex)
+
         except Exception as ex:
             error = "Failed to fetch mapping detials"
-            print(ex)
             mapping_values = None
 
         return mapping_values, error
@@ -139,18 +137,20 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                         counter += 1
                     tags = self.get_tags()
                     all_data = dict()
-                    print(single_data)
                     all_data['req_data'] = single_data
                     all_data.update(self.config) # merge tags with sheet each row data
                     raw_data = dict()
                     raw_data['reqd_data'] = all_data
                     raw_data['tags'] = tags
-                    queue_data = FifoDiskQueue(os.path.dirname(__file__)+'/../../queuedata')
+                    queue_file = os.path.dirname(__file__)+'/../../queuedata'
+                    if not os.path.exists(queue_file):
+                        os.makedirs(queue_file)
+                    queue_data = FifoDiskQueue(queue_file)
                     queue_data.push(json.dumps(raw_data).encode('utf-8'))
                     queue_data.close()
             else:
                 error = "No Mapping details found"
-                print(error)
+
         except Exception as ex:
             error = "Failed to fetch mapping detials"
             mapping_values = None
@@ -165,7 +165,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         error = None
         raw_data = None
         try:
-            print('in fetch mapping')
             get_value_mapping = self.get_sheetvalues(data['SHEETID'], data['MAPPINGDETAILS'])
             mapping_error = get_value_mapping[1]  # Error in fetching mapping
             mapping_values = get_value_mapping[0]  # mapping values list
@@ -175,7 +174,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             options_mapping = get_options_mapping[0]  # options mapping list
 
             if not mapping_error and not options_error:
-                print('in fetch mapping')
                 raw_data = dict()
                 raw_data['value_mapping'] = mapping_values
                 raw_data['options_mapping'] = options_mapping
@@ -184,10 +182,10 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                 self.raw_data = raw_data
             else:
                 error = str(mapping_error) + str(options_error)
-                print(error)
+
         except Exception as ex:
             error = "Failed to fetch mapping detials"
-            print(ex)
+
         return raw_data, error
     @classmethod
     def _map_data(cls, all_data, mapping_values, options_mapping):
@@ -211,7 +209,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                     str_to_check = new_list[:
                                             index_end]
                     option_value_start = str_to_check.find(str(all_data[row[2]]))
-                    if option_value_start is -1:
+                    if option_value_start == -1:
                         all_data[row[
                             2]] = 'NO_TEXT_FOUND'  # If the particular option is not found
                         # Appending the received data to the final list
@@ -231,7 +229,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                     final_data.append(all_data[row[
                         2]])  # Appending the received data to the final list
         except Exception as ex:
-            print(traceback.format_exc())
             error = "Failed to map data"
         return final_data, error
 
@@ -305,8 +302,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                 error = mapping_error
         except Exception as ex:
             error = "Failed to generate pdf"
-            print(ex)
-            print(traceback.format_exc())
 
         return pdf_name, error, pdf_url
 
@@ -318,6 +313,8 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         error = ''
         try:
             response = requests.get(file_url)
+            if not os.path.exists(os.path.dirname(__file__) +self.config['DIRPATH']):
+                os.makedirs(os.path.dirname(__file__) +self.config['DIRPATH'])
             with open(os.path.dirname(__file__) +self.config['DIRPATH']+key, 'wb') as file_obj:
                 file_obj.write(response.content)
                 base_path = os.path.dirname(__file__)
@@ -334,14 +331,12 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                     status = resp[0]
                     error = resp[1]
                     if status:
-                        print('success')
                         os.remove(os.path.dirname(__file__) +self.config['DIRPATH']+key)
 
             self._delete_file_drive(file_url)
         except Exception as ex:
-            print(traceback.format_exc())
             error = "Failed to download file from drive"
-            print(error)
+
         return key, error
 
     def retrieve_pdf(self, key):
@@ -351,7 +346,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         filedata = ''
         error = None
         file_name = self.config['DIRPATH'] + key+'.pdf'
-        print(file_name)
         try:
             with open(file_name, 'rb') as file_obj:
                 filedata = file_obj.read()
