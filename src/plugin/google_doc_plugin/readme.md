@@ -19,11 +19,10 @@ The first steps are to create the template and mapping data. The detailed docs t
 1.  Setup the [Google Credentials for service account credentials](https://developers.google.com/identity/protocols/oauth2/service-account) on google developer console .
 2.  Copy Service account json credential in google_doc_plugin folder and name it as gcs-creds.json.
 3.  [Enable the following API](https://support.google.com/googleapi/answer/6158841?hl=en) => Google Docs, Google Sheets, Google Cloud Storage.
-4.  Creating a [Oauth2 access token json from Google developer console](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred).
-5.  Copy Oauth2 Credential json file (client_secret.json) and paste it in google_doc_plugin and name it as credentials.json.
-6.  Create a [Google App Script](https://developers.google.com/apps-script/overview#your_first_script) and delete all code and copy code from **google_app_script_code.js** file in google_doc_plugin and paste it on script editor and then publish it as a deploy as web app.Deploy as web app pop up opens and select "**Anyone,Even Anoynmous**" in **Who has access to the app** . (See network tab on Google Chrome dev console if you have issues with it)
-7.  Update the url in googledoc-config.json.
-8.  Create [Google Cloud Storage Bucket](https://cloud.google.com/storage/docs/creating-buckets#storage-create-bucket-console) and update the bucket name and GOOGLECLOUDBASEURL in googledoc-config.json.
+4. Inside the gcs-creds.json, you can locate an email address property called “client_email”, copy that and take it over to our spreadsheet on the cloud, we can share that particular spreadsheet with the email address present in client_email.
+5.  Create a [Google App Script](https://developers.google.com/apps-script/overview#your_first_script) and delete all code and copy code from **google_app_script_code.js** file in google_doc_plugin and paste it on script editor and then publish it as a deploy as web app.Deploy as web app pop up opens and select "**Anyone,Even Anoynmous**" in **Who has access to the app** . (See network tab on Google Chrome dev console if you have issues with it)
+6.  Update the url in googledoc-config.json.
+7.  Create [Google Cloud Storage Bucket](https://cloud.google.com/storage/docs/creating-buckets#storage-create-bucket-console) and update the bucket name and GOOGLECLOUDBASEURL in googledoc-config.json.
 
 ### 2.3 Fixing the config file
 
@@ -32,16 +31,20 @@ The config file containes all the credentails and configurations that are requir
 ```json
 {
   "GOOGLE_APPLICATION_CREDENTIALS": "GoogleDocPlugin/gcs-creds.json", #It contains the path of gcs-creds.json file.
-  "BUCKET": "covid19_samagra",#Google Cloud Storage bucket name
-  "URL": "https://script.google.com/macros/s/AKfycbw1Et6M-NEQ9nnPw5OqSt5kCCFg5orR1dsIZ0gRJB8YJTZj864/exec?",#It contains Google App Scripts execution url
-  "GOOGLECLOUDBASEURL": "https://storage.googleapis.com/covid19_samagra/",#It contain google cloud storage base url
-  "SHEETID":"1_iE1D8Pvsq7SQMMjHWhOhidGvkXENiluq01RXvb3n5g",# It contains google sheet id from where data and mapping is fetched.
+  "BUCKET": "test",#Google Cloud Storage bucket name
+  "URL": "https://script.google.com/macros/s/AKfycbw1Et6M-NEQ9nnPw5OqSt5kCCFgasdR1dsIZasjkdhak/exec?",#It contains Google App Scripts execution url
+  "GOOGLECLOUDBASEURL": "https://storage.googleapis.com/test/",#It contain google cloud storage base url
+  "SHEETID":"1_iE1D8Pvsq7SQMMjHashidGvkXENiluq01RXvb3nsdg",# It contains google sheet id from where data and mapping is fetched.
   "SHEETNAME":"PDF generator excel", #It contains the sheet name of the first sheet of SHEETID from where data is fetched.
   "RANGE":"C1:AM37", # Optional Specifies if there is an empty column in the starting of {SHEETNAME}.
   "MAPPINGDETAILS": "mappingDetails",#It contains the sheet name of SHEETID from where mapping detail is fetched.
   "OPTIONSSHEET": "optionsSheet", #It contains the sheet name of SHEETID from where option detail is fetched.
-  "DOCTEMPLATEID": "1g7EvvBPsMi2kXyg0am-iRZ72DJNZNtyUrRwKieXhWn0",#It contains template id of pdf that needs to be generated.
-  "APPLICATIONID":"Covid19" #It contains application id whose pdf is generated.
+  "DOCTEMPLATEID": "1g7EvvBPsMi2kXyg0am-iRZ72DJNZNtyasdasas",#It contains template id of pdf that needs to be generated.
+  "APPLICATIONID":"test", #It contains application id whose pdf is generated.
+  "DIRPATH": "/../../uploadFiles/", # It contains relative path where created pdf save on local.
+  "UPLOADTO" : "google", # It can be aws or google where we want to save file (optional).
+  "ACCESSKEY": "asfgkasgfka",# access key of aws for saving file on aws server (Required only if we set UPLOADTO with aws).
+  "SECRETKEY": "klfjalfja" #secret key of aws .
 }
 ```
 
