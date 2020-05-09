@@ -1,6 +1,7 @@
 
 
 
+
 # PDF Builder
 
 [![Open Source Love](https://camo.githubusercontent.com/d41b9884bd102b525c8fb9a8c3c8d3bbed2b67f0/68747470733a2f2f6261646765732e66726170736f66742e636f6d2f6f732f76312f6f70656e2d736f757263652e7376673f763d313033)](https://opensource.org/licenses/MIT)  [![License: MIT](https://camo.githubusercontent.com/3ccf4c50a1576b0dd30b286717451fa56b783512/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f4c6963656e73652d4d49542d79656c6c6f772e737667)](https://opensource.org/licenses/MIT)  [![Actions Status](https://github.com/Samagra-Development/PDF-Package/workflows/Pylint/badge.svg)](https://github.com/Samagra-Development/PDF-Package/actions)  
@@ -54,19 +55,19 @@ PDF Builder has the following features:
 	     $  pip install -r requirements.txt
 	 ```    
  - [Install postgres](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-18-04) and add database detail in **src/db/config.py**
- - Go to folder src/db and run following command database table creation:
+ - Go to folder src and run following command database table creation:
 		 
 	 - Create a migration repository with the following command:
 		```shell
-		 $ FLASK_APP=app.py flask db init
+		 $ FLASK_APP=db/app.py flask db init
 		``` 
 	 - Generate an initial migration:
 		```shell
-		 $ FLASK_APP=app.py flask db migrate	
+		 $ FLASK_APP=db/app.py flask db migrate	
 		```
 	 - Run migration:
 		```shell
-		 $ FLASK_APP=app.py flask db upgrade
+		 $ FLASK_APP=db/app.py flask db upgrade
 		```
  ### [](https://github.com/Samagra-Development/PDF-Package#installation-with-docker) Installation with Docker
  - Go to the project root folder and run following command
@@ -116,19 +117,19 @@ PDF Builder has the following features:
 
 ### [](https://github.com/Samagra-Development/PDF-Package#step-4)Step 4
 
--   Go to folder src/db and run following command database table creation:
+-   Go to folder src and run following command database table creation:
     
     -   Create a migration repository with the following command:  
           ```shell 
-          $ FLASK_APP=app.py flask db init
+          $ FLASK_APP=db/app.py flask db init
           ```
     -   Generate an initial migration:  
 	      ```shell
-	     $ FLASK_APP=app.py flask db migrate
+	     $ FLASK_APP=db/app.py flask db migrate
 	     ```
     -   Run migration:  
           ```shell
-           $ FLASK_APP=app.py flask db upgrade
+           $ FLASK_APP=db/app.py flask db upgrade
            ```  
 	
 ## [](https://github.com/Samagra-Development/PDF-Package#license)License
