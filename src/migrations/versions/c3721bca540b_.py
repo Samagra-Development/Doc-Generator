@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: c96841f67022
+Revision ID: c3721bca540b
 Revises: 
-Create Date: 2020-05-06 14:15:53.068658
+Create Date: 2020-05-09 13:17:18.171195
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c96841f67022'
+revision = 'c3721bca540b'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,8 +23,9 @@ def upgrade():
     sa.Column('instance_id', sa.String(length=256), nullable=True),
     sa.Column('raw_data', sa.JSON(), nullable=False),
     sa.Column('doc_url', sa.String(length=128), nullable=True),
+    sa.Column('url_expires', sa.BigInteger(), nullable=True),
     sa.Column('tags', sa.JSON(), nullable=True),
-    sa.Column('doc_name', sa.String(length=64), nullable=True),
+    sa.Column('doc_name', sa.Text(), nullable=True),
     sa.Column('pdf_version', sa.Integer(), nullable=True),
     sa.PrimaryKeyConstraint('unique_id')
     )
@@ -37,7 +38,8 @@ def upgrade():
     sa.Column('current_status', sa.String(length=32), nullable=True),
     sa.Column('step', sa.Integer(), nullable=True),
     sa.Column('tries', sa.Integer(), nullable=True),
-    sa.Column('doc_name', sa.String(length=64), nullable=True),
+    sa.Column('url_expires', sa.BigInteger(), nullable=True),
+    sa.Column('doc_name', sa.Text(), nullable=True),
     sa.Column('pdf_version', sa.Integer(), nullable=True),
     sa.Column('error_encountered', sa.String(), nullable=True),
     sa.Column('task_completed', sa.Boolean(), nullable=True),

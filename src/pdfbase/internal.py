@@ -77,7 +77,7 @@ class PDFBuilder:
             raise ValueError('Please provide a valid plugin. Needs to be an instance of PDFPlugin.')
     @classmethod
     def _insert_output_table(cls, rec_unique_id, rec_instance_id, rec_doc_url,
-                             rec_raw_data, rec_tags, rec_doc_name, rec_pdf_version):
+                             rec_raw_data, rec_tags, rec_doc_name, rec_pdf_version, rec_url_expires):
         error = None
         try:
             get_db()
@@ -88,7 +88,8 @@ class PDFBuilder:
                 raw_data=rec_raw_data,
                 tags=rec_tags,
                 doc_name=rec_doc_name,
-                pdf_version=rec_pdf_version
+                pdf_version=rec_pdf_version,
+                url_expires = rec_url_expires
                 )
             DB.session.add(data_for_output_table)  # Adds new request record to database
             DB.session.commit()  # Commits all changesgetConnection
@@ -121,7 +122,7 @@ class PDFBuilder:
                         pdf_data.doc_name = file_build[0]
                         pdf_data.doc_url = file_build[2]
                         file_downloaded = self._plugin.upload_pdf(file_name, pdf_data.doc_url)
-                        file_name = file_downloaded[0]
+                        upload_file_url = file_downloaded[0]
                         file_error = file_downloaded[1]
                         if not file_error:
                             pdf_data.step = 3
@@ -130,11 +131,13 @@ class PDFBuilder:
                             pdf_data.pdf_version = version
                             pdf_data.current_status = 'complete'
                             pdf_data.task_completed = True
+                            pdf_data.doc_name = upload_file_url
+                            pdf_data.url_expires = file_downloaded[2]
                             # Now moving the above data to the Output table
                             inserted_to_output = self._insert_output_table(
                                 pdf_data.unique_id, pdf_data.instance_id, pdf_data.doc_url,
                                 pdf_data.raw_data, pdf_data.tags,
-                                pdf_data.doc_name, pdf_data.pdf_version)
+                                pdf_data.doc_name, pdf_data.pdf_version, pdf_data.url_expires)
 
                             if not inserted_to_output:
                                 pdf_data.error_encountered = ''

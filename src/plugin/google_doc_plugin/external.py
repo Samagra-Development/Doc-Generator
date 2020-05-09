@@ -4,7 +4,6 @@ Plugin for getting data from sheet and generate pdf from it
 import json
 import os
 import os.path
-import traceback
 from urllib.parse import urlencode
 import gspread
 from gspread.exceptions import SpreadsheetNotFound
@@ -148,6 +147,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                     queue_data = FifoDiskQueue(queue_file)
                     queue_data.push(json.dumps(raw_data).encode('utf-8'))
                     queue_data.close()
+
             else:
                 error = "No Mapping details found"
 
@@ -311,12 +311,16 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         file to cdn and delete file from local server.
         """
         error = ''
+        upload_file_url = None
+        expire_timestamp = None
         try:
             response = requests.get(file_url)
-            if not os.path.exists(os.path.dirname(__file__) +self.config['DIRPATH']):
-                os.makedirs(os.path.dirname(__file__) +self.config['DIRPATH'])
-            with open(os.path.dirname(__file__) +self.config['DIRPATH']+key, 'wb') as file_obj:
+            base_path = os.path.dirname(__file__) +self.config['DIRPATH']
+            if not os.path.exists(base_path):
+                os.makedirs(base_path)
+            with open(base_path+key, 'wb') as file_obj:
                 file_obj.write(response.content)
+                upload_file_url = base_path+key
                 base_path = os.path.dirname(__file__)
                 if('UPLOADTO' in self.config.keys() and self.config['UPLOADTO']):
                     if self.config['UPLOADTO'] == 's3':
@@ -328,16 +332,18 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                                                   self.config['GOOGLE_APPLICATION_CREDENTIALS'])
                     resp = cdn_upload.upload_file(base_path +self.config['DIRPATH']+key,
                                                   self.config['BUCKET'], key)
-                    status = resp[0]
+                    url = resp[0]
                     error = resp[1]
-                    if status:
+                    if url:
+                        upload_file_url = url
+                        expire_timestamp = resp[2]
                         os.remove(os.path.dirname(__file__) +self.config['DIRPATH']+key)
 
             self._delete_file_drive(file_url)
         except Exception as ex:
             error = "Failed to download file from drive"
 
-        return key, error
+        return upload_file_url, error, expire_timestamp
 
     def retrieve_pdf(self, key):
         """

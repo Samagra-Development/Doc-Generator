@@ -38,8 +38,10 @@ class PdfData(DB.Model):
         default=0)  # 0->data fetch,1->mapping fetch,2->pdf build,3-> upload pdf
     tries = DB.Column(
         DB.Integer, default=0)  # No. of attempts trying to process the request
+    url_expires = DB.Column(
+        DB.BigInteger, default=0)  # Timestamp when the url generated expires
     doc_name = DB.Column(
-        DB.String(64)
+        DB.Text
     )  # Google doc File name on google drive. Name of the google doc
     #and pdf (both names will be same)
     pdf_version = DB.Column(
@@ -77,9 +79,11 @@ class OutputTable(DB.Model):
     doc_url = DB.Column(
         DB.String(128)
     )  # google doc url of the generated document (will get doc id from it)
+    url_expires = DB.Column(
+        DB.BigInteger, default=0)  # Timestamp when the url generated expires
     tags = DB.Column(
         DB.JSON)  # All the mapping content
-    doc_name = DB.Column(DB.String(64))  # google doc File name on
+    doc_name = DB.Column(DB.Text)  # google doc File name on
     pdf_version = DB.Column(
         DB.Integer, default=1)  # The PDF version (max 5 allowed)
     def __repr__(self):
