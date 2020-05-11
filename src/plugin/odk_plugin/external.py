@@ -28,20 +28,15 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
         this method return all the tags on the basis of which we filter the request
         """
         tags = dict()
-        tags["MAPPINGDETAILS"] = self.config["MAPPINGDETAILS"]
-        tags["OPTIONSSHEET"] = self.config["OPTIONSSHEET"]
         if self.raw_data:
             tags["FORMID"] = self.raw_data["FORMID"]
             tags["USERNAME"] = self.raw_data["USERNAME"]
             tags["FORMSUBMISSIONDATE"] = self.raw_data["FORMSUBMISSIONDATE"]
             tags["INSTANCEID"] = self.raw_data["INSTANCEID"]
-            tags["SHEETID"] = self.config[self.raw_data["FORMID"]]["SHEETID"]
-            tags["DOCTEMPLATEID"] = self.config[self.raw_data["FORMID"]]["DOCTEMPLATEID"]
-            tags["APPLICATIONID"] = self.config[self.raw_data["FORMID"]]["APPLICATIONID"]
             tags["FORMNAME"] = self.config[self.raw_data["FORMID"]]["FORMNAME"]
-            self.config['SHEETID'] = tags["SHEETID"]
-            self.config['DOCTEMPLATEID'] = tags["DOCTEMPLATEID"]
-            self.config['APPLICATIONID'] = tags["APPLICATIONID"]
+            self.config["SHEETID"] = self.config[self.raw_data["FORMID"]]["SHEETID"]
+            self.config["DOCTEMPLATEID"] = self.config[self.raw_data["FORMID"]]["DOCTEMPLATEID"]
+            self.config["APPLICATIONID"] = self.config[self.raw_data["FORMID"]]["APPLICATIONID"]
             self.config['FORMNAME'] = tags["FORMNAME"]
         return tags
 
