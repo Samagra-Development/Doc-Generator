@@ -285,24 +285,26 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                         session_cookie = call_session_cookie[1]
                     else:
                         error = call_session_cookie[0]
-                    payload['sessionCookie'] = session_cookie
-                    payload['username'] = self.raw_data['ODKUSERNAME']
-                    payload['password'] = self.raw_data['ODKPASSWORD']
-
-                gas_url = self.config['URL'] + urlencode(payload)
-                # Calling the GAS url and Getting the GAS response
-                app_script_response = self._generate_file_drive(gas_url)
-                error = app_script_response[3]
-
+                        print(error)
+                    if not error:
+                        payload['sessionCookie'] = session_cookie
+                        payload['username'] = self.raw_data['ODKUSERNAME']
+                        payload['password'] = self.raw_data['ODKPASSWORD']
                 if not error:
-                    pdf_url = app_script_response[2]
-                    pdf_name = app_script_response[1] + '.pdf'
+                    gas_url = self.config['URL'] + urlencode(payload)
+                    # Calling the GAS url and Getting the GAS response
+                    app_script_response = self._generate_file_drive(gas_url)
+                    error = app_script_response[3]
+
+                    if not error:
+                        pdf_url = app_script_response[2]
+                        pdf_name = app_script_response[1] + '.pdf'
 
             else:
                 error = mapping_error
+
         except Exception as ex:
             error = "Failed to generate pdf"
-
         return pdf_name, error, pdf_url
 
     def upload_pdf(self, key, file_url):

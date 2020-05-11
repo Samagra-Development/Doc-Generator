@@ -28,16 +28,21 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
         this method return all the tags on the basis of which we filter the request
         """
         tags = dict()
-        tags["SHEETID"] = self.config["SHEETID"]
         tags["MAPPINGDETAILS"] = self.config["MAPPINGDETAILS"]
         tags["OPTIONSSHEET"] = self.config["OPTIONSSHEET"]
-        tags["DOCTEMPLATEID"] = self.config["DOCTEMPLATEID"]
-        tags["APPLICATIONID"] = self.config["APPLICATIONID"]
         if self.raw_data:
             tags["FORMID"] = self.raw_data["FORMID"]
             tags["USERNAME"] = self.raw_data["USERNAME"]
             tags["FORMSUBMISSIONDATE"] = self.raw_data["FORMSUBMISSIONDATE"]
             tags["INSTANCEID"] = self.raw_data["INSTANCEID"]
+            tags["SHEETID"] = self.config[self.raw_data["FORMID"]]["SHEETID"]
+            tags["DOCTEMPLATEID"] = self.config[self.raw_data["FORMID"]]["DOCTEMPLATEID"]
+            tags["APPLICATIONID"] = self.config[self.raw_data["FORMID"]]["APPLICATIONID"]
+            tags["FORMNAME"] = self.config[self.raw_data["FORMID"]]["FORMNAME"]
+            self.config['SHEETID'] = tags["SHEETID"]
+            self.config['DOCTEMPLATEID'] = tags["DOCTEMPLATEID"]
+            self.config['APPLICATIONID'] = tags["APPLICATIONID"]
+            self.config['FORMNAME'] = tags["FORMNAME"]
         return tags
 
     def fetch_data(self):
