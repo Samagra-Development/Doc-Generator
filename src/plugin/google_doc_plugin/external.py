@@ -15,6 +15,7 @@ from interface import implements
 from queuelib import FifoDiskQueue
 from pdfbase.internal import PDFPlugin
 from plugin.file_uploader.file_uploader import FileUploader
+from utils.func import initialize_logger
 # implement interface
 
 class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
@@ -25,12 +26,15 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         """
         get googledoc-config.json file content and then save this data to class config variable
         """
+        logging = initialize_logger()
+        # Get the logger specified in the file
+        self.logger = logging.getLogger(__name__)
         with open(os.path.dirname(__file__) + '/googledoc-config.json') as json_file:
             config = json.load(json_file)
             self.config = config
         self.raw_data = None
-    @classmethod
-    def _get_token(cls):
+
+    def _get_token(self):
         """ The file token.pickle stores the user's access and refresh tokens, and is
          created automatically when the authorization flow completes for the first
          time."""
@@ -46,7 +50,8 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             client = gspread.authorize(creds)
         except Exception as ex:
             print(ex)
-        return client
+            self.logger.error("Exception occurred", exc_info=True)
+        return client, creds
     def _get_session_cookie(self):
         error = cookie = None
         cookie_request = requests.get(
@@ -77,7 +82,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         """
         error = None
         try:
-            client = self._get_token()
+            client = self._get_token()[0]
             base_sheet = client.open_by_key(sheet_id)
             sheet = base_sheet.worksheet(var_mapping)
             values = sheet.get_all_values()
@@ -89,11 +94,11 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         except SpreadsheetNotFound as ex:
             error = "Failed to fetch mapping detials"
             mapping_values = None
-
+            self.logger.error("Exception occurred", exc_info=True)
         except Exception as ex:
             error = "Failed to fetch mapping detials"
             mapping_values = None
-
+            self.logger.error("Exception occurred", exc_info=True)
         return mapping_values, error
 
     def get_tags(self):
@@ -154,7 +159,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         except Exception as ex:
             error = "Failed to fetch mapping detials"
             mapping_values = None
-
+            self.logger.error("Exception occurred", exc_info=True)
         return error
 
     def fetch_mapping(self, data):
@@ -185,10 +190,10 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
 
         except Exception as ex:
             error = "Failed to fetch mapping detials"
-
+            self.logger.error("Exception occurred", exc_info=True)
         return raw_data, error
-    @classmethod
-    def _map_data(cls, all_data, mapping_values, options_mapping):
+
+    def _map_data(self, all_data, mapping_values, options_mapping):
         error = None
         final_data = None
         try:
@@ -230,6 +235,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                         2]])  # Appending the received data to the final list
         except Exception as ex:
             error = "Failed to map data"
+            self.logger.error("Exception occurred", exc_info=True)
         return final_data, error
 
     def get_config(self):
@@ -237,8 +243,8 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         return config
         """
         return self.config
-    @classmethod
-    def _generate_file_drive(cls, url):
+
+    def _generate_file_drive(self, url):
         error = document_id = file_name = pdf_url = None
         try:
             #call the app script url
@@ -252,6 +258,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             pdf_url = contents.get("url")
         except Exception as ex:
             error = "Failed to get response from App Script"
+            self.logger.error("Exception occurred", exc_info=True)
 
         return document_id, file_name, pdf_url, error
 
@@ -285,7 +292,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                         session_cookie = call_session_cookie[1]
                     else:
                         error = call_session_cookie[0]
-                        print(error)
+
                     if not error:
                         payload['sessionCookie'] = session_cookie
                         payload['username'] = self.raw_data['ODKUSERNAME']
@@ -305,6 +312,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
 
         except Exception as ex:
             error = "Failed to generate pdf"
+            self.logger.error("Exception occurred", exc_info=True)
         return pdf_name, error, pdf_url
 
     def upload_pdf(self, key, file_url):
@@ -344,7 +352,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             self._delete_file_drive(file_url)
         except Exception as ex:
             error = "Failed to download file from drive"
-
+            self.logger.error("Exception occurred", exc_info=True)
         return upload_file_url, error, expire_timestamp
 
     def retrieve_pdf(self, key):
@@ -359,10 +367,8 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                 filedata = file_obj.read()
         except Exception as ex:
             error = 'File not found'
-
+            self.logger.error("Exception occurred", exc_info=True)
         return filedata, error
-
-
 
     def _delete_file_drive(self, file):
         """
@@ -371,7 +377,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         error = done = None
         try:
             creds = None
-            creds = self._get_token()
+            creds = self._get_token()[1]
             service = build('drive', 'v3', credentials=creds)
             doc_id = file.split('/')
             file_id = doc_id[5]  # find file id from url here
@@ -379,5 +385,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             done = True
         except Exception as ex:
             error = 'Failed to delete file'
-
+            print(ex)
+            self.logger.error("Exception occurred", exc_info=True)
         return error, done

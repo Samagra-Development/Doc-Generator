@@ -4,6 +4,8 @@ Class for using google cloud as a storage
 from datetime import datetime
 from datetime import timedelta
 from google.cloud import storage
+from utils.func import initialize_logger
+
 
 class GoogleCloudUploader:
     """
@@ -13,6 +15,9 @@ class GoogleCloudUploader:
         """
         get googledoc-config.json file content and then initialize storage client
         """
+        logging = initialize_logger()
+        # Get the logger specified in the file
+        self.logger = logging.getLogger(__name__)
         self.storage_client = storage.Client.from_service_account_json(config_file)
 
     def upload_file(self, file_name, bucket_name, key_name):
@@ -37,7 +42,7 @@ class GoogleCloudUploader:
                 status = object_url
         except Exception as ex:
             error = 'File not uploaded'
-
+            self.logger.error("Exception occurred", exc_info=True)
         return status, error, expires_in
     def get_object_url(self, bucket_name, key_name):
         """Generate a presigned URL to share an google cloud object
@@ -58,6 +63,6 @@ class GoogleCloudUploader:
             doc_url = blob.generate_signed_url(expires_in)
 
         except Exception as ex:
-            print(ex)
+            self.logger.error("Exception occurred", exc_info=True)
 
         return doc_url, expires_timestamp

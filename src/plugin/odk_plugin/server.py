@@ -1,10 +1,9 @@
 """
 Make a endpoint where we continuously receive request from another server
 """
-from .app import create_app
 from .external import ODKSheetsPlugin
+from .app import create_app
 app = create_app()
-
 
 
 ## Route for saksham samiksha

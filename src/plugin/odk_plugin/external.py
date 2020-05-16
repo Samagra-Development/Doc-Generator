@@ -5,9 +5,8 @@ import json
 import os.path
 from flask import request
 from queuelib import FifoDiskQueue
+from utils.func import initialize_logger
 from ..google_doc_plugin.external import GoogleDocsSheetsPlugin
-
-
 # implement interface
 
 class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
@@ -18,6 +17,10 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
         """
         get googledoc-config.json file content and then save this dtaa to class config variable
         """
+        logging = initialize_logger()
+        # Get the logger specified in the file
+        self.logger = logging.getLogger(__name__)
+
         with open(os.path.dirname(__file__) + '/config.json') as json_file:
             config = json.load(json_file)
             self.config = config
@@ -53,9 +56,9 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             form_id = req_data['formId']
             new_req_data = req_data['data'][0]  # Getting the data : [{values}]
             instance_id = new_req_data['instanceID']  # Getting the instance id for searching routes
-
+            user_name_field = self.config[form_id]["USERNAMEFIELD"]
             new_req_data = json.loads(json.dumps(new_req_data))  # Getting the new data
-            user_name = new_req_data['username']
+            user_name = new_req_data[user_name_field]
             form_submission_date = new_req_data[
                 '*meta-submission-date*']  # Correcting the submission date and removing the time
             end_index = form_submission_date.find(str('T'))
@@ -63,7 +66,6 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             # Saving the corrected date in the json
             new_req_data['*meta-submission-date*'] = form_submission_date
             my_dict = {}
-
             for req_key, req_val in new_req_data.items():
                 if isinstance(req_val, dict):
                     for col_key, col_val in req_val.items():
@@ -82,7 +84,6 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
                 else:
                     if req_val is None:
                         req_val = "NO_TEXT_FOUND"
-
                     my_dict[req_key] = req_val
 
             # Calculate Udise from its database and then Calculate distance from udise
@@ -100,10 +101,14 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             raw_data = dict()
             raw_data['reqd_data'] = all_data
             raw_data['tags'] = tags
+            raw_data['instance_id'] = instance_id
+            queue_file = os.path.dirname(__file__)+'/../../queuedata'
+            if not os.path.exists(queue_file):
+                os.makedirs(queue_file)
             queue_data = FifoDiskQueue(os.path.dirname(__file__)+'/../../queuedata')
             queue_data.push(json.dumps(raw_data).encode('utf-8'))
             queue_data.close()
         except Exception as ex:
             error = "Failed to fetch mapping detials"
-
+            self.logger.error("Exception occurred", exc_info=True)
         return error

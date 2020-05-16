@@ -23,6 +23,8 @@ class PdfData(DB.Model):
         DB.Integer, primary_key=True)  # unique_id from the request
     instance_id = DB.Column(
         DB.String(256), default=None)  # Id of the instance if available
+    link_id = DB.Column(
+        DB.String(256), default=None)  # Id of the linked instance if available
     raw_data = DB.Column(
         DB.JSON, nullable=False)  # All the received content (the request)
     tags = DB.Column(
@@ -49,6 +51,8 @@ class PdfData(DB.Model):
     error_encountered = DB.Column(DB.String())  # Google app script url
     task_completed = DB.Column(
         DB.Boolean, default=False)  # Is the process completed True/False
+    is_update = DB.Column(
+        DB.Boolean, default=False)  # Is the process completed True/False
     def __repr__(self):
         """
         return table unique id
@@ -74,6 +78,8 @@ class OutputTable(DB.Model):
         DB.Integer, primary_key=True)  # unique_id from the request
     instance_id = DB.Column(
         DB.String(256), default=None)  # Id of the instance if available
+    link_id = DB.Column(
+        DB.String(256), default=None)  # Id of the linked instance if available
     raw_data = DB.Column(
         DB.JSON, nullable=False)  # All the received content (the request)
     doc_url = DB.Column(
@@ -91,3 +97,33 @@ class OutputTable(DB.Model):
         return table unique id
         """
         return '{}'.format(self.unique_id)
+class TempData(DB.Model):
+    """
+    Define table which save request received
+    """
+    __tablename__ = 'temp_req'
+
+    unique_id = DB.Column(
+        DB.Integer, primary_key=True)  # unique_id from the request
+    instance_id = DB.Column(
+        DB.String(256), default=None)  # Id of the instance if available
+    form_id = DB.Column(
+        DB.String(256), default=None)  # Id of the linked instance if available
+    user_name = DB.Column(
+        DB.String(256), default=None)  # Id of the linked instance if available
+    is_update = DB.Column(
+        DB.Boolean, default=False)  # Is the process completed True/False
+
+    def __repr__(self):
+        """
+        return table unique id
+        """
+        return '{}'.format(self.unique_id)
+
+    def dump(self):
+        """
+        print data in string format
+        """
+        pr_p = pprint.PrettyPrinter(indent=4)
+        pr_di = object_as_dict(self)
+        pr_p.pprint(pr_di)

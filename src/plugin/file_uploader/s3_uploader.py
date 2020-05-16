@@ -6,6 +6,8 @@ from datetime import timedelta
 import boto3
 from botocore.exceptions import ClientError
 from boto3.exceptions import S3UploadFailedError
+from utils.func import initialize_logger
+
 
 class S3Uploader:
     """
@@ -15,6 +17,9 @@ class S3Uploader:
         """
         Intialize s3 client
         """
+        logging = initialize_logger()
+        # Get the logger specified in the file
+        self.logger = logging.getLogger(__name__)
         self.s3_client = boto3.resource("s3",
                                         aws_access_key_id=aws_access_key,
                                         aws_secret_access_key=aws_secret_key
@@ -49,12 +54,15 @@ class S3Uploader:
         except S3UploadFailedError as ex:
             error = "Failed to Upload Files"
             status = False
+            self.logger.error("Exception occurred", exc_info=True)
         except ClientError as ex:
             error = "Failed to Upload Files"
             status = False
+            self.logger.error("Exception occurred", exc_info=True)
         except Exception as ex:
             error = "Failed to Upload Files"
             status = False
+            self.logger.error("Exception occurred", exc_info=True)
         return status, error, expires_in
     def get_object_url(self, bucket_name, object_name):
         """Generate a presigned URL to share an S3 object
@@ -81,6 +89,7 @@ class S3Uploader:
                 HttpMethod="GET")
 
         except ClientError as ex:
+            self.logger.error("Exception occurred", exc_info=True)
             return None
 
         # The response contains the presigned URL
