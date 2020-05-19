@@ -33,6 +33,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             config = json.load(json_file)
             self.config = config
         self.raw_data = None
+        self.tags = None
 
     def _get_token(self):
         """ The file token.pickle stores the user's access and refresh tokens, and is
@@ -113,6 +114,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         tags["OPTIONSSHEET"] = self.config["OPTIONSSHEET"]
         tags["DOCTEMPLATEID"] = self.config["DOCTEMPLATEID"]
         tags["APPLICATIONID"] = self.config["APPLICATIONID"]
+        self.tags = tags
         return tags
 
     def fetch_data(self):
@@ -170,6 +172,8 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         error = None
         raw_data = None
         try:
+            self.raw_data = data
+            self.get_tags()
             get_value_mapping = self.get_sheetvalues(data['SHEETID'], data['MAPPINGDETAILS'])
             mapping_error = get_value_mapping[1]  # Error in fetching mapping
             mapping_values = get_value_mapping[0]  # mapping values list

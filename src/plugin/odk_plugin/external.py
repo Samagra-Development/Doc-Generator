@@ -3,6 +3,8 @@ Plugin for getting data from another server and generate pdf from it
 """
 import json
 import os.path
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 from flask import request
 from queuelib import FifoDiskQueue
 from utils.func import initialize_logger
@@ -25,6 +27,7 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             config = json.load(json_file)
             self.config = config
         self.raw_data = None
+        self.tags = None
 
     def get_tags(self):
         """
@@ -41,7 +44,29 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             self.config["DOCTEMPLATEID"] = self.config[self.raw_data["FORMID"]]["DOCTEMPLATEID"]
             self.config["APPLICATIONID"] = self.config[self.raw_data["FORMID"]]["APPLICATIONID"]
             self.config['FORMNAME'] = tags["FORMNAME"]
+        self.tags = tags
         return tags
+
+    def _get_token(self):
+        """ The file token.pickle stores the user's access and refresh tokens, and is
+         created automatically when the authorization flow completes for the first
+         time."""
+        client = None
+        try:
+            sheet_scopes = [
+                'https://spreadsheets.google.com/feeds',
+                'https://www.googleapis.com/auth/drive'
+                ]
+            base_path = os.path.dirname(__file__)
+            creds_file_path = self.config[self.tags['FORMID']]['GOOGLE_APPLICATION_CREDENTIALS']
+            creds = ServiceAccountCredentials.from_json_keyfile_name(base_path+'/'+creds_file_path,
+                                                                     sheet_scopes)
+            client = gspread.authorize(creds)
+        except Exception as ex:
+            print(ex)
+            self.logger.error("Exception occurred", exc_info=True)
+        return client, creds
+
 
     def fetch_data(self):
         """
