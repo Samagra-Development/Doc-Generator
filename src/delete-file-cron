@@ -1,0 +1,2 @@
+* * * * * python3  /usr/src/delete_drive_file.py >> /usr/src/pdfbuilder.log 2>&1
+# An empty line is required at the end of this file for a valid cron file.

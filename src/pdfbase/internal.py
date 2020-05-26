@@ -47,6 +47,14 @@ class PDFPlugin(Interface):
         Function to get the previously saved PDF from the key
         """
 
+    def delete_file_drive_google_script(self, file):
+        """
+        Function to delete doc from drive
+        :param file:
+        :return:
+        """
+
+        
 class Config:
     """
     define configuration for pdf generation

@@ -1,3 +1,4 @@
+
 ---
 id: GoogleDoc2PDF
 title: Google Docs to PDF
@@ -23,6 +24,14 @@ The first steps are to create the template and mapping data. The detailed docs t
 5.  Create a [Google App Script](https://developers.google.com/apps-script/overview#your_first_script) and delete all code and copy code from **google_app_script_code.js** file in google_doc_plugin and paste it on script editor and then publish it as a deploy as web app.Deploy as web app pop up opens and select "**Anyone,Even Anoynmous**" in **Who has access to the app** . (See network tab on Google Chrome dev console if you have issues with it)
 6.  Update the url in googledoc-config.json.
 7.  Create [Google Cloud Storage Bucket](https://cloud.google.com/storage/docs/creating-buckets#storage-create-bucket-console) and update the bucket name and GOOGLECLOUDBASEURL in googledoc-config.json.
+8. For Deleting file from google drive
+	1. Create a [Google App Script](https://developers.google.com/apps-script/overview#your_first_script) and delete all code and copy code from **google_app_script_delete_file.js** file in google_doc_plugin and paste it on script editor.
+	2. Enable Drive Api:
+			To enable the Drive API, open the Resources menu, then choose the Advanced Google Services, and a menu will pop up. You need to click the **Drive API** service. Make sure that the green "ON" text is showing
+			![Enable Drive Api ](https://i.stack.imgur.com/6vBFU.jpg)
+	3.	Then publish it as a deploy as web app.Deploy as web app pop up opens and select "**Anyone,Even Anoynmous**" in **Who has access to the app** .
+	4.	Update the DRIVE_DELETE_URL in googledoc-config.json.
+	
 
 ### 2.3 Fixing the config file
 
