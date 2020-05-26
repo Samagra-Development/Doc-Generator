@@ -23,4 +23,12 @@ class FileUploader:
         calls class respective upload_file method
         """
         return self.storage_client.upload_file(file_name, bucket, object_name)
-        
+
+    def get_object_url(self, bucket_name, object_name):
+        """
+        call class respective get_object url
+        :param bucket_name:
+        :param object_name:
+        :return:
+        """
+        return self.storage_client.get_object_url(bucket_name, object_name)
