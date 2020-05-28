@@ -11,11 +11,11 @@ import gspread
 from gspread.exceptions import SpreadsheetNotFound
 import requests
 from requests.auth import HTTPDigestAuth
-import pyshorteners
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 from interface import implements
 from queuelib import FifoDiskQueue
+import pyshorteners
 from pdfbase.internal import PDFPlugin
 from plugin.file_uploader.file_uploader import FileUploader
 from utils.func import initialize_logger, send_whatsapp_msg
@@ -181,7 +181,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         try:
             self.raw_data = data
             self.get_tags()
-            #self.logger.info("Fetch data of instance id %s and form id %s", data['INSTANCEID'], data['FORMID'])
             get_value_mapping = self.get_sheetvalues(data['SHEETID'], data['MAPPINGDETAILS'])
             mapping_error = get_value_mapping[1]  # Error in fetching mapping
             mapping_values = get_value_mapping[0]  # mapping values list
