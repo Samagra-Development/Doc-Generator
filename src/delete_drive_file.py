@@ -15,8 +15,8 @@ if __name__ == '__main__':
     #app.run(debug=True)
     while 1:
         with app.app_context():
-            qms = PdfData.query.filter(PdfData.step != 4,
-                                       PdfData.doc_name != '').limit(1).all()
+            qms = PdfData.query.filter(PdfData.step != 5,
+                                       PdfData.long_doc_url != '').limit(1).all()
             print(qms)
             if qms:
                 try:
@@ -31,7 +31,7 @@ if __name__ == '__main__':
                         print(error)
                         print(success)
                         if success:
-                            data.step = 4
+                            data.step = 5
                             results.append(data)
                         i += 1
                     if results:

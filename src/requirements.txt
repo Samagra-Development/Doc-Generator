@@ -18,3 +18,5 @@ queuelib
 python-interface
 boto3
 gspread
+kafka-python
+pyshorteners

@@ -54,6 +54,8 @@ class PDFPlugin(Interface):
         :return:
         """
 
+    def shorten_url(self, url):
+        pass
         
 class Config:
     """
@@ -149,8 +151,17 @@ class PDFBuilder:
                             pdf_data.pdf_version = version
                             pdf_data.current_status = 'complete'
                             pdf_data.task_completed = True
-                            pdf_data.doc_name = upload_file_url
+                            pdf_data.long_doc_url = upload_file_url
                             pdf_data.url_expires = file_downloaded[2]
+                            short_url_resp = self._plugin.shorten_url(pdf_data.long_doc_url)
+                            short_url = short_url_resp[0]
+                            error = short_url_resp[1]
+                            if error:
+                                pdf_data.error_encountered = error
+                                pdf_data.task_completed = False
+                            else:
+                                pdf_data.doc_name = short_url
+                                pdf_data.step = 4
                             # Now moving the above data to the Output table
                             inserted_to_output = self._insert_output_table(
                                 pdf_data.unique_id, pdf_data.instance_id, pdf_data.doc_url,
@@ -162,6 +173,7 @@ class PDFBuilder:
                             else:
                                 pdf_data.error_encountered = inserted_to_output
                                 pdf_data.task_completed = False
+
                         else:
                             pdf_data.error_encountered = file_error
                     else:
@@ -180,7 +192,7 @@ class PDFBuilder:
         while 1:
             results = []
             qms = PdfData.query.filter(PdfData.tries < self._config.retries,
--                                       PdfData.task_completed == False).limit(
+                                       PdfData.task_completed == False).limit(
                                            self._config.max_concurrency).all()
             if not qms:
                 print("Sleeping for 10 seconds")
@@ -220,6 +232,7 @@ class PDFBuilder:
         """
         print("Starting program")
         print("-" * 79)
+        #self.logger.info('Run started')
         with self._app.app_context():
             self.start_queue()
         print("Program done")
@@ -243,7 +256,7 @@ class PDFBuilder:
                 else:
                     raw_data = json.loads(data.decode('utf-8'))
                     self._save_pdf_data(raw_data['reqd_data'], raw_data['tags'],raw_data['instance_id'])
-                    break
+                    #break
 
     def update_tag_pdfdata(self):
         

@@ -21,7 +21,7 @@ if __name__ == '__main__':
         with app.app_context():
             cur_time = calendar.timegm(time.gmtime())
             qms = PdfData.query.filter(PdfData.url_expires < cur_time,
-                                       PdfData.doc_url != '').limit(1).all()
+                                       PdfData.long_doc_url != '').limit(1).all()
             if qms:
                 try:
                     i = 0
@@ -53,7 +53,7 @@ if __name__ == '__main__':
                             new_doc_url = resp[0]
                             new_expire_time = resp[1]
                             if new_doc_url:
-                                data.doc_name = new_doc_url
+                                data.long_doc_url = new_doc_url
                                 data.url_expires = new_expire_time
                                 results.append(data)
 

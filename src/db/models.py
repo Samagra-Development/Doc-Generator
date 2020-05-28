@@ -35,17 +35,21 @@ class PdfData(DB.Model):
     current_status = DB.Column(
         DB.String(32),
         default='Queue')  # Queue, Processing, Failed, complete, ERROR
+    # 0->data fetch,1->mapping fetch,2->pdf build,3-> upload pdf, 4-> short url,
+    # 5->deleted from drive
     step = DB.Column(
         DB.Integer,
-        default=0)  # 0->data fetch,1->mapping fetch,2->pdf build,3-> upload pdf
+        default=0)
     tries = DB.Column(
         DB.Integer, default=0)  # No. of attempts trying to process the request
     url_expires = DB.Column(
         DB.BigInteger, default=0)  # Timestamp when the url generated expires
     doc_name = DB.Column(
         DB.Text
-    )  # Google doc File name on google drive. Name of the google doc
-    #and pdf (both names will be same)
+    )  # Url of google doc on aws, google storage
+    long_doc_url = DB.Column(
+        DB.Text
+    )
     pdf_version = DB.Column(
         DB.Integer, default=0)  # The PDF version (max 5 allowed)
     error_encountered = DB.Column(DB.String())  # Google app script url

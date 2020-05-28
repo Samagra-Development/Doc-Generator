@@ -11,13 +11,14 @@ import gspread
 from gspread.exceptions import SpreadsheetNotFound
 import requests
 from requests.auth import HTTPDigestAuth
+import pyshorteners
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 from interface import implements
 from queuelib import FifoDiskQueue
 from pdfbase.internal import PDFPlugin
 from plugin.file_uploader.file_uploader import FileUploader
-from utils.func import initialize_logger
+from utils.func import initialize_logger, send_whatsapp_msg
 
 
 # implement interface
@@ -180,6 +181,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         try:
             self.raw_data = data
             self.get_tags()
+            #self.logger.info("Fetch data of instance id %s and form id %s", data['INSTANCEID'], data['FORMID'])
             get_value_mapping = self.get_sheetvalues(data['SHEETID'], data['MAPPINGDETAILS'])
             mapping_error = get_value_mapping[1]  # Error in fetching mapping
             mapping_values = get_value_mapping[0]  # mapping values list
@@ -362,7 +364,20 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                         upload_file_url = url
                         expire_timestamp = resp[2]
                         os.remove(os.path.dirname(__file__) + self.config['DIRPATH'] + key)
-
+                tags = self.get_tags()
+                if 'SENDMSG' in self.config[tags["FORMID"]].keys() and \
+                        self.config[tags["FORMID"]]['SENDMSG']:
+                    raw_data = self.raw_data
+                    req_data = raw_data['req_data']
+                    name = req_data[self.config[tags["FORMID"]]['NAMEFIELD']]
+                    mobile = req_data[self.config[tags["FORMID"]]['MSGFIELD']]
+                    print(raw_data)
+                    print(name)
+                    print(mobile)
+                    # req_data = raw_data['req_data']
+                    send_whatsapp_msg(8963031387,
+                                      upload_file_url,
+                                      name)
             self._delete_file_drive(file_url)
         except Exception as ex:
             error = "Failed to download file from drive"
@@ -431,3 +446,27 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             print(ex)
             self.logger.error("Exception occurred", exc_info=True)
         return error, done
+
+
+    def shorten_url(self, url):
+        """
+        Generate short url
+        :param url:
+        :return:
+        """
+        short_url = None
+        error = None
+        #API_USER = "kamalauriga"
+        api_key = self.config['BITLYACCESSTOKEN']
+        try:
+            bitly_obj = pyshorteners.Shortener(api_key=api_key)
+
+            # Replace this with your Long URL Here
+            short_url = bitly_obj.bitly.short(url)
+
+            # Now let us print the Bitly URL
+            print(short_url)
+        except Exception as ex:
+            error = "Unable to shorten a url"
+            self.logger.error("Exception occurred", exc_info=True)
+        return short_url, error
