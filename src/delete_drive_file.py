@@ -30,6 +30,9 @@ if __name__ == '__main__':
                             logger.info("Step7 Delete from drive Start "
                                         "- instance id %s - Form id %s",
                                         raw_data['INSTANCEID'], raw_data['FORMID'])
+                            print("Step7 Delete from drive Start "
+                                  "- instance id %s - Form id %s",
+                                  raw_data['INSTANCEID'], raw_data['FORMID'])
                         doc_url = data.doc_url
                         # print(raw_data)
                         doc_id = doc_url.split('/')
@@ -50,12 +53,15 @@ if __name__ == '__main__':
                         raw_data['INSTANCEID'] and raw_data['FORMID']:
                             logger.info("Step7 Delete from drive End - instance id %s - Form id %s",
                                         raw_data['INSTANCEID'], raw_data['FORMID'])
+                            print("Step7 Delete from drive End - instance id %s - Form id %s",
+                                  raw_data['INSTANCEID'], raw_data['FORMID'])
                         #break
 
                 except Exception as ex:
                     ERROR = 'Unable to delete file from drive'
                     logger.error(
                         "Error9 Delete from drive %s ", ERROR)
+                    print("Error9 Delete from drive %s ", ERROR)
                     logger.error("Exception occurred", exc_info=True)
 
             else:

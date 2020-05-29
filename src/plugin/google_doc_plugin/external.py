@@ -14,7 +14,7 @@ from requests.auth import HTTPDigestAuth
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 from interface import implements
-from queuelib import FifoDiskQueue
+from kafka import KafkaProducer
 import pyshorteners
 from pdfbase.internal import PDFPlugin
 from plugin.file_uploader.file_uploader import FileUploader
@@ -46,6 +46,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
          created automatically when the authorization flow completes for the first
          time."""
         client = None
+        creds = None
         try:
             sheet_scopes = [
                 'https://spreadsheets.google.com/feeds',
@@ -124,6 +125,47 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         self.tags = tags
         return tags
 
+    def publish_message(self, producer_instance, topic_name, key, value):
+        """
+        publish message to kafka
+        :param producer_instance:
+        :param topic_name: name of topic
+        :param key: message key
+        :param value: message value
+        :return: status
+        """
+        error = ''
+        try:
+            key_bytes = bytes(key, encoding='utf-8')
+            value_bytes = bytes(value, encoding='utf-8')
+            producer_instance.send(topic_name, key=key_bytes, value=value_bytes)
+            producer_instance.flush()
+        except Exception as ex:
+            self.logger.error('Exception in publishing message')
+            error = str(ex)
+            self.logger.error("Exception occurred", exc_info=True)
+        return error
+
+    def connect_kafka_producer(self):
+        """
+        connect with kafka producer
+        :return: kafkaproducer object
+        """
+        _producer = None
+        try:
+            _producer = KafkaProducer(bootstrap_servers=['moped-01.srvs.cloudkafka.com:9094'],
+                                      security_protocol='SASL_SSL',
+                                      sasl_mechanism='SCRAM-SHA-256',
+                                      sasl_plain_username='u518r2qy',
+                                      sasl_plain_password='xUTDBhfZ-DlmPmRwQ4J1Qw49QsMzieZV',
+                                      api_version=(0, 10))
+
+        except Exception as ex:
+            self.logger.error('Exception while connecting Kafka')
+            print(str(ex))
+            self.logger.error("Exception occurred", exc_info=True)
+        return _producer
+
     def fetch_data(self):
         """
         this method fetches the data from google sheet and return it as raw_data and also send tag
@@ -155,12 +197,9 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                     raw_data = dict()
                     raw_data['reqd_data'] = all_data
                     raw_data['tags'] = tags
-                    queue_file = os.path.dirname(__file__) + '/../../queuedata'
-                    if not os.path.exists(queue_file):
-                        os.makedirs(queue_file)
-                    queue_data = FifoDiskQueue(queue_file)
-                    queue_data.push(json.dumps(raw_data).encode('utf-8'))
-                    queue_data.close()
+                    kafka_producer = self.connect_kafka_producer()
+                    value = json.dumps(raw_data)
+                    error = self.publish_message(kafka_producer, 'form-data', 'form-data', value)
 
             else:
                 error = "No Mapping details found"

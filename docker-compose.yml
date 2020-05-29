@@ -22,9 +22,27 @@ services:
   plugin:
     image: *pdf-builder
     build: ./src
-    command: "python3 -m plugin.google_doc_plugin.server run"
+    command: "python3 -m plugin.odk_plugin.server run"
     ports:
       - "5000:5000"
+    volumes:
+      - ./src/:/usr/src/
+    depends_on:
+      - db
+  kafka-consumer:
+    image: *pdf-builder
+    build: ./src
+    restart: always
+    command: "python3 -m pdfbase.data_consumer"
+    volumes:
+      - ./src/:/usr/src/
+    depends_on:
+      - db
+  delete-drive:
+    image: *pdf-builder
+    build: ./src
+    restart: always
+    command: "crond -f -d 8"
     volumes:
       - ./src/:/usr/src/
     depends_on:
@@ -32,7 +50,7 @@ services:
   graphql-engine:
     image: hasura/graphql-engine:v1.1.1
     ports:
-      - "8080:8080"
+      - "5001:8080"
     depends_on:
       - db
     restart: always

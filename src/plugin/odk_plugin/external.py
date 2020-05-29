@@ -6,7 +6,7 @@ import os.path
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from flask import request
-from queuelib import FifoDiskQueue
+from kafka import KafkaProducer
 from utils.func import initialize_logger
 from ..google_doc_plugin.external import GoogleDocsSheetsPlugin
 # implement interface
@@ -44,6 +44,7 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             self.config["DOCTEMPLATEID"] = self.config[self.raw_data["FORMID"]]["DOCTEMPLATEID"]
             self.config["APPLICATIONID"] = self.config[self.raw_data["FORMID"]]["APPLICATIONID"]
             self.config['FORMNAME'] = tags["FORMNAME"]
+            self.config['FILENAMEFIELD'] = self.config[self.raw_data["FORMID"]]["FILENAMEFIELD"]
         self.tags = tags
         return tags
 
@@ -129,12 +130,9 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             raw_data['reqd_data'] = all_data
             raw_data['tags'] = tags
             raw_data['instance_id'] = instance_id
-            queue_file = os.path.dirname(__file__)+'/../../queuedata'
-            if not os.path.exists(queue_file):
-                os.makedirs(queue_file)
-            queue_data = FifoDiskQueue(os.path.dirname(__file__)+'/../../queuedata')
-            queue_data.push(json.dumps(raw_data).encode('utf-8'))
-            queue_data.close()
+            kafka_producer = self.connect_kafka_producer()
+            value = json.dumps(raw_data)
+            error = self.publish_message(kafka_producer, 'u518r2qy-default', 'form-data', value)
             self.logger.info("Step0 End - instance id %s - Form id %s", instance_id, form_id)
         except Exception as ex:
             error = "Failed to fetch mapping detials"

@@ -11,6 +11,7 @@ from interface import Interface
 from db.app import DB, get_db
 from db.models import PdfData, OutputTable, TempData
 from utils.func import initialize_logger, info_log
+from sqlalchemy import desc
 
 class PDFPlugin(Interface):
 
@@ -199,7 +200,8 @@ class PDFBuilder:
         while 1:
             results = []
             qms = PdfData.query.filter(PdfData.tries < self._config.retries,
-                                       PdfData.task_completed == False).limit(
+                                       PdfData.task_completed == False, PdfData.unique_id > 137344)\
+                .order_by(desc(PdfData.unique_id)).limit(
                                            self._config.max_concurrency).all()
             if not qms:
                 print("Sleeping for 10 seconds")
@@ -239,7 +241,7 @@ class PDFBuilder:
         """
         print("Starting program")
         print("-" * 79)
-        #self.logger.info('Run started')
+        self.logger.info('Run started')
         with self._app.app_context():
             self.start_queue()
         print("Program done")
@@ -339,11 +341,11 @@ class PDFBuilder:
     def start(self):
         """ function for calling data download
         in one thread and run method in another thread """
-        dow_thread = threading.Thread(target=self.data_download)
+        #dow_thread = threading.Thread(target=self.data_download)
         run_thread = threading.Thread(target=self.run)
-        dow_thread.start()
+        #dow_thread.start()
         run_thread.start()
-        dow_thread.join()
+        #dow_thread.join()
         run_thread.join()
         
         
