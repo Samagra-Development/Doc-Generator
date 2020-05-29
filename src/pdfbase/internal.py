@@ -10,7 +10,7 @@ from queuelib import FifoDiskQueue
 from interface import Interface
 from db.app import DB, get_db
 from db.models import PdfData, OutputTable, TempData
-from utils.func import initialize_logger
+from utils.func import initialize_logger, info_log
 
 class PDFPlugin(Interface):
 
@@ -114,6 +114,7 @@ class PDFBuilder:
             #DB.session.flush()
         except Exception as ex:
             error = 'Values not inserted in output table'
+            self.logger.error("Error9 %s", error)
             self.logger.error("Exception occurred", exc_info=True)
 
         return error
@@ -122,6 +123,7 @@ class PDFBuilder:
         """
         function for generating pdf
         """
+        info_log(self.logger.info, "Step2 Request Receive Pdf generation Start", pdf_data.raw_data)
         error = None
         try:
             with self._app.app_context():
@@ -162,17 +164,17 @@ class PDFBuilder:
                             else:
                                 pdf_data.doc_name = short_url
                                 pdf_data.step = 4
-                            # Now moving the above data to the Output table
-                            inserted_to_output = self._insert_output_table(
-                                pdf_data.unique_id, pdf_data.instance_id, pdf_data.doc_url,
-                                pdf_data.raw_data, pdf_data.tags,
-                                pdf_data.doc_name, pdf_data.pdf_version, pdf_data.url_expires, pdf_data.link_id)
+                                # Now moving the above data to the Output table
+                                inserted_to_output = self._insert_output_table(
+                                    pdf_data.unique_id, pdf_data.instance_id, pdf_data.doc_url,
+                                    pdf_data.raw_data, pdf_data.tags,
+                                    pdf_data.doc_name, pdf_data.pdf_version, pdf_data.url_expires, pdf_data.link_id)
 
-                            if not inserted_to_output:
-                                pdf_data.error_encountered = ''
-                            else:
-                                pdf_data.error_encountered = inserted_to_output
-                                pdf_data.task_completed = False
+                                if not inserted_to_output:
+                                    pdf_data.error_encountered = ''
+                                else:
+                                    pdf_data.error_encountered = inserted_to_output
+                                    pdf_data.task_completed = False
 
                         else:
                             pdf_data.error_encountered = file_error
@@ -180,8 +182,13 @@ class PDFBuilder:
                         pdf_data.error_encountered = file_error
                 else:
                     pdf_data.error_encountered = mapping_error
+                info_log(self.logger.info, "Step2 Request Receive Pdf generation End",
+                         pdf_data.raw_data)
+
         except Exception as ex:
             error = "Unable to process queue"
+            info_log(self.logger.error, "Error8 " + error, pdf_data.raw_data)
+
             self.logger.error("Exception occurred", exc_info=True)
         return error, pdf_data
 
@@ -255,7 +262,11 @@ class PDFBuilder:
                     #break
                 else:
                     raw_data = json.loads(data.decode('utf-8'))
+                    info_log(self.logger.info, "Step1 Save into db Start",
+                             raw_data['reqd_data'])
                     self._save_pdf_data(raw_data['reqd_data'], raw_data['tags'],raw_data['instance_id'])
+                    info_log(self.logger.info, "Step1 Save into db End",
+                             raw_data['reqd_data'])
                     #break
 
     def update_tag_pdfdata(self):

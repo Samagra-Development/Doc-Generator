@@ -18,7 +18,7 @@ from queuelib import FifoDiskQueue
 import pyshorteners
 from pdfbase.internal import PDFPlugin
 from plugin.file_uploader.file_uploader import FileUploader
-from utils.func import initialize_logger, send_whatsapp_msg
+from utils.func import initialize_logger, send_whatsapp_msg, info_log
 
 
 # implement interface
@@ -181,6 +181,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         try:
             self.raw_data = data
             self.get_tags()
+            info_log(self.logger.info, "Step3 Fetch Mapping Start", self.raw_data)
             get_value_mapping = self.get_sheetvalues(data['SHEETID'], data['MAPPINGDETAILS'])
             mapping_error = get_value_mapping[1]  # Error in fetching mapping
             mapping_values = get_value_mapping[0]  # mapping values list
@@ -196,11 +197,14 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                 data.update(raw_data)
                 raw_data = data
                 self.raw_data = raw_data
+
             else:
                 error = str(mapping_error) + str(options_error)
+            info_log(self.logger.info, "Step3 Fetch Mapping End", self.raw_data)
 
         except Exception as ex:
             error = "Failed to fetch mapping detials"
+            info_log(self.logger.error, "Error1 "+error, self.raw_data)
             self.logger.error("Exception occurred", exc_info=True)
         return raw_data, error
 
@@ -208,6 +212,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         error = None
         final_data = None
         try:
+            info_log(self.logger.info, "Step4.1 Mapping Start", self.raw_data)
             mapping_values.pop(0)  # removing the header row of mapping sheet
             final_data = []  # List to hold the final values
             options_mapping.pop(0)  # removing the header row of options sheet
@@ -244,8 +249,11 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
 
                     final_data.append(all_data[row[
                         2]])  # Appending the received data to the final list
+            info_log(self.logger.info, "Step4.1 Mapping End", self.raw_data)
+
         except Exception as ex:
             error = "Failed to map data"
+            info_log(self.logger.error, "Error3 " + error, self.raw_data)
             self.logger.error("Exception occurred", exc_info=True)
         return final_data, error
 
@@ -258,6 +266,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
     def _generate_file_drive(self, url):
         error = document_id = file_name = pdf_url = None
         try:
+            info_log(self.logger.info, "Step4.2 Generate File Drive Start", self.raw_data)
             # call the app script url
             contents = requests.get(url, timeout=60).json()
             if contents.get("error") != "null":
@@ -267,8 +276,11 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             document_id = contents.get("documentId")
             file_name = contents.get("fileName")
             pdf_url = contents.get("url")
+            info_log(self.logger.info, "Step4.2 Generate File Drive End", self.raw_data)
+
         except Exception as ex:
             error = "Failed to get response from App Script"
+            info_log(self.logger.error, "Error4 " + error, self.raw_data)
             self.logger.error("Exception occurred", exc_info=True)
 
         return document_id, file_name, pdf_url, error
@@ -282,6 +294,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         pdf_url = ''
         try:
             data = raw_data['req_data']
+            info_log(self.logger.info, "Step4 Build Pdf Start", self.raw_data)
             mapping_values = raw_data['value_mapping']
             options_mapping = raw_data['options_mapping']
             mapped_data = self._map_data(data, mapping_values, options_mapping)
@@ -324,9 +337,11 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
 
             else:
                 error = mapping_error
+            info_log(self.logger.info, "Step4 Build Pdf End", self.raw_data)
 
         except Exception as ex:
             error = "Failed to generate pdf"
+            info_log(self.logger.error, "Error2 " + error, self.raw_data)
             self.logger.error("Exception occurred", exc_info=True)
         return pdf_name, error, pdf_url
 
@@ -339,6 +354,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         upload_file_url = None
         expire_timestamp = None
         try:
+            info_log(self.logger.info, "Step5 Upload Pdf Start", self.raw_data)
             response = requests.get(file_url)
             base_path = os.path.dirname(__file__) + self.config['DIRPATH']
             if not os.path.exists(base_path):
@@ -348,6 +364,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                 upload_file_url = base_path + key
                 base_path = os.path.dirname(__file__)
                 if ('UPLOADTO' in self.config.keys() and self.config['UPLOADTO']):
+                    info_log(self.logger.info, "Step5.1 Upload To Cdn Start", self.raw_data)
                     if self.config['UPLOADTO'] == 's3':
                         cdn_upload = FileUploader(self.config['UPLOADTO'], self.config['ACCESSKEY'],
                                                   self.config['SECRETKEY'])
@@ -363,9 +380,16 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                         upload_file_url = url
                         expire_timestamp = resp[2]
                         os.remove(os.path.dirname(__file__) + self.config['DIRPATH'] + key)
+                    else:
+                        info_log(self.logger.error, "Error6 " + error, self.raw_data)
+
+                    info_log(self.logger.info, "Step5.1 Upload To Cdn End", self.raw_data)
+
                 tags = self.get_tags()
                 if 'SENDMSG' in self.config[tags["FORMID"]].keys() and \
                         self.config[tags["FORMID"]]['SENDMSG']:
+                    info_log(self.logger.info, "Step5.2 Msg Send Start", self.raw_data)
+
                     raw_data = self.raw_data
                     req_data = raw_data['req_data']
                     name = req_data[self.config[tags["FORMID"]]['NAMEFIELD']]
@@ -377,9 +401,14 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                     send_whatsapp_msg(8963031387,
                                       upload_file_url,
                                       name)
-            self._delete_file_drive(file_url)
+                    info_log(self.logger.info, "Step5.2 Msg Send End", self.raw_data)
+
+            #self._delete_file_drive(file_url)
+            info_log(self.logger.info, "Step5 Upload Pdf End", self.raw_data)
+
         except Exception as ex:
             error = "Failed to download file from drive"
+            info_log(self.logger.error, "Error5 " + error, self.raw_data)
             self.logger.error("Exception occurred", exc_info=True)
         return upload_file_url, error, expire_timestamp
 
@@ -453,6 +482,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         :param url:
         :return:
         """
+        info_log(self.logger.info, "Step6 Shorten Url Start", self.raw_data)
         short_url = None
         error = None
         #API_USER = "kamalauriga"
@@ -462,10 +492,10 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
 
             # Replace this with your Long URL Here
             short_url = bitly_obj.bitly.short(url)
+            info_log(self.logger.info, "Step6 Shorten Url End", self.raw_data)
 
-            # Now let us print the Bitly URL
-            print(short_url)
         except Exception as ex:
             error = "Unable to shorten a url"
+            info_log(self.logger.error, "Error7 " + error, self.raw_data)
             self.logger.error("Exception occurred", exc_info=True)
         return short_url, error

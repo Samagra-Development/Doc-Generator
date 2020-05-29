@@ -28,7 +28,13 @@ if __name__ == '__main__':
                     results = []
                     for data in qms:
                         raw_data = data.raw_data
-                        doc_url = data.doc_name
+                        if all(raw_key in raw_data for raw_key in ("INSTANCEID", "FORMID")) and \
+                                raw_data['INSTANCEID'] and raw_data['FORMID']:
+                            logger.info(
+                                "Regenerate pdf link Start - instance id %s - Form id %s",
+                                raw_data['INSTANCEID'], raw_data['FORMID'])
+
+                        doc_url = data.long_doc_url
                         #print(raw_data)
                         doc_id = doc_url.split('/')
                         file_id = doc_id[4]  # find file id from url here
@@ -61,9 +67,18 @@ if __name__ == '__main__':
                     if results:
                         DB.session.bulk_save_objects(results)
                         DB.session.commit()
+                        if all(raw_key in raw_data for raw_key in ("INSTANCEID", "FORMID")) and \
+                                raw_data['INSTANCEID'] and raw_data['FORMID']:
+                            logger.info(
+                                "Regenerate pdf link Start - instance id %s - Form id %s",
+                                raw_data['INSTANCEID'], raw_data['FORMID'])
+
                         #break
                     #break
                 except Exception as ex:
+                    ERROR = "Unable to regenerate pdf"
+                    logger.error(
+                        "Error10 Regenerate pdf link %s ", ERROR)
                     logger.error("Exception occurred", exc_info=True)
 
             else:

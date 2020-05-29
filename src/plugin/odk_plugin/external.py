@@ -77,10 +77,12 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
         try:
             # Converting unicodes to str and then str to dict.
             req_data = json.loads(json.dumps(request.json))
+
             # Getting the form ID to distinguish between various template document and mapping sheet
             form_id = req_data['formId']
             new_req_data = req_data['data'][0]  # Getting the data : [{values}]
             instance_id = new_req_data['instanceID']  # Getting the instance id for searching routes
+            self.logger.info("Step0 Start - instance id %s - Form id %s", instance_id, form_id)
             user_name_field = self.config[form_id]["USERNAMEFIELD"]
             new_req_data = json.loads(json.dumps(new_req_data))  # Getting the new data
             user_name = new_req_data[user_name_field]
@@ -133,7 +135,9 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             queue_data = FifoDiskQueue(os.path.dirname(__file__)+'/../../queuedata')
             queue_data.push(json.dumps(raw_data).encode('utf-8'))
             queue_data.close()
+            self.logger.info("Step0 End - instance id %s - Form id %s", instance_id, form_id)
         except Exception as ex:
             error = "Failed to fetch mapping detials"
+            self.logger.error("Error0 %s", error)
             self.logger.error("Exception occurred", exc_info=True)
         return error

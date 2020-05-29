@@ -24,8 +24,17 @@ if __name__ == '__main__':
                     results = []
                     for data in qms:
                         obj = GoogleDocsSheetsPlugin()
-                        print(data.instance_id)
-                        resp = obj.delete_file_drive_google_script(data.instance_id)
+                        raw_data = data.raw_data
+                        if all(raw_key in raw_data for raw_key in ("INSTANCEID", "FORMID")) and \
+                        raw_data['INSTANCEID'] and raw_data['FORMID']:
+                            logger.info("Step7 Delete from drive Start "
+                                        "- instance id %s - Form id %s",
+                                        raw_data['INSTANCEID'], raw_data['FORMID'])
+                        doc_url = data.doc_url
+                        # print(raw_data)
+                        doc_id = doc_url.split('/')
+                        file_id = doc_id[5]  # find file id from url here
+                        resp = obj.delete_file_drive_google_script(file_id)
                         error = resp[0]
                         success = resp[1]
                         print(error)
@@ -37,9 +46,16 @@ if __name__ == '__main__':
                     if results:
                         DB.session.bulk_save_objects(results)
                         DB.session.commit()
-                        break
+                        if all(raw_key in raw_data for raw_key in ("INSTANCEID", "FORMID")) and \
+                        raw_data['INSTANCEID'] and raw_data['FORMID']:
+                            logger.info("Step7 Delete from drive End - instance id %s - Form id %s",
+                                        raw_data['INSTANCEID'], raw_data['FORMID'])
+                        #break
 
                 except Exception as ex:
+                    ERROR = 'Unable to delete file from drive'
+                    logger.error(
+                        "Error9 Delete from drive %s ", ERROR)
                     logger.error("Exception occurred", exc_info=True)
 
             else:

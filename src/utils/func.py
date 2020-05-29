@@ -41,3 +41,12 @@ def send_mail(email, url, name, file_name):
         'http://139.59.2.20:3000/api/templates/' + str(4) +
         '/send?access_token=42fdc4d67d5983700635ddb4ff99fdc0c3e6198b', json=data)
     print(resp)
+
+def info_log(logger, msg, raw_data):
+    if all(raw_key in raw_data for raw_key in ("INSTANCEID", "FORMID")) and \
+            raw_data['INSTANCEID'] and raw_data['FORMID']:
+        logger(
+            "%s - instance id %s - Form id %s", msg,
+            raw_data['INSTANCEID'], raw_data['FORMID'])
+    else:
+        logger(msg)

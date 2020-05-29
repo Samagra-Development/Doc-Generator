@@ -1,8 +1,12 @@
 """
 Make a endpoint where we continuously receive request from another server
 """
+
+from utils.func import initialize_logger
 from .external import ODKSheetsPlugin
 from .app import create_app
+
+
 app = create_app()
 
 
@@ -24,6 +28,10 @@ def get_pdf_for_saksham():
     """
     receive request from another server and save it in queue
     """
+    logging = initialize_logger()
+    # Get the logger specified in the file
+    logger = logging.getLogger(__name__)
+    logger.info("Request received")
     obj = ODKSheetsPlugin()
     error = obj.fetch_data()
     if not error:
