@@ -524,13 +524,16 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         info_log(self.logger.info, "Step6 Shorten Url Start", self.raw_data)
         short_url = None
         error = None
-        #API_USER = "kamalauriga"
-        api_key = self.config['BITLYACCESSTOKEN']
+        api_key = self.config['POLRACCESSTOKEN']
         try:
-            bitly_obj = pyshorteners.Shortener(api_key=api_key)
-
-            # Replace this with your Long URL Here
-            short_url = bitly_obj.bitly.short(url)
+            querystring = {"key": api_key,
+                           "url": url}
+            resp = requests.request("GET", self.config['POLRAPIURL'], params=querystring)
+            if resp.status_code == 200:
+                short_url = resp._content.decode("utf-8")
+            else:
+                error = resp._content.decode("utf-8")
+                info_log(self.logger.error, "Error7 " + error, self.raw_data)
             info_log(self.logger.info, "Step6 Shorten Url End", self.raw_data)
 
         except Exception as ex:
