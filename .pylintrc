@@ -154,7 +154,8 @@ disable=print-statement,
         unused-wildcard-import,
         cyclic-import,
         import-outside-toplevel,
-        import-error
+        import-error,
+        protected-access
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
