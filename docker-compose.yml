@@ -15,7 +15,7 @@ services:
     ports:
       - "5004:80"
     environment:
-      - DB_HOST=mariadb
+      - DB_HOST=mysql
       - DB_DATABASE=polr
       - DB_USERNAME=polr
       - DB_PASSWORD=FKQMoXB7BQyU1zp59DGu
@@ -23,23 +23,23 @@ services:
       - ADMIN_PASSWORD=FKQMoXB7BQyU1zp59DGu
       - ADMIN_EMAIL=kamaldeep.kaur@aurigait.com
     depends_on:
-      - mariadb
+      - mysql
 
-  mariadb:
-    image: mariadb
-    container_name: mariadb
+  mysql:
+    image: mysql
+    container_name: mysql
     restart: always
     ports:
       - "3306:3306"
     expose:
       - "3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=auriga123
+      - MYSQL_ROOT_PASSWORD=FKQMoXB7BQyU1zp59DGu
       - MYSQL_DATABASE=polr
       - MYSQL_USER=polr
-      - MYSQL_PASSWORD=polr
+      - MYSQL_PASSWORD=FKQMoXB7BQyU1zp59DGu
     volumes:
-      - /var/lib/mysql
+      - mysql-data:/var/lib/mysql
   pdf-builder:
     image: &pdf-builder pdf-builder
     build: ./src
@@ -91,3 +91,4 @@ services:
       HASURA_GRAPHQL_ADMIN_SECRET: 2OWslm5aAjlTARU
 volumes:
   db-data:
+  mysql-data:
