@@ -3,6 +3,8 @@ Define Model Use
 """
 import pprint
 from sqlalchemy import inspect
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
 from .app import DB
 
 def object_as_dict(obj):
@@ -23,12 +25,13 @@ class PdfData(DB.Model):
         DB.Integer, primary_key=True)  # unique_id from the request
     instance_id = DB.Column(
         DB.String(256), default=None)  # Id of the instance if available
+    #pdfgenerated = relationship("OutputTable", uselist=False, back_populates="pdfdata")
     link_id = DB.Column(
         DB.String(256), default=None)  # Id of the linked instance if available
     raw_data = DB.Column(
-        DB.JSON, nullable=False)  # All the received content (the request)
+        JSONB)  # All the received content (the request)
     tags = DB.Column(
-        DB.JSON)  # All the mapping content
+        JSONB)  # All the mapping content
     doc_url = DB.Column(
         DB.String(256)
     )  # google doc url of the generated document (will get doc id from it)
@@ -80,19 +83,22 @@ class OutputTable(DB.Model):
 
     unique_id = DB.Column(
         DB.Integer, primary_key=True)  # unique_id from the request
+    pdftable_id = DB.Column(
+        DB.Integer, DB.ForeignKey('queuemanager.unique_id'))  # unique_id from the request
+
     instance_id = DB.Column(
         DB.String(256), default=None)  # Id of the instance if available
     link_id = DB.Column(
         DB.String(256), default=None)  # Id of the linked instance if available
     raw_data = DB.Column(
-        DB.JSON, nullable=False)  # All the received content (the request)
+        JSONB)  # All the received content (the request)
     doc_url = DB.Column(
         DB.String(128)
     )  # google doc url of the generated document (will get doc id from it)
     url_expires = DB.Column(
         DB.BigInteger, default=0)  # Timestamp when the url generated expires
     tags = DB.Column(
-        DB.JSON)  # All the mapping content
+        JSONB)  # All the mapping content
     doc_name = DB.Column(DB.Text)  # google doc File name on
     pdf_version = DB.Column(
         DB.Integer, default=1)  # The PDF version (max 5 allowed)

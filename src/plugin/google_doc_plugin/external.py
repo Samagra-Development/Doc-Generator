@@ -41,6 +41,14 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         self.raw_data = None
         self.tags = None
 
+    def set_raw_data(self, raw_data):
+        """
+        initialize raw data
+        :param raw_data:
+        :return:
+        """
+        self.raw_data = raw_data
+
     def _get_token(self):
         """ The file token.pickle stores the user's access and refresh tokens, and is
          created automatically when the authorization flow completes for the first
@@ -153,7 +161,9 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         """
         _producer = None
         try:
-            _producer = KafkaProducer(bootstrap_servers=['moped-01.srvs.cloudkafka.com:9094'],
+            _producer = KafkaProducer(bootstrap_servers=['moped-01.srvs.cloudkafka.com:9094',
+                                                         'moped-02.srvs.cloudkafka.com:9094',
+                                                         'moped-03.srvs.cloudkafka.com:9094'],
                                       security_protocol='SASL_SSL',
                                       sasl_mechanism='SCRAM-SHA-256',
                                       sasl_plain_username='u518r2qy',

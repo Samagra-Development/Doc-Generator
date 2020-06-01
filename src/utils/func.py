@@ -4,6 +4,8 @@ import logging.config
 import requests
 import urllib
 import json
+from datetime import datetime
+
 def initialize_logger():
     """
 
@@ -50,3 +52,16 @@ def info_log(logger, msg, raw_data):
             raw_data['INSTANCEID'], raw_data['FORMID'])
     else:
         logger(msg)
+
+def print_log(msg, raw_data):
+    now = datetime.now()
+
+    # dd/mm/YY H:M:S
+    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+    if all(raw_key in raw_data for raw_key in ("INSTANCEID", "FORMID")) and \
+            raw_data['INSTANCEID'] and raw_data['FORMID']:
+        print(
+            "{} - {} - instance id {} - Form id {}".format(dt_string, msg,
+            raw_data['INSTANCEID'], raw_data['FORMID']))
+    else:
+        print("{} - {} ".format( dt_string, msg))

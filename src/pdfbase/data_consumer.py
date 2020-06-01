@@ -26,7 +26,7 @@ def save_pdf_data(final_data, tags, linked_instance_id):
 
 try:
 
-    consumer = KafkaConsumer('u518r2qy-default', bootstrap_servers=['moped-01.srvs.cloudkafka.com:9094'],
+    consumer = KafkaConsumer('u518r2qy-default', bootstrap_servers=['moped-01.srvs.cloudkafka.com:9094', 'moped-02.srvs.cloudkafka.com:9094', 'moped-03.srvs.cloudkafka.com:9094'],
                              security_protocol='SASL_SSL',
                              sasl_mechanism='SCRAM-SHA-256',
                              sasl_plain_username='u518r2qy',

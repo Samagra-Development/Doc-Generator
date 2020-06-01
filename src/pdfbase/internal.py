@@ -12,6 +12,7 @@ from db.app import DB, get_db
 from db.models import PdfData, OutputTable, TempData
 from utils.func import initialize_logger, info_log
 from sqlalchemy import desc
+from sqlalchemy.types import DATE
 
 class PDFPlugin(Interface):
 
@@ -57,7 +58,11 @@ class PDFPlugin(Interface):
 
     def shorten_url(self, url):
         pass
-        
+
+    def set_raw_data(self, raw_data):
+        pass
+
+
 class Config:
     """
     define configuration for pdf generation
@@ -101,6 +106,7 @@ class PDFBuilder:
             get_db()
             data_for_output_table = OutputTable(
                 unique_id=rec_unique_id,
+                pdftable_id=rec_unique_id,
                 instance_id=rec_instance_id,
                 doc_url=rec_doc_url,
                 raw_data=rec_raw_data,
@@ -200,8 +206,8 @@ class PDFBuilder:
         while 1:
             results = []
             qms = PdfData.query.filter(PdfData.tries < self._config.retries,
-                                       PdfData.task_completed == False, PdfData.unique_id > 137344)\
-                .order_by(desc(PdfData.unique_id)).limit(
+                                       PdfData.task_completed == False)\
+                .order_by(desc(PdfData.tags['FORMSUBMISSIONDATE'].astext.cast(DATE))).limit(
                                            self._config.max_concurrency).all()
             if not qms:
                 print("Sleeping for 10 seconds")
