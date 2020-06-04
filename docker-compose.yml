@@ -4,11 +4,26 @@ services:
     image: postgres:latest
     volumes:
       - db-data:/var/lib/postgresql/data
+      - ./barman/init-barman-users.sh:/docker-entrypoint-initdb.d/init-barman-users.sh
     container_name: psql
     environment:
       - POSTGRES_USER=pdfbuilder
       - POSTGRES_PASSWORD=FKQMoXB7BQyU1zp59DGu
       - POSTGRES_DB=pdfbuilder
+    stdin_open: true
+    tty: true
+    command:
+      - -c
+      - wal_level=replica
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_replication_slots=10
+      - -c
+      - hot_standby=on
+      - -c
+      - ssl=off
+    
   polr:
     image: wedi42/polr
     container_name: polr
@@ -89,6 +104,15 @@ services:
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
       HASURA_GRAPHQL_ADMIN_SECRET: 2OWslm5aAjlTARU
+  barman:
+    image: decsis/pg-barman
+    environment:
+      BARMAN_LOG_LEVEL: WARNING
+    volumes:
+      - ./barman/db.conf:/etc/barman.d/db.conf
+      - /var/www/html/barmanbackup/:/var/lib/barman/
+    ports:
+      - 8000:8000/tcp
 volumes:
   db-data:
   mysql-data:
