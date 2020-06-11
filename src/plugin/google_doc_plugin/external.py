@@ -537,9 +537,9 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                     print(name)
                     print(mobile)
                     # req_data = raw_data['req_data']
-                    msg_result = send_whatsapp_msg(8963031387,
-                                      short_url,
-                                      name)
+                    msg_result = send_whatsapp_msg(mobile,
+                                                   short_url,
+                                                   name)
                     info_log(self.logger.info, "Step6.2 Msg Send End", self.raw_data)
                     msg_error = msg_result[0]
                     msg_resp = msg_result[1]
