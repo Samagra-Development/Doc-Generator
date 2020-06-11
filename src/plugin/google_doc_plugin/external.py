@@ -18,7 +18,7 @@ from kafka import KafkaProducer
 import pyshorteners
 from pdfbase.internal import PDFPlugin
 from plugin.file_uploader.file_uploader import FileUploader
-from utils.func import initialize_logger, send_whatsapp_msg, info_log
+from utils.func import initialize_logger, send_whatsapp_msg, info_log, send_mail
 
 
 # implement interface
@@ -318,6 +318,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             info_log(self.logger.info, "Step4.2 Generate File Drive Start", self.raw_data)
             # call the app script url
             contents = requests.get(url, timeout=60).json()
+            print(contents)
             if contents.get("error") != "null":
                 error = contents.get('error')
             if error == "undefined":
@@ -434,24 +435,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
 
                     info_log(self.logger.info, "Step5.1 Upload To Cdn End", self.raw_data)
 
-                tags = self.get_tags()
-                if 'SENDMSG' in self.config[tags["FORMID"]].keys() and \
-                        self.config[tags["FORMID"]]['SENDMSG']:
-                    info_log(self.logger.info, "Step5.2 Msg Send Start", self.raw_data)
-
-                    raw_data = self.raw_data
-                    req_data = raw_data['req_data']
-                    name = req_data[self.config[tags["FORMID"]]['NAMEFIELD']]
-                    mobile = req_data[self.config[tags["FORMID"]]['MSGFIELD']]
-                    print(raw_data)
-                    print(name)
-                    print(mobile)
-                    # req_data = raw_data['req_data']
-                    send_whatsapp_msg(8963031387,
-                                      upload_file_url,
-                                      name)
-                    info_log(self.logger.info, "Step5.2 Msg Send End", self.raw_data)
-
             #self._delete_file_drive(file_url)
             info_log(self.logger.info, "Step5 Upload Pdf End", self.raw_data)
 
@@ -541,6 +524,65 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             resp = requests.request("GET", self.config['POLRAPIURL'], params=querystring)
             if resp.status_code == 200:
                 short_url = resp._content.decode("utf-8")
+                tags = self.get_tags()
+                if 'SENDMSG' in self.config[tags["FORMID"]].keys() and \
+                        self.config[tags["FORMID"]]['SENDMSG']:
+                    info_log(self.logger.info, "Step6.2 Msg Send Start", self.raw_data)
+
+                    raw_data = self.raw_data
+                    req_data = raw_data['req_data']
+                    name = req_data[self.config[tags["FORMID"]]['NAMEFIELD']]
+                    mobile = req_data[self.config[tags["FORMID"]]['MSGFIELD']]
+                    print(raw_data)
+                    print(name)
+                    print(mobile)
+                    # req_data = raw_data['req_data']
+                    msg_result = send_whatsapp_msg(8963031387,
+                                      short_url,
+                                      name)
+                    info_log(self.logger.info, "Step6.2 Msg Send End", self.raw_data)
+                    msg_error = msg_result[0]
+                    msg_resp = msg_result[1]
+                    if msg_error:
+                        error = msg_error
+                        if all(raw_key in raw_data for raw_key in ("INSTANCEID", "FORMID")) and \
+                                raw_data['INSTANCEID'] and raw_data['FORMID']:
+                            self.logger.error(
+                                "Step6.2 Send Msg Error %s - instance id %s - Form id %s",
+                                msg_resp.__dict__,
+                                raw_data['INSTANCEID'], raw_data['FORMID'])
+                    info_log(self.logger.info, "Step6.2 Msg Send End", self.raw_data)
+
+                if 'SENDEMAIL' in self.config[tags["FORMID"]].keys() and \
+                        self.config[tags["FORMID"]]['SENDEMAIL']:
+                    info_log(self.logger.info, "Step6.3 Email Send Start", self.raw_data)
+
+                    raw_data = self.raw_data
+                    req_data = raw_data['req_data']
+                    name = req_data[self.config[tags["FORMID"]]['NAMEFIELD']]
+                    email = req_data[self.config[tags["FORMID"]]['EMAILFIELD']]
+                    print(name)
+                    print(email)
+                    custom_fields = {'FULL_NAME': name, "LINK": url}
+                    # req_data = raw_data['req_data']
+                    mail_result = send_mail(email,
+                                            url, custom_fields,
+                                            'resume')
+                    mail_error = mail_result[0]
+                    mail_resp = mail_result[1]
+                    if mail_error:
+                        if all(raw_key in raw_data for raw_key in ("INSTANCEID", "FORMID")) and \
+                                raw_data['INSTANCEID'] and raw_data['FORMID']:
+                            self.logger.error(
+                                "Step6.2 Email Send Error %s - instance id %s - Form id %s",
+                                mail_resp.__dict__,
+                                raw_data['INSTANCEID'], raw_data['FORMID'])
+                        if error:
+                            error += mail_error
+                        else:
+                            error = mail_error
+                    info_log(self.logger.info, "Step6.3 Email Send End", self.raw_data)
+
             else:
                 error = resp._content.decode("utf-8")
                 info_log(self.logger.error, "Error7 " + error, self.raw_data)
