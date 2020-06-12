@@ -10,9 +10,9 @@ from queuelib import FifoDiskQueue
 from interface import Interface
 from db.app import DB, get_db
 from db.models import PdfData, OutputTable, TempData
-from utils.func import initialize_logger, info_log
+from utils.func import initialize_logger, info_log, send_whatsapp_msg
 from sqlalchemy import desc
-from sqlalchemy.types import DATE
+from sqlalchemy.types import DATE, String
 
 class PDFPlugin(Interface):
 
@@ -56,7 +56,7 @@ class PDFPlugin(Interface):
         :return:
         """
 
-    def shorten_url(self, url):
+    def shorten_url(self, url, doc_url):
         pass
 
     def set_raw_data(self, raw_data):
@@ -162,7 +162,7 @@ class PDFBuilder:
                             pdf_data.task_completed = True
                             pdf_data.long_doc_url = upload_file_url
                             pdf_data.url_expires = file_downloaded[2]
-                            short_url_resp = self._plugin.shorten_url(pdf_data.long_doc_url)
+                            short_url_resp = self._plugin.shorten_url(pdf_data.long_doc_url, pdf_data.doc_url)
                             short_url = short_url_resp[0]
                             error = short_url_resp[1]
                             if error:
@@ -198,15 +198,17 @@ class PDFBuilder:
 
             self.logger.error("Exception occurred", exc_info=True)
         return error, pdf_data
-
     def start_queue(self):
         """
         function for getting all data from pdfdata table which are not completed yet
         """
         while 1:
             results = []
+            check_forms = ["resume_questionnaire_v3", "elem_men_v3", "elem_mon_v4", "sec_men_v3", "sec_mon_v3",
+                           "elem_ssa_v3", "sec_ssa_v3","sat_v3", "slo_v3"]
             qms = PdfData.query.filter(PdfData.tries < self._config.retries,
-                                       PdfData.task_completed == False)\
+                                       PdfData.task_completed == False,
+                                       PdfData.tags['FORMID'].astext.cast(String).in_(check_forms))\
                 .order_by(desc(PdfData.tags['FORMSUBMISSIONDATE'].astext.cast(DATE))).limit(
                                            self._config.max_concurrency).all()
             if not qms:

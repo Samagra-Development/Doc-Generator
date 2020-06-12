@@ -44,7 +44,8 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             self.config["DOCTEMPLATEID"] = self.config[self.raw_data["FORMID"]]["DOCTEMPLATEID"]
             self.config["APPLICATIONID"] = self.config[self.raw_data["FORMID"]]["APPLICATIONID"]
             self.config['FORMNAME'] = tags["FORMNAME"]
-            self.config['FILENAMEFIELD'] = self.config[self.raw_data["FORMID"]]["FILENAMEFIELD"]
+            if 'FILENAMEFIELD' in self.config[self.raw_data["FORMID"]]:
+                self.config['FILENAMEFIELD'] = self.config[self.raw_data["FORMID"]]["FILENAMEFIELD"]
         self.tags = tags
         return tags
 
@@ -111,7 +112,7 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
                     my_dict[req_key] = str(req_val[0])  # Converting list to str
                 else:
                     if req_val is None:
-                        req_val = "NO_TEXT_FOUND"
+                        req_val = "-"
                     my_dict[req_key] = req_val
 
             # Calculate Udise from its database and then Calculate distance from udise
@@ -130,9 +131,13 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             raw_data['reqd_data'] = all_data
             raw_data['tags'] = tags
             raw_data['instance_id'] = instance_id
+            if 'DOCDELETED' in self.config[self.raw_data["FORMID"]]:
+                raw_data['is_delete'] = self.config[self.raw_data["FORMID"]]["DOCDELETED"]
+            else:
+                raw_data['is_delete'] = True
             kafka_producer = self.connect_kafka_producer()
             value = json.dumps(raw_data)
-            error = self.publish_message(kafka_producer, 'u518r2qy-default', 'form-data', value)
+            error = self.publish_message(kafka_producer, 'u518r2qy-form', 'form-data', value)
             self.logger.info("Step0 End - instance id %s - Form id %s", instance_id, form_id)
         except Exception as ex:
             error = "Failed to fetch mapping detials"

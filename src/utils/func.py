@@ -15,10 +15,14 @@ def initialize_logger():
     logging.config.fileConfig(fname=log_file, disable_existing_loggers=False)
     return logging
 
-def send_whatsapp_msg(mobile, url, name):
+def send_whatsapp_msg(mobile, url, name, doc_url):
     headers = {'Cache-Control': 'no-cache', 'Content-Type': 'application/x-www-form-urlencoded',
                'apikey': '8e455564878b4ca2ccb7b37f13ef9bfa', 'cache-control': 'no-cache'}
-    message = {"type":"text","text":"Dear Candidate, Based on information provided by you, we are sending you, your resume. Please find the document attached. => "+url}
+    message = {"type":"text","text":"Dear Candidate, Based on information provided by you, we are sending you, your resume. Please find the document attached. => "+url+" Also find editable format document of your resume "+doc_url}
+    '''message = {"type": "file",
+               "caption": "Dear Candidate, Based on information provided by you, we are sending you, your resume. Please find the document attached. => ",
+               "url": url,
+               "filename":name}'''
     message = urllib.parse.quote(json.dumps(message))
     print(message)
     params = 'channel=whatsapp&source=917834811114&destination='+'91'+str(mobile)
@@ -31,7 +35,7 @@ def send_whatsapp_msg(mobile, url, name):
         print(result.__dict__)
     return error, result
 
-def send_mail(email, url, custom_fields, file_name):
+def send_mail(email, url, custom_fields, file_name, template_id):
     data = {'EMAIL': email, 'SUBJECT': 'Resume'}
     data['SEND_CONFIGURATION_ID'] = 4
     attachments = []
@@ -42,7 +46,7 @@ def send_mail(email, url, custom_fields, file_name):
     data['TAGS'] = custom_fields
     print(data)
     resp = requests.post(
-        'http://139.59.2.20:3000/api/templates/' + str(4) +
+        'http://139.59.2.20:3000/api/templates/' + str(template_id) +
         '/send?access_token=42fdc4d67d5983700635ddb4ff99fdc0c3e6198b', json=data)
     print(resp.__dict__)
     error = None

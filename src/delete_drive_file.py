@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     with app.app_context():
         qms = PdfData.query.filter(PdfData.step != 5,
-                                   PdfData.long_doc_url != '').all()
+                                   PdfData.long_doc_url != '', PdfData.is_delete == True).all()
         print(qms)
         if qms:
             try:

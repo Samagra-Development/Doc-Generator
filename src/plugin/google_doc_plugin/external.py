@@ -508,7 +508,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         return error, done
 
 
-    def shorten_url(self, url):
+    def shorten_url(self, url, doc_url):
         """
         Generate short url
         :param url:
@@ -525,6 +525,8 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             if resp.status_code == 200:
                 short_url = resp._content.decode("utf-8")
                 tags = self.get_tags()
+                new_doc_url = doc_url.replace('export?format=pdf', 'edit')
+                print(new_doc_url)
                 if 'SENDMSG' in self.config[tags["FORMID"]].keys() and \
                         self.config[tags["FORMID"]]['SENDMSG']:
                     info_log(self.logger.info, "Step6.2 Msg Send Start", self.raw_data)
@@ -533,13 +535,12 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                     req_data = raw_data['req_data']
                     name = req_data[self.config[tags["FORMID"]]['NAMEFIELD']]
                     mobile = req_data[self.config[tags["FORMID"]]['MSGFIELD']]
-                    print(raw_data)
                     print(name)
                     print(mobile)
                     # req_data = raw_data['req_data']
                     msg_result = send_whatsapp_msg(mobile,
-                                                   short_url,
-                                                   name)
+                                                   url,
+                                                   name, new_doc_url)
                     info_log(self.logger.info, "Step6.2 Msg Send End", self.raw_data)
                     msg_error = msg_result[0]
                     msg_resp = msg_result[1]
@@ -561,13 +562,14 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                     req_data = raw_data['req_data']
                     name = req_data[self.config[tags["FORMID"]]['NAMEFIELD']]
                     email = req_data[self.config[tags["FORMID"]]['EMAILFIELD']]
+                    template_id = self.config[tags["FORMID"]]['EMAILTEMPLATEID']
                     print(name)
                     print(email)
-                    custom_fields = {'FULL_NAME': name, "LINK": url}
+                    custom_fields = {'FULL_NAME': name, "LINK": url, "DOC_LINK": new_doc_url}
                     # req_data = raw_data['req_data']
                     mail_result = send_mail(email,
                                             url, custom_fields,
-                                            'resume')
+                                            'resume', template_id)
                     mail_error = mail_result[0]
                     mail_resp = mail_result[1]
                     if mail_error:

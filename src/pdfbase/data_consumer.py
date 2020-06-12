@@ -9,13 +9,15 @@ logging = initialize_logger()
 logger = logging.getLogger(__name__)
 app = create_app()
 
-def save_pdf_data(final_data, tags, linked_instance_id):
+def save_pdf_data(final_data, tags, linked_instance_id, is_delete):
     unique_ids = []
     json_data = PdfData(
         raw_data=final_data,
         tags=tags,
         instance_id=uuid.uuid4(),
-        link_id=linked_instance_id)
+        link_id=linked_instance_id,
+        is_delete=is_delete
+    )
     DB.session.add(json_data)  # Adds new User record to database
     DB.session.flush()  # Pushing the object to the database so that it gets assigned a unique id
     unique_ids.append(json_data.unique_id)
@@ -26,7 +28,7 @@ def save_pdf_data(final_data, tags, linked_instance_id):
 
 try:
 
-    consumer = KafkaConsumer('u518r2qy-default', bootstrap_servers=['moped-01.srvs.cloudkafka.com:9094', 'moped-02.srvs.cloudkafka.com:9094', 'moped-03.srvs.cloudkafka.com:9094'],
+    consumer = KafkaConsumer('u518r2qy-form', bootstrap_servers=['moped-01.srvs.cloudkafka.com:9094', 'moped-02.srvs.cloudkafka.com:9094', 'moped-03.srvs.cloudkafka.com:9094'],
                              security_protocol='SASL_SSL',
                              sasl_mechanism='SCRAM-SHA-256',
                              sasl_plain_username='u518r2qy',
@@ -43,7 +45,7 @@ try:
         info_log(logger.info, "Step1 Save into db Start",
                  raw_data['reqd_data'])
         with app.app_context():
-            save_pdf_data(raw_data['reqd_data'], raw_data['tags'], raw_data['instance_id'])
+            save_pdf_data(raw_data['reqd_data'], raw_data['tags'], raw_data['instance_id'], raw_data['is_delete'])
             info_log(logger.info, "Step1 Save into db End",
                      raw_data['reqd_data'])
             consumer.commit()

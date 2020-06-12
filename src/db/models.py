@@ -60,6 +60,8 @@ class PdfData(DB.Model):
         DB.Boolean, default=False)  # Is the process completed True/False
     is_update = DB.Column(
         DB.Boolean, default=False)  # Is the process completed True/False
+    is_delete = DB.Column(
+        DB.Boolean, default=True)  # Is the doc deleted True/False
     def __repr__(self):
         """
         return table unique id
