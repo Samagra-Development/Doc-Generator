@@ -6,6 +6,7 @@ import os
 import os.path
 import calendar
 import time
+from datetime import datetime
 from urllib.parse import urlencode
 import gspread
 from gspread.exceptions import SpreadsheetNotFound
@@ -544,6 +545,21 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                     info_log(self.logger.info, "Step6.2 Msg Send End", self.raw_data)
                     msg_error = msg_result[0]
                     msg_resp = msg_result[1]
+                    info_log(self.logger.info, "Step6.4 Email Send to admin Start", self.raw_data)
+                    now = datetime.now()
+                    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+                    content = msg_resp.__dict__
+                    content = content['_content'].decode('utf-8')
+                    custom_fields = {'mobile': mobile, "sent_time": dt_string,
+                                     "msg_status": content}
+                    #print(custom_fields)
+                    # req_data = raw_data['req_data']
+                    mail_result = send_mail('umangbhola@samagragovernance.in', '',
+                                            custom_fields,
+                                            'resume', 5)
+                    mail_error = mail_result[0]
+                    mail_resp = mail_result[1]
+                    info_log(self.logger.info, "Step6.4 Email Send to admin End", self.raw_data)
                     if msg_error:
                         error = msg_error
                         if all(raw_key in raw_data for raw_key in ("INSTANCEID", "FORMID")) and \
