@@ -19,3 +19,5 @@ python-interface
 boto3
 gspread
 kafka-python
+jsonformatter
+python3-logstash

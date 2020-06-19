@@ -16,7 +16,6 @@ from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 from interface import implements
 from kafka import KafkaProducer
-import pyshorteners
 from pdfbase.internal import PDFPlugin
 from plugin.file_uploader.file_uploader import FileUploader
 from utils.func import initialize_logger, send_whatsapp_msg, info_log, send_mail

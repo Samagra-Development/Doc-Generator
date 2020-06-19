@@ -18,7 +18,7 @@ def initialize_logger():
 def send_whatsapp_msg(mobile, url, name, doc_url):
     headers = {'Cache-Control': 'no-cache', 'Content-Type': 'application/x-www-form-urlencoded',
                'apikey': '8e455564878b4ca2ccb7b37f13ef9bfa', 'cache-control': 'no-cache'}
-    message = {"type":"text","text":"Dear Candidate, Based on information provided by you, we are sending you, your resume. Please find the document attached. => "+url+" Also find editable format document of your resume "+doc_url}
+    message = {"type":"text","text":"Dear Candidate, Based on information provided by you, we are sending you, your resume. Please find the document attached. => "+url+" \n Also find editable format document of your resume "+doc_url}
     '''message = {"type": "file",
                "caption": "Dear Candidate, Based on information provided by you, we are sending you, your resume. Please find the document attached. => ",
                "url": url,
@@ -38,10 +38,11 @@ def send_whatsapp_msg(mobile, url, name, doc_url):
 def send_mail(email, url, custom_fields, file_name, template_id):
     data = {'EMAIL': email, 'SUBJECT': 'Resume'}
     data['SEND_CONFIGURATION_ID'] = 4
-    attachments = []
-    attachment = {"filename": file_name,"href": url}
-    attachments.append(attachment)
-    #data['ATTACHMENTS'] = attachments
+    if url:
+        attachments = []
+        attachment = {"filename": file_name,"href": url}
+        attachments.append(attachment)
+        #data['ATTACHMENTS'] = attachments
 
     data['TAGS'] = custom_fields
     print(data)
