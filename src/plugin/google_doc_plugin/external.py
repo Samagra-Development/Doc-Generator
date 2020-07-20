@@ -17,8 +17,10 @@ from oauth2client.service_account import ServiceAccountCredentials
 from interface import implements
 from kafka import KafkaProducer
 from pdfbase.internal import PDFPlugin
+from pdfbase.config import KAFKA_CREDENTIAL
 from plugin.file_uploader.file_uploader import FileUploader
 from utils.func import initialize_logger, send_whatsapp_msg, info_log, send_mail
+
 
 
 # implement interface
@@ -161,13 +163,11 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         """
         _producer = None
         try:
-            _producer = KafkaProducer(bootstrap_servers=['moped-01.srvs.cloudkafka.com:9094',
-                                                         'moped-02.srvs.cloudkafka.com:9094',
-                                                         'moped-03.srvs.cloudkafka.com:9094'],
-                                      security_protocol='SASL_SSL',
-                                      sasl_mechanism='SCRAM-SHA-256',
-                                      sasl_plain_username='u518r2qy',
-                                      sasl_plain_password='xUTDBhfZ-DlmPmRwQ4J1Qw49QsMzieZV',
+            _producer = KafkaProducer(bootstrap_servers=KAFKA_CREDENTIAL['bootstrap_servers'],
+                                      security_protocol=KAFKA_CREDENTIAL['security_protocol'],
+                                      sasl_mechanism=KAFKA_CREDENTIAL['sasl_mechanism'],
+                                      sasl_plain_username=KAFKA_CREDENTIAL['sasl_plain_username'],
+                                      sasl_plain_password=KAFKA_CREDENTIAL['sasl_plain_password'],
                                       api_version=(0, 10))
 
         except Exception as ex:
@@ -253,7 +253,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
 
         except Exception as ex:
             error = "Failed to fetch mapping detials"
-            info_log(self.logger.error, "Error1 "+error, self.raw_data)
+            info_log(self.logger.error, "Error1 " + error, self.raw_data)
             self.logger.error("Exception occurred", exc_info=True)
         return raw_data, error
 
@@ -435,7 +435,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
 
                     info_log(self.logger.info, "Step5.1 Upload To Cdn End", self.raw_data)
 
-            #self._delete_file_drive(file_url)
+            # self._delete_file_drive(file_url)
             info_log(self.logger.info, "Step5 Upload Pdf End", self.raw_data)
 
         except Exception as ex:
@@ -485,7 +485,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         """
         error = done = None
         try:
-            #fileId = '1Bk48xG8buQu6Y1z7QlXc-GffRwoRsR3ciDb7aeTQQMo'
+            # fileId = '1Bk48xG8buQu6Y1z7QlXc-GffRwoRsR3ciDb7aeTQQMo'
             payload = {
                 "fileId": file
             }
@@ -507,7 +507,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             self.logger.error("Exception occurred", exc_info=True)
         return error, done
 
-
     def shorten_url(self, url, doc_url):
         """
         Generate short url
@@ -527,6 +526,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                 tags = self.get_tags()
                 new_doc_url = doc_url.replace('export?format=pdf', 'edit')
                 print(new_doc_url)
+                print(short_url)
                 if 'SENDMSG' in self.config[tags["FORMID"]].keys() and \
                         self.config[tags["FORMID"]]['SENDMSG']:
                     info_log(self.logger.info, "Step6.2 Msg Send Start", self.raw_data)
@@ -539,7 +539,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                     print(mobile)
                     # req_data = raw_data['req_data']
                     msg_result = send_whatsapp_msg(mobile,
-                                                   url,
+                                                   short_url,
                                                    name, new_doc_url)
                     info_log(self.logger.info, "Step6.2 Msg Send End", self.raw_data)
                     msg_error = msg_result[0]
@@ -551,7 +551,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                     content = content['_content'].decode('utf-8')
                     custom_fields = {'mobile': mobile, "sent_time": dt_string,
                                      "msg_status": content}
-                    #print(custom_fields)
+                    # print(custom_fields)
                     # req_data = raw_data['req_data']
                     mail_result = send_mail('umangbhola@samagragovernance.in', '',
                                             custom_fields,
@@ -580,7 +580,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                     template_id = self.config[tags["FORMID"]]['EMAILTEMPLATEID']
                     print(name)
                     print(email)
-                    custom_fields = {'FULL_NAME': name, "LINK": url, "DOC_LINK": new_doc_url}
+                    custom_fields = {'FULL_NAME': name, "LINK": short_url, "DOC_LINK": new_doc_url}
                     # req_data = raw_data['req_data']
                     mail_result = send_mail(email,
                                             url, custom_fields,

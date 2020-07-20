@@ -8,7 +8,9 @@ from oauth2client.service_account import ServiceAccountCredentials
 from flask import request
 from kafka import KafkaProducer
 from utils.func import initialize_logger
+from pdfbase.config import KAFKA_CREDENTIAL
 from ..google_doc_plugin.external import GoogleDocsSheetsPlugin
+
 # implement interface
 
 class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
@@ -137,7 +139,8 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
                 raw_data['is_delete'] = True
             kafka_producer = self.connect_kafka_producer()
             value = json.dumps(raw_data)
-            error = self.publish_message(kafka_producer, 'u518r2qy-form', 'form-data', value)
+            error = self.publish_message(kafka_producer, KAFKA_CREDENTIAL['topic'],
+                                         KAFKA_CREDENTIAL['group_id'], value)
             self.logger.info("Step0 End - instance id %s - Form id %s", instance_id, form_id)
         except Exception as ex:
             error = "Failed to fetch mapping detials"

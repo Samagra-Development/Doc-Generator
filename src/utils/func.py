@@ -77,3 +77,12 @@ def print_log(msg, raw_data):
             raw_data['INSTANCEID'], raw_data['FORMID']))
     else:
         print("{} - {} ".format( dt_string, msg))
+
+def call_healthcheck_url(url):
+    resp = requests.get(url)
+    print(resp.__dict__)
+    error = None
+    if resp.status_code != 200:
+        error = 'Unable to call healthcheck'
+
+    return error, resp

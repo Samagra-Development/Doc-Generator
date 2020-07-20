@@ -2,9 +2,12 @@
 Make a endpoint where we continuously receive request from another server
 """
 
+import json
+from flask import request
 from utils.func import initialize_logger
+from db.app import create_app, DB
+from db.models import BackupPdfData
 from .external import ODKSheetsPlugin
-from .app import create_app
 
 
 app = create_app()
@@ -22,6 +25,13 @@ Following ODK forms are related to this route:
 7. SAT visit sat_v2
 8. SLO visit slo_v2
 """
+@app.route("/", methods=['POST'])
+def index():
+    """
+    check server running
+    :return:
+    """
+    return {'status':'OK'}
 
 @app.route("/saksham-custom", methods=['POST'])
 def get_pdf_for_saksham():
@@ -32,6 +42,19 @@ def get_pdf_for_saksham():
     # Get the logger specified in the file
     logger = logging.getLogger(__name__)
     logger.info("Request received")
+    req_data = json.loads(json.dumps(request.json))
+    new_req_data = req_data['data'][0]  # Getting the data : [{values}]
+    instance_id = new_req_data['instanceID']  # Getting the instance id for searching routes
+
+    unique_ids = []
+    json_data = BackupPdfData(
+        raw_data=req_data,
+        link_id=instance_id
+    )
+    DB.session.add(json_data)  # Adds new User record to database
+    DB.session.flush()  # Pushing the object to the database so that it gets assigned a unique id
+    unique_ids.append(json_data.unique_id)
+    DB.session.commit()  # Commits all changes
     obj = ODKSheetsPlugin()
     error = obj.fetch_data()
     if not error:

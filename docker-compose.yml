@@ -13,22 +13,49 @@ services:
     stdin_open: true
     tty: true
     command:
-      - -c
-      - wal_level=replica
-      - -c
-      - max_wal_senders=10
-      - -c
-      - max_replication_slots=10
-      - -c
-      - hot_standby=on
-      - -c
-      - ssl=off
-    
+      - "postgres"
+      - "-c"
+      - "wal_level=replica"
+      - "-c"
+      - "max_wal_senders=10"
+      - "-c"
+      - "max_replication_slots=10"
+      - "-c"
+      - "hot_standby=on"
+      - "-c"
+      - "ssl=off"
+  backupdb:
+    image: postgres:latest
+    volumes:
+      - backupdb-data:/var/lib/postgresql/data
+    container_name: backupdb
+    environment:
+      - POSTGRES_USER=pdfbuilderbackup
+      - POSTGRES_PASSWORD=FKQMoXB7BQyU1zp59DGu
+      - POSTGRES_DB=pdfbuilderbackup
+    stdin_open: true
+    tty: true
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=replica"
+      - "-c"
+      - "max_wal_senders=10"
+      - "-c"
+      - "max_replication_slots=10"
+      - "-c"
+      - "hot_standby=on"
+      - "-c"
+      - "ssl=off"
+
   polr:
     image: wedi42/polr
     container_name: polr
+    build: ./polr
+    volumes:
+      - polr-data:/var/lib/www
     ports:
-      - "5004:80"
+      - "80:80"
     environment:
       - DB_HOST=mysql
       - DB_DATABASE=polr
@@ -104,15 +131,39 @@ services:
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
       HASURA_GRAPHQL_ADMIN_SECRET: 2OWslm5aAjlTARU
-  barman:
-    image: decsis/pg-barman
-    environment:
-      BARMAN_LOG_LEVEL: WARNING
-    volumes:
-      - ./barman/db.conf:/etc/barman.d/db.conf
-      - /var/www/html/barmanbackup/:/var/lib/barman/
-    ports:
-      - 8000:8000/tcp
+      #HASURA_GRAPHQL_ENABLE_ALLOWLIST: "true"
+      #HASURA_GRAPHQL_ENABLED_APIS: graphql, metadata
+      #HASURA_GRAPHQL_DEV_MODE: "false"
+      #HASURA_GRAPHQL_JWT_SECRET: '{"type": "RS512", "key": "-----BEGIN CERTIFICATE-----\nMIIDBzCCAe+gAwIBAgIJGAYCh2STDXrvMA0GCSqGSIb3DQEBCwUAMCExHzAdBgNV\nBAMTFmRldi13eGo3d2w4cC5hdXRoMC5jb20wHhcNMjAwNjA5MDQxMzE2WhcNMzQw\nMjE2MDQxMzE2WjAhMR8wHQYDVQQDExZkZXYtd3hqN3dsOHAuYXV0aDAuY29tMIIB\nIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnPzWoDuMBBv/iCYtPBiAX+lF\n6Lqj3XwH/rsLm8Ad58POfXAjaPYKwy991fjsPvQRNrRxBqdK/10gXRu8GHjGDlBk\nTeN1SPXBThGBGhZ3S8Cn/arZPbbzKbSDReCx9yTGRguEpD3sXLWzgXS02GaNV11X\nuihksCK2YatWj2bODfayaH6+q6RUR5lBHkjZqpG1r6x0yUJgeCM9cyHjfqkJvR4S\nXc59f6duuCN6yRYT+rI6AdFb4KPeokzR6/quPeZj65/kbZtIvG1c0oRClYR2hH9Q\nGeA8uPXLAV71sY/CdHMQ2TD/7lg1kzJTLlomZEbFdkQama11wNJaX1cwRyY4rwID\nAQABo0IwQDAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBRwbiCHMeBRz+OJGaq1\ndSt0lIJcsTAOBgNVHQ8BAf8EBAMCAoQwDQYJKoZIhvcNAQELBQADggEBAAqwFwrg\nbFMF1k0hCbORzaxTPJOwGQjbYQod0RVVFsEnfJwoMVVHZxdtOnMg5uJnXgOMZpAs\nvflmry7rpdfpMNmWnOHC0n5zWOypNDwp49I03jmMDUo66jh4cHravqHKIgUPfaNh\n8z2qC1xzQqnqDAEKpKRoKWEIKpQBkh9NAjgFnG47U9K/BIxIGJuaM/fYMv7j/o7b\n9AIx6HFlelaEuAbOT6OtrcT2oEEkouIXDK2+YtjuWJOSkZ6S0haQ0x7BiQG3G2ae\nUtt+yYEhxa3pWsp5I2ONIwSUTKUZ5lrAMnlxiQZaj4hdd1WNfKpkwS08FTlY1Zy8\nH2l47SuvHjQXv/M=\n-----END CERTIFICATE-----"}'
+  # barman:
+  #   image: decsis/pg-barman
+  #   build: ./barman/.
+  #   environment:
+  #     BARMAN_LOG_LEVEL: WARNING
+  #   volumes:
+  #     - ./barman/db.conf:/etc/barman.d/db.conf
+  #     - /var/www/html/barmanbackup/:/var/lib/barman/
+  #   ports:
+  #     - 8000:8000/tcp
+  # rec_pg:
+  #   image: recovery_pg
+  #   build: barman/recovery_pg/.
+  #   volumes:
+  #     - backupdb-data:/var/lib/postgresql/data
+  #     - ./barman/recovery_pg/scripts/docker_entrypoint.sh:/docker_entrypoint_rec.sh #enables live script edition
+  #   container_name: bpsql
+  #   environment:
+  #     - POSTGRES_USER=pdfpackage
+  #     - POSTGRES_PASSWORD=FKQMoXB7BQyU1zp59DGu
+  #     - POSTGRES_DB=pdfpackage
+  #   ports:
+  #     - 2222:22/tcp
+  #     #- "5436:5432"
+  #     - 5435:5432/tcp
+
 volumes:
   db-data:
+  #recdb-data:
   mysql-data:
+  polr-data:
+  backupdb-data:

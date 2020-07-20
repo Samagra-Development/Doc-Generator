@@ -20,7 +20,7 @@ class PdfData(DB.Model):
     Define table which save request received
     """
     __tablename__ = 'queuemanager'
-
+    #__bind_key__ = 'pdfbuilder'
     unique_id = DB.Column(
         DB.Integer, primary_key=True)  # unique_id from the request
     instance_id = DB.Column(
@@ -82,7 +82,7 @@ class OutputTable(DB.Model):
     Define output table which save request processed
     """
     __tablename__ = 'outputtable'
-
+    #__bind_key__ = 'pdfbuilder'
     unique_id = DB.Column(
         DB.Integer, primary_key=True)  # unique_id from the request
     pdftable_id = DB.Column(
@@ -114,7 +114,7 @@ class TempData(DB.Model):
     Define table which save request received
     """
     __tablename__ = 'temp_req'
-
+    #__bind_key__ = 'pdfbuilder'
     unique_id = DB.Column(
         DB.Integer, primary_key=True)  # unique_id from the request
     instance_id = DB.Column(
@@ -126,6 +126,33 @@ class TempData(DB.Model):
     is_update = DB.Column(
         DB.Boolean, default=False)  # Is the process completed True/False
 
+    def __repr__(self):
+        """
+        return table unique id
+        """
+        return '{}'.format(self.unique_id)
+
+    def dump(self):
+        """
+        print data in string format
+        """
+        pr_p = pprint.PrettyPrinter(indent=4)
+        pr_di = object_as_dict(self)
+        pr_p.pprint(pr_di)
+
+class BackupPdfData(DB.Model):
+    """
+    Define table which save request received
+    """
+    __tablename__ = 'queuemanagerbackup'
+    __bind_key__ = 'backup'
+    unique_id = DB.Column(
+        DB.Integer, primary_key=True)  # unique_id from the request
+    link_id = DB.Column(
+        DB.String(256), default=None)  # Id of the linked instance if available
+
+    raw_data = DB.Column(
+        JSONB)  # All the received content (the request)
     def __repr__(self):
         """
         return table unique id

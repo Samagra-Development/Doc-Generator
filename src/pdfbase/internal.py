@@ -10,10 +10,10 @@ from queuelib import FifoDiskQueue
 from interface import Interface
 from db.app import DB, get_db
 from db.models import PdfData, OutputTable, TempData
-from utils.func import initialize_logger, info_log, send_whatsapp_msg
+from utils.func import initialize_logger, info_log, send_whatsapp_msg, call_healthcheck_url
 from sqlalchemy import desc
 from sqlalchemy.types import DATE, String
-
+from .config import HEALTHCHECKURL
 class PDFPlugin(Interface):
 
     ''' **FetchData.process() -> Dict  => Fetches "new" data from the database/server/websocket
@@ -203,11 +203,13 @@ class PDFBuilder:
         function for getting all data from pdfdata table which are not completed yet
         """
         while 1:
+            if 'PLUGINURL' in HEALTHCHECKURL:
+                call_healthcheck_url(HEALTHCHECKURL['PLUGINURL'])
             results = []
             check_forms = ["resume_questionnaire_v3", "elem_men_v3", "elem_mon_v4", "sec_men_v3", "sec_mon_v3",
                            "elem_ssa_v3", "sec_ssa_v3","sat_v3", "slo_v3"]
             qms = PdfData.query.filter(PdfData.tries < self._config.retries,
-                                       PdfData.task_completed == False,
+                                       PdfData.task_completed == False,PdfData.unique_id>964,
                                        PdfData.tags['FORMID'].astext.cast(String).in_(check_forms))\
                 .order_by(desc(PdfData.tags['FORMSUBMISSIONDATE'].astext.cast(DATE))).limit(
                                            self._config.max_concurrency).all()
@@ -346,6 +348,46 @@ class PDFBuilder:
                 except Exception as ex:
                     self.logger.error("Exception occurred", exc_info=True)
 
+    def update_short_url(self):
+        qms = PdfData.query.filter(PdfData.doc_name != '', PdfData.unique_id<137).all()
+        if not qms:
+            print("Sleeping for 10 seconds")
+            #sleep(10)  # If no data is found in database sleep for 10 seconds
+
+        else:
+            try:
+                i = 0
+                results = []
+                pdf_results = []
+                for data in qms:
+                    print(data)
+                    doc_name = data.doc_name
+                    new_doc_name = doc_name.replace('68.183.94.187:5004','docs.samagra.io')
+                    data.doc_name = new_doc_name
+                    pdf_results.append(data)
+                    out_record = OutputTable.query.filter(
+                        OutputTable.unique_id == data.unique_id).one()
+                    out_record.doc_name = data.doc_name
+                    results.append(out_record)
+                    if i % 10 == 0:
+                        if results:
+                            DB.session.bulk_save_objects(results)
+                            DB.session.commit()
+                        if pdf_results:
+                            DB.session.bulk_save_objects(pdf_results)
+                            DB.session.commit()
+                        results = []
+                        pdf_results =[]
+                    i += 1
+                if results:
+                    DB.session.bulk_save_objects(results)
+                    DB.session.commit()
+                if pdf_results:
+                    DB.session.bulk_save_objects(pdf_results)
+                    DB.session.commit()
+                # break
+            except Exception as ex:
+                self.logger.error("Exception occurred", exc_info=True)
     def start(self):
         """ function for calling data download
         in one thread and run method in another thread """
