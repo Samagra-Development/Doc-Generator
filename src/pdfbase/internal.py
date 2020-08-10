@@ -203,22 +203,21 @@ class PDFBuilder:
         function for getting all data from pdfdata table which are not completed yet
         """
         while 1:
-            if 'PLUGINURL' in HEALTHCHECKURL:
-                call_healthcheck_url(HEALTHCHECKURL['PLUGINURL'])
-            results = []
-            check_forms = ["resume_questionnaire_v3", "elem_men_v3", "elem_mon_v4", "sec_men_v3", "sec_mon_v3",
-                           "elem_ssa_v3", "sec_ssa_v3","sat_v3", "slo_v3"]
-            qms = PdfData.query.filter(PdfData.tries < self._config.retries,
-                                       PdfData.task_completed == False,PdfData.unique_id>964,
-                                       PdfData.tags['FORMID'].astext.cast(String).in_(check_forms))\
-                .order_by(desc(PdfData.tags['FORMSUBMISSIONDATE'].astext.cast(DATE))).limit(
-                                           self._config.max_concurrency).all()
-            if not qms:
-                print("Sleeping for 10 seconds")
-                sleep(10)  # If no data is found in database sleep for 10 seconds
-                #break
-            else:
-                try:
+            try:
+                if 'PLUGINURL' in HEALTHCHECKURL:
+                    call_healthcheck_url(HEALTHCHECKURL['PLUGINURL'])
+                results = []
+                check_forms = ["resume_questionnaire_v3", "elem_men_v3", "elem_mon_v4", "sec_men_v3", "sec_mon_v3",
+                               "elem_ssa_v3", "sec_ssa_v3","sat_v3", "slo_v3"]
+                qms = PdfData.query.filter(PdfData.tries < self._config.retries,
+                                           PdfData.task_completed == False,PdfData.unique_id>964)\
+                    .order_by(desc(PdfData.tags['FORMSUBMISSIONDATE'].astext.cast(DATE))).limit(
+                                               self._config.max_concurrency).all()
+                if not qms:
+                    print("Sleeping for 10 seconds")
+                    sleep(10)  # If no data is found in database sleep for 10 seconds
+                    #break
+                else:
                     i = 0
                     for data in qms:
                         resp = self._process_queue(data)
@@ -228,8 +227,8 @@ class PDFBuilder:
                     DB.session.commit()
                     #break
 
-                except Exception as ex:
-                    self.logger.error("Exception occurred", exc_info=True)
+            except Exception as ex:
+                 self.logger.error("Exception occurred", exc_info=True)
 
     def _save_pdf_data(self, final_data, tags, linked_instance_id):
         unique_ids = []
@@ -252,6 +251,9 @@ class PDFBuilder:
         print("Starting program")
         print("-" * 79)
         self.logger.info('Run started')
+        #send_whatsapp_msg(8963031387,'https://docs.google.com/document/d/1s_m6Hmf8THnSfBcz3g8Br5Fr5Y8NsD-gJ1HI0zDqKC8/export?format=pdf'
+        #                  ,'','https://docs.google.com/document/d/1uOeC-7IpdUgcNE75NMshhb0Hqy5Sj6o0PV8Sa5c1qX4/edit')
+
         with self._app.app_context():
             self.start_queue()
         print("Program done")

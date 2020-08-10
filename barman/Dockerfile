@@ -43,6 +43,5 @@ COPY scripts /opt/barman/scripts
 COPY docker-entrypoint.sh /
 
 WORKDIR $BARMAN_BARMAN_HOME
-
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["barman"]
