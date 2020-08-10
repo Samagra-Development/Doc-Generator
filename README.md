@@ -206,6 +206,8 @@ PDF Builder has the following features:
 	'instance_id': 'uuid:dc364815-28e9-4735-91fb-587c9e03dc7d',  
 	'is_delete': False
 	```
+ - Setup healthcheckup for pdf generation and add its url in src/pdfbase/config.py in variable **HEALTHCHECKURL** having key **PLUGINURL**
+ - Setup healthcheck for kafkaconsumer and add its url in src/pdfbase/config.py in variable **HEALTHCHECKURL** having key **KAFKACONSUMERURL**
 
 ### [](https://github.com/Samagra-Development/PDF-Package#installation-with-docker) Installation with Docker  
  - Setup Kafka and add its detail in variable **KAFKA_CREDENTIAL** in src/pdfbase/config.py.
