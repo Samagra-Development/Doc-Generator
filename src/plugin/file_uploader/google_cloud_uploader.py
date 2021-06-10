@@ -5,6 +5,7 @@ from datetime import datetime
 from datetime import timedelta
 from google.cloud import storage
 from utils.func import initialize_logger
+import traceback
 
 
 class GoogleCloudUploader:
@@ -30,7 +31,9 @@ class GoogleCloudUploader:
         status = None
         expires_in = None
         try:
+            print(bucket_name)
             bucket = self.storage_client.get_bucket(bucket_name)
+            print("Bucket done")
             blob = bucket.blob(key_name)  # giving input the full file name
             blob.upload_from_filename(file_name)
             url_array = self.get_object_url(bucket_name, key_name)
@@ -41,6 +44,7 @@ class GoogleCloudUploader:
             else:
                 status = object_url
         except Exception as ex:
+            print(traceback.format_exc())
             error = 'File not uploaded'
             self.logger.error("Exception occurred", exc_info=True)
         return status, error, expires_in

@@ -1,13 +1,8 @@
-KAFKA_CREDENTIAL = {'topic': 'u518r2qy-form',
-                    'bootstrap_servers': ['moped-01.srvs.cloudkafka.com:9094',
-                                          'moped-02.srvs.cloudkafka.com:9094',
-                                          'moped-03.srvs.cloudkafka.com:9094'],
-                    'security_protocol': 'SASL_SSL',
-                    'sasl_mechanism': 'SCRAM-SHA-256',
-                    'sasl_plain_username': 'u518r2qy',
-                    'sasl_plain_password': 'xUTDBhfZ-DlmPmRwQ4J1Qw49QsMzieZV',
-                    'group_id': 'form-group',
-                    'auto_offset_reset': 'earliest', 'enable_auto_commit': True,
+KAFKA_CREDENTIAL = KAFKA_CREDENTIAL = {'topic': 'form-data',
+                    'bootstrap_servers': '127.0.0.1:9092',
+                    'auto_offset_reset': 'earliest',
+                    'group': 'test-group',
+                    'enable_auto_commit': True,
                     'auto_commit_interval_ms': 1000
                     }
 

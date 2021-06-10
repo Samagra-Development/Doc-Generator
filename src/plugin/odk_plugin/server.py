@@ -8,6 +8,7 @@ from utils.func import initialize_logger
 from db.app import create_app, DB
 from db.models import BackupPdfData
 from .external import ODKSheetsPlugin
+import traceback
 
 
 app = create_app()
@@ -38,31 +39,33 @@ def get_pdf_for_saksham():
     """
     receive request from another server and save it in queue
     """
-    logging = initialize_logger()
-    # Get the logger specified in the file
-    logger = logging.getLogger(__name__)
-    logger.info("Request received")
-    req_data = json.loads(json.dumps(request.json))
-    new_req_data = req_data['data'][0]  # Getting the data : [{values}]
-    instance_id = new_req_data['instanceID']  # Getting the instance id for searching routes
+    try:
+        logging = initialize_logger()
+        # Get the logger specified in the file
+        logger = logging.getLogger(__name__)
+        logger.info("Request received")
+        req_data = json.loads(json.dumps(request.json))
+        new_req_data = req_data['data'][0]  # Getting the data : [{values}]
+        instance_id = new_req_data['instanceID']  # Getting the instance id for searching routes
 
-    unique_ids = []
-    json_data = BackupPdfData(
-        raw_data=req_data,
-        link_id=instance_id
-    )
-    DB.session.add(json_data)  # Adds new User record to database
-    DB.session.flush()  # Pushing the object to the database so that it gets assigned a unique id
-    unique_ids.append(json_data.unique_id)
-    DB.session.commit()  # Commits all changes
-    obj = ODKSheetsPlugin()
-    error = obj.fetch_data()
-    if not error:
-        status = 'done'
-    else:
-        status = error
-    return {'status':status}
-
+        unique_ids = []
+        json_data = BackupPdfData(
+            raw_data=req_data,
+            link_id=instance_id
+        )
+        DB.session.add(json_data)  # Adds new User record to database
+        DB.session.flush()  # Pushing the object to the database so that it gets assigned a unique id
+        unique_ids.append(json_data.unique_id)
+        DB.session.commit()  # Commits all changes
+        obj = ODKSheetsPlugin()
+        error = obj.fetch_data()
+        if not error:
+            status = 'done'
+        else:
+            status = error
+        return {'status':status}
+    except Exception as e:
+        print(traceback.format_exc())
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
 

@@ -12,7 +12,7 @@ ENV FLASK_APP db/app.py
 RUN apk update \
     && apk add postgresql-dev gcc python3-dev musl-dev
 
-RUN apk add --update gcc libc-dev linux-headers && rm -rf /var/cache/apk/*
+RUN apk add --update build-base gcc libc-dev linux-headers && rm -rf /var/cache/apk/*
 
 RUN pip install --upgrade pip
 COPY ./requirements.txt /usr/src/requirements.txt

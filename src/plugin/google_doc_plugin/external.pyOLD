@@ -20,20 +20,12 @@ from pdfbase.internal import PDFPlugin
 from pdfbase.config import KAFKA_CREDENTIAL
 from plugin.file_uploader.file_uploader import FileUploader
 from utils.func import initialize_logger, send_whatsapp_msg, info_log, send_mail
-from confluent_kafka import Consumer, Producer
 import traceback
 
 
-def delivery_report(err, msg):
-    """ Called once for each message produced to indicate delivery result.
-        Triggered by poll() or flush(). """
-    if err is not None:
-        print('Message delivery failed: {}'.format(err))
-    else:
-        print('Message delivered to {} [{}]'.format(msg.topic(), msg.partition()))
-
 
 # implement interface
+
 class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
     """
     Plugin class which implement PDFPlugin interface
@@ -120,12 +112,11 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             else:
                 mapping_values = values
         except SpreadsheetNotFound as ex:
-            error = "Failed to fetch mapping detials - 1"
+            error = "Failed to fetch mapping detials"
             mapping_values = None
             self.logger.error("Exception occurred", exc_info=True)
         except Exception as ex:
-            print(traceback.format_exc())
-            error = "Failed to fetch mapping detials - 2"
+            error = "Failed to fetch mapping detials"
             mapping_values = None
             self.logger.error("Exception occurred", exc_info=True)
         return mapping_values, error
@@ -158,10 +149,11 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         try:
             key_bytes = bytes(key, encoding='utf-8')
             value_bytes = bytes(value, encoding='utf-8')
-            producer_instance.produce(topic_name, key=key, value=value, callback=delivery_report)
-            producer_instance.produce(topic_name, key=key_bytes, value=value_bytes, callback=delivery_report)
+            producer_instance.send(topic_name, key=key_bytes, value=value_bytes)
             producer_instance.flush()
         except Exception as ex:
+            print("Testing")
+            print(traceback.format_exc())
             self.logger.error('Exception in publishing message')
             error = str(ex)
             self.logger.error("Exception occurred", exc_info=True)
@@ -174,7 +166,12 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         """
         _producer = None
         try:
-            _producer = Producer({'bootstrap.servers': '127.0.0.1:9092'})
+            _producer = KafkaProducer(bootstrap_servers=KAFKA_CREDENTIAL['bootstrap_servers'],
+                                      security_protocol=KAFKA_CREDENTIAL['security_protocol'],
+                                      sasl_mechanism=KAFKA_CREDENTIAL['sasl_mechanism'],
+                                      sasl_plain_username=KAFKA_CREDENTIAL['sasl_plain_username'],
+                                      sasl_plain_password=KAFKA_CREDENTIAL['sasl_plain_password'],
+                                      api_version=(0, 10))
 
         except Exception as ex:
             self.logger.error('Exception while connecting Kafka')
@@ -190,7 +187,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         tags = None
         try:
             range_name = self.config['SHEETNAME']
-            print(self.config)
             # call class method which return sheet data and error if permission is not there
             get_value_mapping = self.get_sheetvalues(self.config['SHEETID'], range_name)
 
@@ -222,7 +218,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                 error = "No Mapping details found"
 
         except Exception as ex:
-            error = "Failed to fetch mapping detials - 3"
+            error = "Failed to fetch mapping detials"
             mapping_values = None
             self.logger.error("Exception occurred", exc_info=True)
         return error
@@ -238,7 +234,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             self.raw_data = data
             self.get_tags()
             info_log(self.logger.info, "Step3 Fetch Mapping Start", self.raw_data)
-            print(data['SHEETID'], data['MAPPINGDETAILS'])
             get_value_mapping = self.get_sheetvalues(data['SHEETID'], data['MAPPINGDETAILS'])
             mapping_error = get_value_mapping[1]  # Error in fetching mapping
             mapping_values = get_value_mapping[0]  # mapping values list
@@ -260,49 +255,58 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             info_log(self.logger.info, "Step3 Fetch Mapping End", self.raw_data)
 
         except Exception as ex:
-            error = "Failed to fetch mapping detials - 4"
+            error = "Failed to fetch mapping detials"
             info_log(self.logger.error, "Error1 " + error, self.raw_data)
             self.logger.error("Exception occurred", exc_info=True)
         return raw_data, error
 
-    def map_data(self, all_data, mapping_values, options_mapping):
+    def _map_data(self, all_data, mapping_values, options_mapping):
         error = None
         final_data = None
         try:
-            # info_log(self.logger.info, "Step4.1 Mapping Start", self.raw_data)
+            info_log(self.logger.info, "Step4.1 Mapping Start", self.raw_data)
+            mapping_values.pop(0)  # removing the header row of mapping sheet
             final_data = []  # List to hold the final values
-            mapping_values.pop(0)
-            options_mapping.pop(0)
+            options_mapping.pop(0)  # removing the header row of options sheet
             for row in mapping_values:
-                if row[1].lower() == 'options':
-                    options_mapping_keys = [x[0] for x in options_mapping]
-                    option_value_start = options_mapping_keys.index(row[2])
+                if row[1] == 'options':
+                    # row[2] option value name
+                    # str(all_data[row[2]]) option value a,b,c,d
+                    # options_mapping[] the list with valuename and options value
+                    this_list = ''.join(
+                        str(opt) for opt in options_mapping)  # Converted list to string
+                    new_list = this_list.split(str(
+                        row[2]), 1)[1]  # List split to start with required string
+                    index_end = new_list.find("]")  # Find the stopping point
+                    # The semi final string to find values from obtained
+                    str_to_check = new_list[:
+                                            index_end]
+                    option_value_start = str_to_check.find(str(all_data[row[2]]))
                     if option_value_start == -1:
-                        all_data[row[2]] = 'NO_TEXT_FOUND'  # If the particular option is not found
+                        all_data[row[
+                            2]] = 'NO_TEXT_FOUND'  # If the particular option is not found
+                        # Appending the received data to the final list
                         final_data.append(all_data[row[2]])
                     else:
-                        a = options_mapping_keys.index(row[2])
-                        current_option_val = 'NO_TEXT_FOUND'
-                        for i in options_mapping[a][1:]:
-                            if i != '':
-                                op_key = i.split("::")[0]
-                                op_val = i.split("::")[1]
-                                if op_key == all_data[row[2]]:
-                                    current_option_val = op_val
-                                    break
-                        final_data.append(current_option_val)
+                        length = len(all_data[row[2]])
+                        option_value_end = str_to_check.find("'", option_value_start)
+                        option_value = str_to_check[option_value_start + length + 2:
+                                                    option_value_end]
+                        final_data.append(
+                            option_value
+                        )  # Appending the correct option to the final list
                 else:
                     if not all_data[row[2]]:
                         all_data[row[2]] = 'NO_TEXT_FOUND'  # If data is None
 
-                    final_data.append(all_data[row[2]])  # Appending the received data to the final list
-            # info_log(self.logger.info, "Step4.1 Mapping End", self.raw_data)
+                    final_data.append(all_data[row[
+                        2]])  # Appending the received data to the final list
+            info_log(self.logger.info, "Step4.1 Mapping End", self.raw_data)
 
         except Exception as ex:
-            print(traceback.format_exc())
             error = "Failed to map data"
-            # info_log(self.logger.error, "Error3 " + error, self.raw_data)
-            # self.logger.error("Exception occurred", exc_info=True)
+            info_log(self.logger.error, "Error3 " + error, self.raw_data)
+            self.logger.error("Exception occurred", exc_info=True)
         return final_data, error
 
     def get_config(self):
@@ -316,9 +320,8 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         try:
             info_log(self.logger.info, "Step4.2 Generate File Drive Start", self.raw_data)
             # call the app script url
-            print(url)
-            contents = requests.get(url, allow_redirects=True, timeout=60).json()
-
+            contents = requests.get(url, timeout=60).json()
+            print(contents)
             if contents.get("error") != "null":
                 error = contents.get('error')
             if error == "undefined":
@@ -329,7 +332,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             info_log(self.logger.info, "Step4.2 Generate File Drive End", self.raw_data)
 
         except Exception as ex:
-            print(traceback.format_exc())
             error = "Failed to get response from App Script"
             info_log(self.logger.error, "Error4 " + error, self.raw_data)
             self.logger.error("Exception occurred", exc_info=True)
@@ -348,7 +350,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             info_log(self.logger.info, "Step4 Build Pdf Start", self.raw_data)
             mapping_values = raw_data['value_mapping']
             options_mapping = raw_data['options_mapping']
-            mapped_data = self.map_data(data, mapping_values, options_mapping)
+            mapped_data = self._map_data(data, mapping_values, options_mapping)
             mapping_error = mapped_data[1]
             final_data = mapped_data[0]
             if not mapping_error:
@@ -379,7 +381,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                 if not error:
                     gas_url = self.config['URL'] + urlencode(payload)
                     # Calling the GAS url and Getting the GAS response
-
                     app_script_response = self._generate_file_drive(gas_url)
                     error = app_script_response[3]
 
@@ -423,7 +424,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
                     else:
                         cdn_upload = FileUploader(self.config['UPLOADTO'],
                                                   base_path + '/' +
-                                                  self.config['GOOGLE_CLOUD_STORAGE_CREDENTIALS'])
+                                                  self.config['GOOGLE_APPLICATION_CREDENTIALS'])
                     resp = cdn_upload.upload_file(base_path + self.config['DIRPATH'] + key,
                                                   self.config['BUCKET'], key)
                     url = resp[0]
@@ -522,9 +523,7 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         try:
             querystring = {"key": api_key,
                            "url": url}
-            url = self.config['POLRAPIURL']
-            url = "http://polr:80/api/v2/action/shorten"
-            resp = requests.request("GET", url, params=querystring)
+            resp = requests.request("GET", self.config['POLRAPIURL'], params=querystring)
             if resp.status_code == 200:
                 short_url = resp._content.decode("utf-8")
                 tags = self.get_tags()
@@ -610,7 +609,6 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             info_log(self.logger.info, "Step6 Shorten Url End", self.raw_data)
 
         except Exception as ex:
-            print(traceback.format_exc())
             error = "Unable to shorten a url"
             info_log(self.logger.error, "Error7 " + error, self.raw_data)
             self.logger.error("Exception occurred", exc_info=True)

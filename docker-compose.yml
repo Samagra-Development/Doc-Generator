@@ -24,6 +24,9 @@ services:
       - "hot_standby=on"
       - "-c"
       - "ssl=off"
+    ports:
+      - "5423:5432"    
+  
   backupdb:
     image: postgres:latest
     volumes:
@@ -47,6 +50,8 @@ services:
       - "hot_standby=on"
       - "-c"
       - "ssl=off"
+    ports:
+      - "5422:5432"
 
   polr:
     image: wedi42/polr
@@ -119,6 +124,24 @@ services:
       - ./src/:/usr/src/
     depends_on:
       - db
+  kafka:
+    container_name: kafka
+    image: lensesio/box
+    environment:
+      ADV_HOST: "127.0.0.1"
+      EULA: "https://licenses.lenses.io/download/lensesdl?id=469ad73b-c512-11eb-9025-42010af01003"
+      USER: admin
+      PASSWORD: cttsamagra
+      SAMPLEDATA: 0
+      RUNTESTS: 0
+      DEBUG: 1
+    volumes:
+      - kafka-data-pdf:/data/storage
+    ports:
+      - "3030:3030"
+      - "9092:9092"
+      - "8081:8081"
+  
   graphql-engine:
     image: hasura/graphql-engine:v1.1.1
     ports:
@@ -167,3 +190,4 @@ volumes:
   mysql-data:
   polr-data:
   backupdb-data:
+  kafka-data-pdf:
