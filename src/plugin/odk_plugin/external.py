@@ -4,13 +4,14 @@ Plugin for getting data from another server and generate pdf from it
 import json
 import os.path
 import gspread
+import traceback
+
 from oauth2client.service_account import ServiceAccountCredentials
 from flask import request
 from kafka import KafkaProducer
 from utils.func import initialize_logger
 from pdfbase.config import KAFKA_CREDENTIAL
 from ..google_doc_plugin.external import GoogleDocsSheetsPlugin
-import traceback
 
 # implement interface
 
@@ -82,7 +83,7 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
         try:
             # Converting unicodes to str and then str to dict.
             req_data = json.loads(json.dumps(request.json))
-            print(req_data)
+
 
             # Getting the form ID to distinguish between various template document and mapping sheet
             form_id = req_data['formId']
@@ -143,6 +144,7 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             value = json.dumps(raw_data)
             error = self.publish_message(kafka_producer, KAFKA_CREDENTIAL['topic'],
                                          KAFKA_CREDENTIAL['group'], value)
+            print(json.dumps(self.raw_data, indent=4))
             self.logger.info("Step0 End - instance id %s - Form id %s", instance_id, form_id)
         except Exception as ex:
             print(traceback.format_exc())
@@ -150,3 +152,5 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             self.logger.error("Error0 %s", error)
             self.logger.error("Exception occurred", exc_info=True)
         return error
+    
+    
