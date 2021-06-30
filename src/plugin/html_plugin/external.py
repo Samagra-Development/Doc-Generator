@@ -169,77 +169,81 @@ class HTMLPlugin(ODKSheetsPlugin):
         return pdf_name, error, pdf_url
     
 
+    def fetch_data_internal(self, req_data=""):
+        form_id = req_data['formId']
+        new_req_data = req_data['data'][0]  # Getting the data : [{values}]
+        instance_id = new_req_data['instanceID']  # Getting the instance id for searching routes
+        self.logger.info("Step0 Start - instance id %s - Form id %s", instance_id, form_id)
+        user_name_field = self.config[form_id]["USERNAMEFIELD"]
+        new_req_data = json.loads(json.dumps(new_req_data))  # Getting the new data
+        user_name = new_req_data[user_name_field]
+        form_submission_date = new_req_data[
+            '*meta-submission-date*']  # Correcting the submission date and removing the time
+        end_index = form_submission_date.find(str('T'))
+        form_submission_date = form_submission_date[:end_index]
+        # Saving the corrected date in the json
+        new_req_data['*meta-submission-date*'] = form_submission_date
+        my_dict = {}
+        for req_key, req_val in new_req_data.items():
+            if isinstance(req_val, dict):
+                for col_key, col_val in req_val.items():
+                    if col_key == "url":
+                        # correcting the URLs
+                        base_url = 'http://aggregate.cttsamagra.xyz:8080/'
+                        index_start = 0  # Finding the substring
+                        index_end = col_val.find(
+                            ":8080/") + 6  # Find the stopping point
+                        newv1 = col_val.replace(col_val[index_start:index_end], base_url)
+                        my_dict[req_key] = newv1
+            elif isinstance(req_val, (float, int)):
+                my_dict[req_key] = str(req_val)
+            elif isinstance(req_val, list):
+                my_dict[req_key] = str(req_val[0])  # Converting list to str
+            else:
+                if req_val is None:
+                    req_val = "-"
+                my_dict[req_key] = req_val
+
+        # Calculate Udise from its database and then Calculate distance from udise
+        calculated_distance = 'Not available'  # Calculate using udise
+        my_dict['calculated_distance'] = calculated_distance
+        all_data = dict()
+        all_data['req_data'] = my_dict
+        all_data['FORMID'] = form_id
+        all_data['INSTANCEID'] = instance_id
+        all_data['USERNAME'] = user_name
+        all_data['FORMSUBMISSIONDATE'] = form_submission_date
+        self.raw_data = all_data
+        tags = self.get_tags()
+        all_data.update(self.config)
+        raw_data = dict()
+        raw_data['reqd_data'] = all_data
+        raw_data['tags'] = tags
+        raw_data['instance_id'] = instance_id
+        if 'DOCDELETED' in self.config[self.raw_data["FORMID"]]:
+            raw_data['is_delete'] = self.config[self.raw_data["FORMID"]]["DOCDELETED"]
+
+        else:
+            raw_data['is_delete'] = True
+        self.logger.info("Step0 End - instance id %s - Form id %s", instance_id, form_id)
+        return raw_data, None
+
     def fetch_data(self, req_data=""):
         """
         this method fetches the data from google sheet and return it as raw_data and also send tag
         """
-        print("FETCHING DATA!!!")
         error = None
         tags = None
         try:
             req_data = json.loads(json.dumps(request.json))
+            raw_data = self.fetch_data_internal(req_data)
+            kafka_producer = self.connect_kafka_producer()
+            value = json.dumps(raw_data)
+            error = self.publish_message(kafka_producer, KAFKA_CREDENTIAL['topic'],
+                                         KAFKA_CREDENTIAL['group'], value)
             # Getting the form ID to distinguish between various template document and mapping sheet
-            form_id = req_data['formId']
-            new_req_data = req_data['data'][0]  # Getting the data : [{values}]
-            instance_id = new_req_data['instanceID']  # Getting the instance id for searching routes
-            self.logger.info("Step0 Start - instance id %s - Form id %s", instance_id, form_id)
-            user_name_field = self.config[form_id]["USERNAMEFIELD"]
-            new_req_data = json.loads(json.dumps(new_req_data))  # Getting the new data
-            user_name = new_req_data[user_name_field]
-            form_submission_date = new_req_data[
-                '*meta-submission-date*']  # Correcting the submission date and removing the time
-            end_index = form_submission_date.find(str('T'))
-            form_submission_date = form_submission_date[:end_index]
-            # Saving the corrected date in the json
-            new_req_data['*meta-submission-date*'] = form_submission_date
-            my_dict = {}
-            for req_key, req_val in new_req_data.items():
-                if isinstance(req_val, dict):
-                    for col_key, col_val in req_val.items():
-                        if col_key == "url":
-                            # correcting the URLs
-                            base_url = 'http://aggregate.cttsamagra.xyz:8080/'
-                            index_start = 0  # Finding the substring
-                            index_end = col_val.find(
-                                ":8080/") + 6  # Find the stopping point
-                            newv1 = col_val.replace(col_val[index_start:index_end], base_url)
-                            my_dict[req_key] = newv1
-                elif isinstance(req_val, (float, int)):
-                    my_dict[req_key] = str(req_val)
-                elif isinstance(req_val, list):
-                    my_dict[req_key] = str(req_val[0])  # Converting list to str
-                else:
-                    if req_val is None:
-                        req_val = "-"
-                    my_dict[req_key] = req_val
-
-            # Calculate Udise from its database and then Calculate distance from udise
-            calculated_distance = 'Not available'  # Calculate using udise
-            my_dict['calculated_distance'] = calculated_distance
-            all_data = dict()
-            all_data['req_data'] = my_dict
-            all_data['FORMID'] = form_id
-            all_data['INSTANCEID'] = instance_id
-            all_data['USERNAME'] = user_name
-            all_data['FORMSUBMISSIONDATE'] = form_submission_date
-            self.raw_data = all_data
-            tags = self.get_tags()
-            all_data.update(self.config)
-            raw_data = dict()
-            raw_data['reqd_data'] = all_data
-            raw_data['tags'] = tags
-            raw_data['instance_id'] = instance_id
-            if 'DOCDELETED' in self.config[self.raw_data["FORMID"]]:
-                raw_data['is_delete'] = self.config[self.raw_data["FORMID"]]["DOCDELETED"]
-            # kafka_producer = self.connect_kafka_producer()
-            # value = json.dumps(raw_data)
-            # error = self.publish_message(kafka_producer, KAFKA_CREDENTIAL['topic'],
-            #                              KAFKA_CREDENTIAL['group'], value)
-            else:
-                raw_data['is_delete'] = True
-            print(self.raw_data)
-            self.logger.info("Step0 End - instance id %s - Form id %s", instance_id, form_id)
-            return raw_data, None
+            return self.fetch_data_internal(req_data)
+            
         except Exception as ex:
             print(traceback.format_exc())
             error = "Failed to fetch mapping detials"
