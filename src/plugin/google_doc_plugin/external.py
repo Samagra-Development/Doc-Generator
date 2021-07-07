@@ -395,9 +395,9 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
             error = "Failed to generate pdf"
             info_log(self.logger.error, "Error2 " + error, self.raw_data)
             self.logger.error("Exception occurred", exc_info=True)
-        return pdf_name, error, pdf_url
+        return pdf_name, error, pdf_url, None
 
-    def upload_pdf(self, key, file_url):
+    def upload_pdf(self, key, file_url, file_path=None):
         """
         Uploads a file to the local server and if we specify UPLOADTO in config file then save this
         file to cdn and delete file from local server.
@@ -405,7 +405,13 @@ class GoogleDocsSheetsPlugin(implements(PDFPlugin)):
         error = ''
         upload_file_url = None
         expire_timestamp = None
+        if not file_url and not file_path:
+            error = "Please specify either file URL or file path"
+            return "", error, ""
         try:
+            if file_url is None:
+                error = "Please specify either file URL or file path"
+                return "", error, ""
             info_log(self.logger.info, "Step5 Upload Pdf Start", self.raw_data)
             response = requests.get(file_url)
             base_path = os.path.dirname(__file__) + self.config['DIRPATH']

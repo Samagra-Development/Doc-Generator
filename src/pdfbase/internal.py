@@ -150,7 +150,8 @@ class PDFBuilder:
                         pdf_data.step = 2
                         pdf_data.doc_name = file_build[0]
                         pdf_data.doc_url = file_build[2]
-                        file_downloaded = self._plugin.upload_pdf(file_name, pdf_data.doc_url)
+                        pdf_data.file_path = file_build[3]
+                        file_downloaded = self._plugin.upload_pdf(file_name, pdf_data.doc_url, pdf_data.file_path)
                         upload_file_url = file_downloaded[0]
                         file_error = file_downloaded[1]
                         if not file_error:

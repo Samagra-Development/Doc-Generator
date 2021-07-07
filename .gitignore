@@ -140,6 +140,8 @@ dmypy.json
 google-creds.json
 gcs-creds-af.json
 
+src/plugin/html_plugin/data
+
 .vscode
 
 */*/config.json

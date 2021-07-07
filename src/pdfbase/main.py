@@ -1,7 +1,6 @@
 """
 Initializes pdf builder and start the server
 """
-from plugin.google_doc_plugin.external import GoogleDocsSheetsPlugin
 from plugin.html_plugin.external import HTMLPlugin
 from .internal import PDFBuilder
 #from plugin.odk_plugin.external import ODKSheetsPlugin

@@ -144,7 +144,6 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             value = json.dumps(raw_data)
             error = self.publish_message(kafka_producer, KAFKA_CREDENTIAL['topic'],
                                          KAFKA_CREDENTIAL['group'], value)
-            print(json.dumps(self.raw_data, indent=4))
             self.logger.info("Step0 End - instance id %s - Form id %s", instance_id, form_id)
         except Exception as ex:
             print(traceback.format_exc())
