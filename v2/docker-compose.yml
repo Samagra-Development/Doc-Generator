@@ -1,0 +1,89 @@
+version: "3"
+
+services:
+#  broker:
+#    container_name: broker
+#    env_file:
+#      - .env
+#    networks:
+#      - broker
+#    image: "docker.io/bitnami/rabbitmq:latest"
+#    environment:
+#      - RABBITMQ_PASSWORD=${BROKER_PASSWORD}
+#      - RABBITMQ_USERNAME=${PROD}
+#    ports:
+#      - "4369:4369"
+#      - "5672:5672"
+#      - "25672:25672"
+#      - "15672:15672"
+#    volumes:
+#      - "pdf_broker_data:/bitnami"
+
+  db:
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${DB_USER_NAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/pgdata
+
+  graphql-engine:
+    image: ${HASURA_VERSION}
+    ports:
+      - "5001:8080"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    restart: always
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://${DB_USER_NAME}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_ADMIN_PASS}
+
+#  webserver:
+#    build: .
+#    # image: mpc-etl:latest
+#    restart: always
+#    env_file:
+#      - pdf/.env
+#    depends_on:
+#      - db
+#    volumes:
+#      - ./logs:/srv/logs/
+#    ports:
+#      - "8080:8080"
+#    command: gunicorn --workers=2 -b 0.0.0.0:8080 app:api
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://webserver:8080"]
+#      interval: 2s
+#      timeout: 2s
+#      retries: 5
+#
+#  worker:
+#    build: .
+#    # image: mpc-etl:latest
+#    restart: always
+#    env_file:
+#      - pdf/.env
+#    depends_on:
+#      - db
+#      - broker
+#    volumes:
+#      - ./logs:/srv/logs/
+#    command: celery worker -A app.celery --loglevel=info
+
+#volumes:
+#  pdf_broker_data:
+#    driver: local
+
+#networks:
+#  broker:
+#    driver: bridge
