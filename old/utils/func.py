@@ -26,7 +26,7 @@ def send_whatsapp_msg(mobile, url, name, doc_url):
     message = urllib.parse.quote(json.dumps(message))
     print(message)
     params = 'channel=whatsapp&source=917834811114&destination='+'91'+str(mobile)
-    params +='&message='+message+'&src.name=SakshamHaryana'
+    params +='&message='+message+'&old.name=SakshamHaryana'
     result = requests.request("POST", 'https://api.gupshup.io/sm/api/v1/msg', data=params, headers=headers)
     print(result.__dict__ )
     error = None

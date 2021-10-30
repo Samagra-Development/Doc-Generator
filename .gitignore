@@ -145,4 +145,5 @@ google-creds.json
 config.json
 
 # Docker Volumes
-**/pgdata/
+pgdata/
+staticfiles/

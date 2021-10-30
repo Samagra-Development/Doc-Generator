@@ -19,9 +19,9 @@ COPY ./requirements.txt /usr/src/requirements.txt
 RUN pip install -r requirements.txt
 
 COPY . /usr/src/
-#RUN chmod +x /usr/src/docker-entrypoint.sh
+#RUN chmod +x /usr/old/docker-entrypoint.sh
 
-#ENTRYPOINT ["/usr/src/docker-entrypoint.sh"]
+#ENTRYPOINT ["/usr/old/docker-entrypoint.sh"]
 COPY delete-file-cron /etc/crontabs/root
 
 CMD flask db upgrade && python3 -m pdfbase.main
