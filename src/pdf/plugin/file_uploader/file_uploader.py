@@ -4,6 +4,7 @@ General module in which depending on the storage use we intialize that class
 from .s3_uploader import S3Uploader
 from .google_cloud_uploader import GoogleCloudUploader
 
+
 class FileUploader:
 
     """
@@ -18,6 +19,7 @@ class FileUploader:
         else:
             self.storage_client = GoogleCloudUploader(access_key)
         #self.bucket = bucket
+
     def upload_file(self, file_name, bucket, object_name):
         """
         calls class respective upload_file method

@@ -4,3 +4,17 @@ python-dotenv
 django-extensions
 psycopg2
 django-grappelli
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+jsonify
+wget
+oauth2client
+google-cloud-storage
+requests
+uwsgi
+python-interface
+boto3
+gspread
+jsonformatter
+python3-logstash
