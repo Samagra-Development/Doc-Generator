@@ -12,7 +12,6 @@ click==7.1.2
 click-didyoumean==0.3.0
 click-plugins==1.1.1
 click-repl==0.2.0
-cryptography==35.0.0
 Django==3.2.8
 django-celery-beat==2.2.1
 django-celery-results==2.2.0
