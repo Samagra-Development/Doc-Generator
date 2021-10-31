@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'health_check.contrib.celery',  # requires celery
     'health_check.contrib.celery_ping',  # requires celery
     'health_check.contrib.psutil',  # disk and memory utilization; requires psutil
-    'health_check.contrib.s3boto3_storage',  # requires boto3 and S3BotoStorage backend
     'health_check.contrib.rabbitmq',  # requires RabbitMQ broker
 
     # Celery Related
@@ -162,5 +161,12 @@ CELERY = {
     'task_serializer': 'json',
     'result_serializer': 'json',
     'accept_content': ['json'],
+}
+
+# Health Check
+BROKER_URL = os.getenv("CELERY_BROKER_URL")
+HEALTH_CHECK = {
+    'DISK_USAGE_MAX': 90,  # percent
+    'MEMORY_MIN': 100,    # in MB
 }
 
