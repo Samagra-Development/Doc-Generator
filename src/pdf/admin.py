@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Audit, Pdf
+from .models import Audit, Pdf, GenericConfig
 
 
 class AuditAdmin(admin.ModelAdmin):
@@ -11,5 +11,11 @@ class PdfAdmin(admin.ModelAdmin):
     fields = ['id', 'status', 'tries']
 
 
-admin.site.register(Audit, AuditAdmin)
+class GenericConfigAdmin(admin.ModelAdmin):
+    fields = ['id', 'name', 'data']
+
+
 admin.site.register(Pdf, PdfAdmin)
+admin.site.register(Audit, AuditAdmin)
+admin.site.register(GenericConfig, GenericConfigAdmin)
+

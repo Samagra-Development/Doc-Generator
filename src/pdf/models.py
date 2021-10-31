@@ -2,6 +2,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.contrib.postgres.fields import JSONField, ArrayField
 import datetime
+from fernet_fields import EncryptedTextField
 
 
 # Base model for adding creation and update date to other models
@@ -11,6 +12,15 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
+
+
+class GenericConfig(BaseModel):
+    id = models.BigIntegerField(unique=True, primary_key=True)
+    name = models.CharField(max_length=20)
+    data = EncryptedTextField()  # json.dumps output (json.loads needed to get the data)
+
+    class Meta:
+        db_table = 'GenericConfig'
 
 
 class Pdf(BaseModel):
@@ -33,6 +43,8 @@ class Pdf(BaseModel):
         ('Deleted From Drive', 'Deleted From Drive'),
     ]
 
+    config = models.ForeignKey(GenericConfig, on_delete=models.CASCADE, null=True, default=None)
+
     id = models.UUIDField(unique=True, primary_key=True)
     meta = JSONField(blank=True, null=True)
     data = JSONField(blank=True, null=True)
@@ -51,6 +63,9 @@ class Pdf(BaseModel):
 
     version = models.CharField(max_length=5)
 
+    class Meta:
+        db_table = 'Pdf'
+
 
 class Audit(BaseModel):
     _Q_EVENT_CHOICES = [
@@ -65,3 +80,6 @@ class Audit(BaseModel):
     pdf = models.ForeignKey(Pdf, on_delete=models.CASCADE, null=True, default=None)
     status = models.CharField(max_length=20, choices=_Q_EVENT_CHOICES, default='None')
     stacktrace = models.JSONField(null=True)
+
+    class Meta:
+        db_table = 'Audit'
