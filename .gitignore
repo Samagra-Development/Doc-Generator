@@ -149,3 +149,5 @@ pgdata/
 staticfiles/
 
 health_check_storage_test/
+
+.env*
