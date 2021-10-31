@@ -147,3 +147,5 @@ config.json
 # Docker Volumes
 pgdata/
 staticfiles/
+
+health_check_storage_test/
