@@ -34,8 +34,12 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # Applications
     'pdf',
+
+    # Django Extensions
     'django_extensions',
+
     # Admin
     'grappelli',
 
