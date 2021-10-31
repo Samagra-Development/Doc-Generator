@@ -174,3 +174,43 @@ HEALTH_CHECK = {
     'MEMORY_MIN': 100,    # in MB
 }
 
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            # exact format is not important, this is the minimum information
+            'format': '%(asctime)s %(name)-12s %(funcName)-15s %(message)s',
+        },
+        'graylog': {
+            # exact format is not important, this is the minimum information
+            'format': "[" + os.getenv("PROJECT_NAME") + "<>" + os.getenv("ENVIRONMENT") + "] " + '%(message)s',
+        },
+    },
+    'handlers': {
+        'graypy': {
+            'level': 'INFO',
+            'class': 'graypy.GELFUDPHandler',
+            'host': os.getenv('GRAYLOG_HOST'),
+            'port': 12201,
+            'formatter': 'graylog'
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+            'handlers': ['graypy', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['graypy'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
