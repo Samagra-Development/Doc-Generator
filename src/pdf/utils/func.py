@@ -15,6 +15,7 @@ def initialize_logger():
     logging.config.fileConfig(fname=log_file, disable_existing_loggers=False)
     return logging
 
+
 def send_whatsapp_msg(mobile, url, name, doc_url):
     headers = {'Cache-Control': 'no-cache', 'Content-Type': 'application/x-www-form-urlencoded',
                'apikey': '8e455564878b4ca2ccb7b37f13ef9bfa', 'cache-control': 'no-cache'}
@@ -34,6 +35,7 @@ def send_whatsapp_msg(mobile, url, name, doc_url):
         error = 'Unable to send msg'
         print(result.__dict__)
     return error, result
+
 
 def send_mail(email, url, custom_fields, file_name, template_id):
     data = {'EMAIL': email, 'SUBJECT': 'Resume'}
@@ -56,6 +58,7 @@ def send_mail(email, url, custom_fields, file_name, template_id):
 
     return error, resp
 
+
 def info_log(logger, msg, raw_data):
     if all(raw_key in raw_data for raw_key in ("INSTANCEID", "FORMID")) and \
             raw_data['INSTANCEID'] and raw_data['FORMID']:
@@ -64,6 +67,7 @@ def info_log(logger, msg, raw_data):
             raw_data['INSTANCEID'], raw_data['FORMID'])
     else:
         logger(msg)
+
 
 def print_log(msg, raw_data):
     now = datetime.now()
@@ -77,6 +81,7 @@ def print_log(msg, raw_data):
             raw_data['INSTANCEID'], raw_data['FORMID']))
     else:
         print("{} - {} ".format( dt_string, msg))
+
 
 def call_healthcheck_url(url):
     resp = requests.get(url)
