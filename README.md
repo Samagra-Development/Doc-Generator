@@ -7,7 +7,7 @@
 - Create a `.env` file at  `/src/pdf/`
 - Start the DB - `docker-compose up -d db`
 - Create a virtual environment for python 3.9. The project is not tested on lower versions.
-- Install Dependencies `pip install -r requirements.txt.dev`. Since the requirements.txt is for the production server, it will be finalized later. So please continue using the dev one.
+- Install Dependencies `pip install -r requirements.txt.dev`. Since the requirements.txt is for the production server, it will be finalized later. So please continue using the dev one. Before committing code, always update the file using the following command `pip freeze > requirements.txt.dev`
 - Migrate the database `python manage.py migrate`
 - Create a superuser `python3 manage.py createsuperuser`
 - Start three terminals and run the following commands. These will start `beat`, `worker` and `django` dev server.
