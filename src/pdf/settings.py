@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 import os
 from dotenv import load_dotenv
@@ -36,7 +36,26 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'pdf',
     'django_extensions',
+    # Admin
     'grappelli',
+
+    # Health Check
+    'health_check',  # required
+    'health_check.db',  # stock Django health checkers
+    'health_check.cache',
+    'health_check.storage',
+    'health_check.contrib.migrations',
+    'health_check.contrib.celery',  # requires celery
+    'health_check.contrib.celery_ping',  # requires celery
+    'health_check.contrib.psutil',  # disk and memory utilization; requires psutil
+    'health_check.contrib.s3boto3_storage',  # requires boto3 and S3BotoStorage backend
+    'health_check.contrib.rabbitmq',  # requires RabbitMQ broker
+
+    # Celery Related
+    'django_celery_results',
+    'django_celery_beat',
+
+    # Defaults
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -89,7 +108,6 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -111,15 +129,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+TIME_ZONE = os.getenv('TIME_ZONE')
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 
@@ -137,3 +150,17 @@ STATICFILES_DIRS = (
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Celery Related
+CELERY = {
+    'broker_url': os.getenv("CELERY_BROKER_URL"),
+    'result_backend': os.getenv('CELERY_RESULT_BACKEND'),
+    'timezone': os.getenv('TIME_ZONE'),
+    'CELERY_TASK_TRACK_STARTED': True,
+    'CELERY_TASK_TIME_LIMIT': 30 * 60,
+    'imports': ('pdf.tasks',),
+    'task_serializer': 'json',
+    'result_serializer': 'json',
+    'accept_content': ['json'],
+}
+

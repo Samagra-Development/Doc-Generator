@@ -6,22 +6,24 @@ import uuid
 import os.path
 import threading
 from time import sleep
-from queuelib import FifoDiskQueue
+from ..models import *
 from interface import Interface
-from db.app import DB, get_db
-from db.models import PdfData, OutputTable, TempData
-from utils.func import initialize_logger, info_log, send_whatsapp_msg, call_healthcheck_url
-from sqlalchemy import desc
-from sqlalchemy.types import DATE, String
+# from utils.func import initialize_logger, info_log, send_whatsapp_msg, call_healthcheck_url
+# from sqlalchemy import desc
+# from sqlalchemy.types import DATE, String
 from .config import HEALTHCHECKURL
+
+
 class PDFPlugin(Interface):
 
-    ''' **FetchData.process() -> Dict  => Fetches "new" data from the database/server/websocket
-     whatever and provides it in the form of dictionary, one PDF at a time.
-     **FetchMapping.process() -> Dict => Feches mapping and yeilds it in the form of dictionary
-     **BuildPDF.process() -> File => Function to build PDF and return a file
-     **UploadPDF.process(key, File) ->  => Fuction to save PDF
-     **RetrievePDF.process(key) -> File => Function to get the previously saved PDF from the key'''
+    """
+    **FetchData.process() -> Dict  => Fetches "new" data from the database/server/websocket
+    whatever and provides it in the form of dictionary, one PDF at a time.
+    **FetchMapping.process() -> Dict => Feches mapping and yeilds it in the form of dictionary
+    **BuildPDF.process() -> File => Function to build PDF and return a file
+    **UploadPDF.process(key, File) ->  => Fuction to save PDF
+    **RetrievePDF.process(key) -> File => Function to get the previously saved PDF from the key
+    """
 
     def fetch_data(self):
         """
@@ -82,9 +84,9 @@ class Config:
 
 
 class PDFBuilder:
-    '''
+    """
     initialize itself with any plugin and call its function for pdf generation
-    '''
+    """
     def __init__(self, plugin, config):
         try:
             PDFPlugin.verify(type(plugin))
@@ -390,6 +392,7 @@ class PDFBuilder:
                 # break
             except Exception as ex:
                 self.logger.error("Exception occurred", exc_info=True)
+
     def start(self):
         """ function for calling data download
         in one thread and run method in another thread """
