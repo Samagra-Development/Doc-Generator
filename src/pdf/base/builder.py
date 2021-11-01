@@ -6,97 +6,24 @@ import uuid
 import os.path
 import threading
 from time import sleep
+from .interfaces.plugin import Plugin
+from .interfaces.shortener import URLShortener
+from .interfaces.uploader import Uploader
 from ..models import *
-from interface import Interface
-# from utils.func import initialize_logger, info_log, send_whatsapp_msg, call_healthcheck_url
-# from sqlalchemy import desc
-# from sqlalchemy.types import DATE, String
-from .config import HEALTHCHECKURL
 
 
-class PDFPlugin(Interface):
-
-    """
-    **FetchData.process() -> Dict  => Fetches "new" data from the database/server/websocket
-    whatever and provides it in the form of dictionary, one PDF at a time.
-    **FetchMapping.process() -> Dict => Feches mapping and yeilds it in the form of dictionary
-    **BuildPDF.process() -> File => Function to build PDF and return a file
-    **UploadPDF.process(key, File) ->  => Fuction to save PDF
-    **RetrievePDF.process(key) -> File => Function to get the previously saved PDF from the key
-    """
-
-    def fetch_data(self):
-        """
-        Fetches "new" data from the database/server/websocket
-        whatever and provides it in the form of dictionary, one PDF at a time
-        """
-
-    def fetch_mapping(self, data):
-        """
-        Feches mapping and yeilds it in the form of dictionary
-        """
-
-    def build_pdf(self, raw_data, file_name):
-        """
-        Function to build PDF and return a file
-        """
-
-    def upload_pdf(self, key, file_url):
-        """
-        Fuction to save PDF
-        """
-
-    def retrieve_pdf(self, key):
-        """
-        Function to get the previously saved PDF from the key
-        """
-
-    def delete_file_drive_google_script(self, file):
-        """
-        Function to delete doc from drive
-        :param file:
-        :return:
-        """
-
-    def shorten_url(self, url, doc_url):
-        pass
-
-    def set_raw_data(self, raw_data):
-        pass
-
-
-class Config:
-    """
-    define configuration for pdf generation
-    """
-    @classmethod
-    def get_default_config(cls):
-        """
-        return default configuration
-        """
-        config = {"retries": 1, "max_concurrency": 2}
-        return config
-
-    def __init__(self, config=None):
-
-        self.retries = config["retries"]
-        self.max_concurrency = config["max_concurrency"]
-
-
-class PDFBuilder:
+class Builder:
     """
     initialize itself with any plugin and call its function for pdf generation
     """
+
     def __init__(self, plugin, config):
         try:
-            PDFPlugin.verify(type(plugin))
-            logging = initialize_logger()
-            # Get the logger specified in the file
-            self.logger = logging.getLogger(__name__)
+            Plugin.verify(type(plugin))
             self._plugin = plugin
-            self._config = Config(config=config)
-            self._app = get_db()
-
+            self._config = config
+            self._uploader = config.get_uploader()
+            self._shortener = config.get_shortener()
         except:
             self.logger.error("Exception occurred", exc_info=True)
             raise ValueError('Please provide a valid plugin. Needs to be an instance of PDFPlugin.')
@@ -115,12 +42,12 @@ class PDFBuilder:
                 tags=rec_tags,
                 doc_name=rec_doc_name,
                 pdf_version=rec_pdf_version,
-                url_expires = rec_url_expires,
-                link_id = rec_link_id
-                )
+                url_expires=rec_url_expires,
+                link_id=rec_link_id
+            )
             DB.session.add(data_for_output_table)  # Adds new request record to database
             DB.session.commit()  # Commits all changesgetConnection
-            #DB.session.flush()
+            # DB.session.flush()
         except Exception as ex:
             error = 'Values not inserted in output table'
             self.logger.error("Error9 %s", error)
@@ -200,6 +127,7 @@ class PDFBuilder:
 
             self.logger.error("Exception occurred", exc_info=True)
         return error, pdf_data
+
     def start_queue(self):
         """
         function for getting all data from pdfdata table which are not completed yet
@@ -210,15 +138,15 @@ class PDFBuilder:
                     call_healthcheck_url(HEALTHCHECKURL['PLUGINURL'])
                 results = []
                 check_forms = ["resume_questionnaire_v3", "elem_men_v3", "elem_mon_v4", "sec_men_v3", "sec_mon_v3",
-                               "elem_ssa_v3", "sec_ssa_v3","sat_v3", "slo_v3"]
+                               "elem_ssa_v3", "sec_ssa_v3", "sat_v3", "slo_v3"]
                 qms = PdfData.query.filter(PdfData.tries < self._config.retries,
-                                           PdfData.task_completed == False,PdfData.unique_id>964)\
+                                           PdfData.task_completed == False, PdfData.unique_id > 964) \
                     .order_by(desc(PdfData.tags['FORMSUBMISSIONDATE'].astext.cast(DATE))).limit(
-                                               self._config.max_concurrency).all()
+                    self._config.max_concurrency).all()
                 if not qms:
                     print("Sleeping for 10 seconds")
                     sleep(10)  # If no data is found in database sleep for 10 seconds
-                    #break
+                    # break
                 else:
                     i = 0
                     for data in qms:
@@ -227,10 +155,10 @@ class PDFBuilder:
                         i += 1
                     DB.session.bulk_save_objects(results)
                     DB.session.commit()
-                    #break
+                    # break
 
             except Exception as ex:
-                 self.logger.error("Exception occurred", exc_info=True)
+                self.logger.error("Exception occurred", exc_info=True)
 
     def _save_pdf_data(self, final_data, tags, linked_instance_id):
         unique_ids = []
@@ -238,9 +166,9 @@ class PDFBuilder:
             raw_data=final_data,
             tags=tags,
             instance_id=uuid.uuid4(),
-            link_id = linked_instance_id)
+            link_id=linked_instance_id)
         DB.session.add(json_data)  # Adds new User record to database
-        DB.session.flush() # Pushing the object to the database so that it gets assigned a unique id
+        DB.session.flush()  # Pushing the object to the database so that it gets assigned a unique id
         unique_ids.append(json_data.unique_id)
         DB.session.commit()  # Commits all changes
         status = 'submitted'
@@ -253,7 +181,7 @@ class PDFBuilder:
         print("Starting program")
         print("-" * 79)
         self.logger.info('Run started')
-        #send_whatsapp_msg(8963031387,'https://docs.google.com/document/d/1s_m6Hmf8THnSfBcz3g8Br5Fr5Y8NsD-gJ1HI0zDqKC8/export?format=pdf'
+        # send_whatsapp_msg(8963031387,'https://docs.google.com/document/d/1s_m6Hmf8THnSfBcz3g8Br5Fr5Y8NsD-gJ1HI0zDqKC8/export?format=pdf'
         #                  ,'','https://docs.google.com/document/d/1uOeC-7IpdUgcNE75NMshhb0Hqy5Sj6o0PV8Sa5c1qX4/edit')
 
         with self._app.app_context():
@@ -269,25 +197,25 @@ class PDFBuilder:
         print("-" * 79)
         with self._app.app_context():
             while 1:
-                da_queue = FifoDiskQueue(os.path.dirname(__file__)+'/../queuedata')
+                da_queue = FifoDiskQueue(os.path.dirname(__file__) + '/../queuedata')
                 data = da_queue.pop()
                 da_queue.close()
                 if not data:
                     print('sleep for 10')
                     sleep(10)
-                    #break
+                    # break
                 else:
                     raw_data = json.loads(data.decode('utf-8'))
                     info_log(self.logger.info, "Step1 Save into db Start",
                              raw_data['reqd_data'])
-                    self._save_pdf_data(raw_data['reqd_data'], raw_data['tags'],raw_data['instance_id'])
+                    self._save_pdf_data(raw_data['reqd_data'], raw_data['tags'], raw_data['instance_id'])
                     info_log(self.logger.info, "Step1 Save into db End",
                              raw_data['reqd_data'])
-                    #break
+                    # break
 
     def update_tag_pdfdata(self):
-        
-        while(1):
+
+        while (1):
             qms = TempData.query.filter(TempData.is_update == False).limit(10).all()
             if not qms:
                 print("Sleeping for 10 seconds")
@@ -299,13 +227,13 @@ class PDFBuilder:
                     results = []
                     temp_results = []
                     for data in qms:
-                        print(data)    
+                        print(data)
                         pdf_record = PdfData.query.filter(PdfData.link_id == data.instance_id).all()
                         for rec in pdf_record:
                             if rec.is_update:
                                 data.is_update = True
                                 temp_results.append(data)
-                            else :    
+                            else:
                                 results = []
                                 raw_data = rec.raw_data
                                 req_data = raw_data['req_data']
@@ -322,13 +250,12 @@ class PDFBuilder:
                     DB.session.commit()
                     DB.session.bulk_save_objects(temp_results)
                     DB.session.commit()
-                    #break
+                    # break
                 except Exception as ex:
                     self.logger.error("Exception occurred", exc_info=True)
 
     def update_tag_outputtable(self):
-        
-        while(1):
+        while (1):
             qms = PdfData.query.filter(PdfData.is_update == True).limit(10).all()
             if not qms:
                 print("Sleeping for 10 seconds")
@@ -339,7 +266,7 @@ class PDFBuilder:
                     i = 0
                     results = []
                     for data in qms:
-                        print(data)    
+                        print(data)
                         out_record = OutputTable.query.filter(OutputTable.instance_id == data.instance_id).all()
                         for rec in out_record:
                             out_record.tags = data.tags
@@ -348,15 +275,15 @@ class PDFBuilder:
                             i += 1
                     DB.session.bulk_save_objects(results)
                     DB.session.commit()
-                    #break
+                    # break
                 except Exception as ex:
                     self.logger.error("Exception occurred", exc_info=True)
 
     def update_short_url(self):
-        qms = PdfData.query.filter(PdfData.doc_name != '', PdfData.unique_id<137).all()
+        qms = PdfData.query.filter(PdfData.doc_name != '', PdfData.unique_id < 137).all()
         if not qms:
             print("Sleeping for 10 seconds")
-            #sleep(10)  # If no data is found in database sleep for 10 seconds
+            # sleep(10)  # If no data is found in database sleep for 10 seconds
 
         else:
             try:
@@ -366,7 +293,7 @@ class PDFBuilder:
                 for data in qms:
                     print(data)
                     doc_name = data.doc_name
-                    new_doc_name = doc_name.replace('68.183.94.187:5004','docs.samagra.io')
+                    new_doc_name = doc_name.replace('68.183.94.187:5004', 'docs.samagra.io')
                     data.doc_name = new_doc_name
                     pdf_results.append(data)
                     out_record = OutputTable.query.filter(
@@ -381,7 +308,7 @@ class PDFBuilder:
                             DB.session.bulk_save_objects(pdf_results)
                             DB.session.commit()
                         results = []
-                        pdf_results =[]
+                        pdf_results = []
                     i += 1
                 if results:
                     DB.session.bulk_save_objects(results)
@@ -392,15 +319,3 @@ class PDFBuilder:
                 # break
             except Exception as ex:
                 self.logger.error("Exception occurred", exc_info=True)
-
-    def start(self):
-        """ function for calling data download
-        in one thread and run method in another thread """
-        #dow_thread = threading.Thread(target=self.data_download)
-        run_thread = threading.Thread(target=self.run)
-        #dow_thread.start()
-        run_thread.start()
-        #dow_thread.join()
-        run_thread.join()
-        
-        

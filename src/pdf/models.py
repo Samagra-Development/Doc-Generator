@@ -18,6 +18,8 @@ class GenericConfig(BaseModel):
     id = models.BigIntegerField(unique=True, primary_key=True)
     name = models.CharField(max_length=20)
     data = EncryptedTextField()  # json.dumps output (json.loads needed to get the data)
+    retries = models.IntegerField(default=0)
+    max_concurrency = models.IntegerField(default=1)
 
     class Meta:
         db_table = 'GenericConfig'

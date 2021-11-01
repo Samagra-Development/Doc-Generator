@@ -1,17 +1,10 @@
-"""
-Plugin for getting data from another server and generate pdf from it
-"""
 import json
 import os.path
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from flask import request
-from kafka import KafkaProducer
-from utils.func import initialize_logger
-from pdfbase.config import KAFKA_CREDENTIAL
-from ..google_doc_plugin.external import GoogleDocsSheetsPlugin
+from src.pdf.plugins.google_doc.external import GoogleDocsSheetsPlugin
+import logging
 
-# implement interface
 
 class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
     """
@@ -21,10 +14,7 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
         """
         get googledoc-config.json file content and then save this dtaa to class config variable
         """
-        logging = initialize_logger()
-        # Get the logger specified in the file
-        self.logger = logging.getLogger(__name__)
-
+        self.logger = logging.getLogger()
         with open(os.path.dirname(__file__) + '/config.json') as json_file:
             config = json.load(json_file)
             self.config = config
@@ -70,7 +60,6 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             print(ex)
             self.logger.error("Exception occurred", exc_info=True)
         return client, creds
-
 
     def fetch_data(self):
         """

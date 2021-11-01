@@ -1,13 +1,13 @@
-"""
-Class for using google cloud as a storage
-"""
 from datetime import datetime
 from datetime import timedelta
 from google.cloud import storage
-from utils.func import initialize_logger
+from interface import implements
+import logging
+
+from src.pdf.base.interfaces.uploader import Uploader
 
 
-class GoogleCloudUploader:
+class GCSUploader(implements(Uploader)):
     """
     Class for using google cloud as a storage
     """
@@ -15,17 +15,10 @@ class GoogleCloudUploader:
         """
         get googledoc-config.json file content and then initialize storage client
         """
-        logging = initialize_logger()
-        # Get the logger specified in the file
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger()
         self.storage_client = storage.Client.from_service_account_json(config_file)
 
     def upload_file(self, file_name, bucket_name, key_name):
-        """
-        bucket: name of bucket
-        file_name: local file which we save on google cloud
-        key_name: name of file on google cloud
-        """
         error = None
         status = None
         expires_in = None
@@ -44,13 +37,8 @@ class GoogleCloudUploader:
             error = 'File not uploaded'
             self.logger.error("Exception occurred", exc_info=True)
         return status, error, expires_in
-    def get_object_url(self, bucket_name, key_name):
-        """Generate a presigned URL to share an google cloud object
 
-        :param bucket_name: string
-        :param key_name: string
-        :return: Presigned URL,Expiration timestamp as string. If error, returns None.
-        """
+    def get_object_url(self, bucket_name, key_name):
         doc_url = None
         expires_timestamp = None
         try:

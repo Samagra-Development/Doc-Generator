@@ -1,38 +1,20 @@
-"""
-Class for using s3 as a storage
-"""
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 import boto3
 from botocore.exceptions import ClientError
 from boto3.exceptions import S3UploadFailedError
-from utils.func import initialize_logger
+from interface import implements
+import logging
+from src.pdf.base.interfaces.uploader import Uploader
 
 
-class S3Uploader:
-    """
-    Class for using s3 as a storage
-    """
+class S3Uploader(implements(Uploader)):
     def __init__(self, aws_access_key, aws_secret_key):
-        """
-        Intialize s3 client
-        """
-        logging = initialize_logger()
         # Get the logger specified in the file
-        self.logger = logging.getLogger(__name__)
-        self.s3_client = boto3.resource("s3",
-                                        aws_access_key_id=aws_access_key,
-                                        aws_secret_access_key=aws_secret_key
-                                        )
+        self.logger = logging.getLogger()
+        self.s3_client = boto3.resource("s3", aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key)
         self.bucket_resource = self.s3_client
-        #self.bucket = bucket
+
     def upload_file(self, file_name, bucket, object_name):
-        """Upload a file to an S3 bucket
-        :param file_name: File to upload
-        :param bucket: Bucket to upload to
-        :param object_name: S3 object name. If not specified then file_name is used
-        :return: True if file was uploaded, else False
-        """
         error = None
         status = True
         expires_in = None
@@ -64,19 +46,9 @@ class S3Uploader:
             status = False
             self.logger.error("Exception occurred", exc_info=True)
         return status, error, expires_in
+
     def get_object_url(self, bucket_name, object_name):
-        """Generate a presigned URL to share an S3 object
-
-        :param bucket_name: string
-        :param object_name: string
-        ::return: Presigned URL,Expiration timestamp as string. If error, returns None.
-        """
-
-        # Generate a presigned URL for the S3 object
-        expires_timestamp = None
-        response = None
         try:
-            #expires_in = 1*365*24*60*60
             year_days = 10*365
             expires_in = year_days*24*60*60
             later_date = datetime.now() + timedelta(days=year_days)
@@ -89,7 +61,7 @@ class S3Uploader:
                 HttpMethod="GET")
 
         except ClientError as ex:
-            self.logger.error("Exception occurred", exc_info=True)
+            self.logger.error("Exception occurred :: ClientError", exc_info=True)
             return None
 
         # The response contains the presigned URL

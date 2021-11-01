@@ -12,11 +12,13 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 import os
+from os.path import join, dirname
 from dotenv import load_dotenv
-load_dotenv('.env.dev')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+dotenv_path = join(dirname(__file__), '.env.dev')
+load_dotenv(dotenv_path)
 
 
 # Quick-start development settings - unsuitable for production
