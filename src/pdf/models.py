@@ -24,9 +24,15 @@ class GenericConfig(BaseModel):
     class Meta:
         db_table = 'GenericConfig'
 
+    def get_uploader(self):
+        pass
+
+    def get_shortener(self):
+        pass
+
 
 class Pdf(BaseModel):
-    _Q_STATUS_CHOICES = [
+    Q_STATUS_CHOICES = [
         ('Queued', 'Queued'),
         ('Processing', 'Processing'),
         ('Failed', 'Failed'),
@@ -34,7 +40,7 @@ class Pdf(BaseModel):
         ('Error', 'Error'),
     ]
 
-    _STEP_CHOICES = [
+    STEP_CHOICES = [
         ('Not Started', 'Not Started'),
         ('Data Fetching', 'Data Fetching'),
         ('Mapping Fetching', 'Mapping Fetching'),
@@ -59,8 +65,8 @@ class Pdf(BaseModel):
     short_url = models.CharField(max_length=50, blank=True)
 
     # Queue Progress
-    status = models.CharField(max_length=20, choices=_Q_STATUS_CHOICES, default='Queued')
-    step = models.CharField(max_length=30, choices=_STEP_CHOICES, default='Not Started')
+    status = models.CharField(max_length=20, choices=Q_STATUS_CHOICES, default='Queued')
+    step = models.CharField(max_length=30, choices=STEP_CHOICES, default='Not Started')
     tries = models.IntegerField(default=0)
 
     version = models.CharField(max_length=5)

@@ -16,6 +16,7 @@ from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 from interface import implements
 from src.pdf.base.interfaces.plugin import Plugin
+import logging
 
 
 class GoogleDocsSheetsPlugin(implements(Plugin)):
@@ -27,9 +28,8 @@ class GoogleDocsSheetsPlugin(implements(Plugin)):
         """
         get googledoc-config.json file content and then save this data to class config variable
         """
-        logging = initialize_logger()
         # Get the logger specified in the file
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger()
         with open(os.path.dirname(__file__) + '/googledoc-config.json') as json_file:
             config = json.load(json_file)
             self.config = config
