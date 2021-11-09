@@ -27,3 +27,6 @@ docker-compose -f docker-compose.prod.yml exec web python manage.py collectstati
   - Health Check - http://localhost:8000/ht/?format=json. Make sure everything is up and running.
   - Admin - http://localhost:8000/admin/
 - Logging - Logs are all sent on console as well as the Graylog server. Contact the admin if you need Graylog Access.
+
+## Additional Resources 
+- Call Recording - https://drive.google.com/file/d/1VKuAifTsidxxIeY8qRTBuLi4PMqNqwhi/view?usp=sharing
