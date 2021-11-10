@@ -11,7 +11,8 @@ docker-compose -f docker-compose.prod.yml exec web python manage.py collectstati
 
 
 ## Development Setup
-- Create a `.env` file at  `/src/pdf/`
+- Create a `.env.dev` file at  `/src/pdf/`
+- Create a symlink to the base folder `ln -s ./src/pdf/.env.dev .env`
 - Start the DB - `docker-compose up -d db`
 - Create a virtual environment for python 3.9. The project is not tested on lower versions.
 - Install Dependencies `pip install -r requirements.txt.dev`. Since the requirements.txt is for the production server, it will be finalized later. So please continue using the dev one. Before committing code, always update the file using the following command `pip freeze > requirements.txt.dev`
