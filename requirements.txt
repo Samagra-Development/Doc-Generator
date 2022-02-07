@@ -1,0 +1,13 @@
+python-dotenv
+Django==3.2.7
+gunicorn==19.9.0
+psycopg2==2.8.6
+djangorestframework
+django-filter
+django-debug-toolbar
+django-extensions
+django-cors-headers
+celery==4.4
+django-celery-results==2.0.1
+drf_yasg2
+dj-static
