@@ -151,3 +151,7 @@ staticfiles/
 health_check_storage_test/
 
 .env*
+
+# Google oauth files
+creds.json
+settings.yaml
