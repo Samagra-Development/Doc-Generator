@@ -155,3 +155,4 @@ health_check_storage_test/
 # Google oauth files
 creds.json
 settings.yaml
+**/**/*.pdf

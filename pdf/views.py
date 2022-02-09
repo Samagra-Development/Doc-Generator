@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .plugins.googleDocPlugin.docTokenGen import GoogleDocsSheetsPlugin
 import os
-from bs4 import BeautifulSoup
+import pdfkit
 
 
 # Create your views here.
@@ -19,15 +19,26 @@ def generate_pdf(request):
     final_data = []
     error_text = error_code = None
     if request.method == 'POST':
-        docID = request.data['doc_id']
+        doc_id = request.data['doc_id']
         try:
             drive = GoogleDocsSheetsPlugin()
             token = drive.get_token()
-            file = token.CreateFile({'id': docID})
-            file.GetContentFile(f'pdf/drivefiles/{docID}.html', mimetype='text/html')
+            file = token.CreateFile({'id': doc_id})
+            file.GetContentFile(f'pdf/drivefiles/{doc_id}.html', mimetype='text/html')
             # print(file.GetContentString())
-            if os.path.exists(f'pdf/drivefiles/{docID}.html'):
-                str_html = beautify_html(docID)
+
+            drive_file_loc = f'pdf/drivefiles/{doc_id}'
+
+            if os.path.exists(drive_file_loc + '.html'):
+                str_html = beautify_html(doc_id)
+
+
+                # PDF generation starts                
+                pdfkit.from_string(str_html, drive_file_loc + '.pdf')
+            # if os.path.exists(drive_file_loc + '.pdf'):
+            #     os.remove(drive_file_loc + '.pdf')
+                # PDF generation ends
+
                 return HttpResponse(str_html)
             else:
                 raise ObjectDoesNotExist()

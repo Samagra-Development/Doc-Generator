@@ -2,8 +2,9 @@ from django.db import models
 
 # Create your models here.
 from django.db import models
-from django.contrib.postgres.fields import JSONField, ArrayField
+from django.contrib.postgres.fields import ArrayField
 from fernet_fields import EncryptedTextField
+from django.db.models import JSONField
 
 # Base model for adding creation and update date to other models
 class BaseModel(models.Model):
