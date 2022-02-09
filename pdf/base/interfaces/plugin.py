@@ -4,6 +4,7 @@ from interface import Interface
 
 class Plugin(Interface):
     """
+    fetch config, publish
     **FetchData.process() -> Dict  => Fetches "new" data from the database/server/websocket
     whatever and provides it in the form of dictionary, one PDF at a time.
     **FetchMapping.process() -> Dict => Feches mapping and yeilds it in the form of dictionary
