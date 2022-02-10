@@ -11,7 +11,7 @@ coreapi==2.3.3
 coreschema==0.0.4
 cryptography==36.0.1
 dj-static==0.0.6
-Django==3.2.7
+Django==3.2.12
 django-celery-results==2.0.1
 django-cors-headers==3.11.0
 django-debug-toolbar==3.2.4
