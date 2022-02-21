@@ -57,12 +57,14 @@ class Builder:
             tries = self._data.tries
             tries += 1  # Incrementing the tries
             self._data.tries = tries
-            mapping_data = self._plugin.fetch_mapping(self._data.raw_data)
-            mapping_error = mapping_data[1]
+            self._step = Pdf.STEP_CHOICES('Data Fetching')
+            fetch_data = self._plugin.fetch_data(self._data.raw_data)
+            fetch_error = fetch_data[1]
 
-            if not mapping_error:
-                self._data.raw_data = mapping_data[0]
-                self._step = Pdf.STEP_CHOICES('Mapping Fetching')
+            if not fetch_error:
+                self._data.raw_data = fetch_data[0] if fetch_data is not None else self._data
+
+                self._step = Pdf.STEP_CHOICES('Template Processing')
                 file_build = self._plugin.build_pdf(self._data.raw_data, self._data.instance_id)
                 file_name = file_build[0]
                 file_error = file_build[1]

@@ -1,68 +1,136 @@
+import json
+import os
+import traceback
 from datetime import datetime, timedelta
-import boto3
-from botocore.exceptions import ClientError
-from boto3.exceptions import S3UploadFailedError
+
+import requests
+import xmltodict
+from django.http import JsonResponse
 from interface import implements
 import logging
-from src.pdf.base.interfaces.uploader import Uploader
+
+from minio import Minio
+from requests import HTTPError
+
+from ..base.interfaces.uploader import Uploader
 
 
-class S3Uploader(implements(Uploader)):
-    def __init__(self, aws_access_key, aws_secret_key):
+def get_fa_token(username, password):
+    token = None
+    try:
+        body = json.dumps({
+            "loginId": f"{username}",
+            "password": f"{password}",
+            "applicationId": "2011a6c9-7fb7-4306-8c6d-c96cb07c7859"
+        })
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'YFpyHxhW0-NoKRwQrXgCU5QIAQq8nBNhE--i5_n3pTU'
+        }
+        response = requests.post("http://auth.samagra.io:9011/api/login", data=body, headers=headers)
+        response.raise_for_status()
+        resp = response.json()
+        if 'token' in resp:
+            token = resp['token']
+        else:
+            raise Exception("short url not generated")
+    except HTTPError:
+        traceback.print_exc()
+    except Exception as e:
+        traceback.print_exc()
+        print(f"Something went wrong: {e}")
+    finally:
+        return token
+
+
+def get_minio_cred(username, password, bucket_name):
+    access_key = secret_key = session_token = None
+    try:
+        token = get_fa_token(username, password)
+        if token is not None:
+            minio_url = f"https://cdn.samagra.io/minio/{bucket_name}/?Action=AssumeRoleWithWebIdentity&DurationSeconds=36000&WebIdentityToken={token}&Version=2011-06-15"
+            response = requests.post(minio_url)
+            response.raise_for_status()
+            resp = response.text
+            xml_data = xmltodict.parse(resp)
+            access_key = \
+            xml_data['AssumeRoleWithWebIdentityResponse']['AssumeRoleWithWebIdentityResult']['Credentials'][
+                'AccessKeyId']
+            secret_key = \
+            xml_data['AssumeRoleWithWebIdentityResponse']['AssumeRoleWithWebIdentityResult']['Credentials'][
+                'SecretAccessKey']
+            session_token = \
+            xml_data['AssumeRoleWithWebIdentityResponse']['AssumeRoleWithWebIdentityResult']['Credentials'][
+                'SessionToken']
+        else:
+            raise Exception("Failed to fetch FA token")
+    except Exception as e:
+        traceback.print_exc()
+        print(f"Something went wrong: {e}")
+    finally:
+        return access_key, secret_key, session_token
+
+
+class MinioUploader(implements(Uploader)):
+
+    def __init__(self, host, username, password, bucket_name):
+        self.host = host
+        self.bucket_name = bucket_name
         # Get the logger specified in the file
         self.logger = logging.getLogger()
-        self.s3_client = boto3.resource("s3", aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key)
-        self.bucket_resource = self.s3_client
+        # Create a client with the MinIO, its access key and secret key.
+        access_key, secret_key, session_token = get_minio_cred(username, password, bucket_name)
+        self.client = Minio(host, access_key=access_key, secret_key=secret_key, session_token=session_token)
 
-    def upload_file(self, file_name, bucket, object_name):
-        error = None
-        status = True
-        expires_in = None
-        # If S3 object_name was not specified, use file_name
-        if object_name is None:
-            object_name = file_name
-
+    def put(self, file_name, object_name, expires):
+        error_code = error_msg = final_data = None
         try:
-            response = self.s3_client.meta.client.upload_file(file_name, bucket, object_name)
+            found = self.client.bucket_exists(self.bucket_name)
+            if not found:
+                self.client.make_bucket(self.bucket_name)
 
-            url_array = self.get_object_url(bucket, object_name)
-            object_url = url_array[0]
-            expires_in = url_array[1]
-            if not object_url:
-                error = "Failed to get file url"
+            file_loc = f'pdf/drivefiles/{file_name}'
+            result = self.client.fput_object(
+                self.bucket_name, object_name, file_loc,
+            )
+            print(
+                "created {0} object; etag: {1}, version-id: {2}".format(
+                    result.object_name, result.etag, result.version_id,
+                ),
+            )
+            # get signed url
+            error_code, error_msg, final_data = self.get_signed_url(file_name, expires)
+        except Exception as e:
+            traceback.print_exc()
+            error_code = 807
+            error_msg = f"Failed to upload the file: {e}"
+        finally:
+            return error_code, error_msg, final_data
+
+    def get_signed_url(self, object_name, expires):
+        error_code = error_msg = final_data = None
+        try:
+            if expires is None:
+                final_data = self.get_public_url(object_name)
             else:
-                status = object_url
+                final_data = self.client.presigned_get_object(self.bucket_name, object_name,
+                                                              expires=expires)  # expires=timedelta(hours=2)
+            self.logger.info(f"url: {final_data}")
+        except Exception as e:
+            traceback.print_exc()
+            error_code = 808
+            error_msg = f"Failed to fetch the file: {e}"
+        finally:
+            return error_code, error_msg, final_data
 
-        except S3UploadFailedError as ex:
-            error = "Failed to Upload Files"
-            status = False
-            self.logger.error("Exception occurred", exc_info=True)
-        except ClientError as ex:
-            error = "Failed to Upload Files"
-            status = False
-            self.logger.error("Exception occurred", exc_info=True)
-        except Exception as ex:
-            error = "Failed to Upload Files"
-            status = False
-            self.logger.error("Exception occurred", exc_info=True)
-        return status, error, expires_in
+    def get_object(self, object_name):
+        """
+        Get file from Location
+            bucket: name of bucket
+            file_name: local file which we save on google cloud
+            key_name: name of file on google cloud
+        """
+        pass
 
-    def get_object_url(self, bucket_name, object_name):
-        try:
-            year_days = 10*365
-            expires_in = year_days*24*60*60
-            later_date = datetime.now() + timedelta(days=year_days)
-            expires_timestamp = datetime.timestamp(later_date)
-            response = self.s3_client.meta.client.generate_presigned_url(
-                'get_object',
-                Params={'Bucket': bucket_name,
-                        'Key': object_name},
-                ExpiresIn=expires_in,
-                HttpMethod="GET")
-
-        except ClientError as ex:
-            self.logger.error("Exception occurred :: ClientError", exc_info=True)
-            return None
-
-        # The response contains the presigned URL
-        return response, expires_timestamp
+    def get_public_url(self, file_name):
+        return f"https://{self.host}/{self.bucket_name}/{file_name}"

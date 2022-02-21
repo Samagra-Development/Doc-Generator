@@ -1,6 +1,7 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from django.contrib.postgres.fields import JSONField, ArrayField
+from django.contrib.postgres.fields import ArrayField
+from django.db.models import JSONField
 import datetime
 from fernet_fields import EncryptedTextField
 
@@ -15,14 +16,36 @@ class BaseModel(models.Model):
 
 
 class GenericConfig(BaseModel):
-    id = models.BigIntegerField(unique=True, primary_key=True)
-    name = models.CharField(max_length=20)
+    UPLOADERS = [
+        ('minio', 'Minio'),
+    ]
+    SHORTENERS = [
+        ('yaus', 'YAUS'),
+    ]
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50)
     data = EncryptedTextField()  # json.dumps output (json.loads needed to get the data)
+    uploader_ref = models.CharField(choices=UPLOADERS, null=True, blank=True, max_length=20)
+    shortener_ref = models.CharField(choices=SHORTENERS, null=True, blank=True, max_length=20)
     retries = models.IntegerField(default=0)
     max_concurrency = models.IntegerField(default=1)
 
     class Meta:
         db_table = 'GenericConfig'
+        verbose_name = "Generic Config"
+        verbose_name_plural = "Generic Configs"
+        app_label = 'pdf'
+
+    def serialize(self):
+        __dict__ = {
+            "id": self.id,
+            "name": self.name,
+            "data": self.data,
+            "uploader_ref": self.uploader_ref,
+            "shortener_ref": self.shortener_ref,
+            "retries": self.retries,
+            "max_concurrency": self.max_concurrency
+        }
 
     def get_uploader(self):
         pass
@@ -73,6 +96,9 @@ class Pdf(BaseModel):
 
     class Meta:
         db_table = 'Pdf'
+        verbose_name = "PDF"
+        verbose_name_plural = "PDFs"
+        app_label = 'pdf'
 
 
 class Audit(BaseModel):
@@ -91,3 +117,6 @@ class Audit(BaseModel):
 
     class Meta:
         db_table = 'Audit'
+        verbose_name = "Audit"
+        verbose_name_plural = "Audits"
+        app_label = 'pdf'

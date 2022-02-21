@@ -1,0 +1,33 @@
+version: "3"
+services:
+  broker:
+    container_name: broker
+    networks:
+      - broker
+    image: "docker.io/bitnami/rabbitmq:latest"
+    env_file:
+      - .env
+    ports:
+      - "4369:4369"
+      - "5672:5672"
+      - "25672:25672"
+      - "15672:15672"
+    volumes:
+      - /doc_rabbitmq/bitnami:/bitnami
+
+  worker:
+    build: .
+    restart: always
+    networks:
+      - broker
+    env_file:
+      - .env
+    depends_on:
+      - broker
+    volumes:
+      - ./logs:/srv/logs/
+    command: celery worker -A app.celery --loglevel=info --concurrency=10 -n worker@%h
+
+networks:
+  broker:
+    driver: bridge

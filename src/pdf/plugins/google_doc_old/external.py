@@ -19,7 +19,7 @@ from src.pdf.base.interfaces.plugin import Plugin
 import logging
 
 
-class GoogleDocsSheetsPlugin(implements(Plugin)):
+class GoogleDocsSheetsPluginOld:
     """
     Plugin class which implement PDFPlugin interface
     """
@@ -56,7 +56,7 @@ class GoogleDocsSheetsPlugin(implements(Plugin)):
                 'https://www.googleapis.com/auth/drive'
             ]
             base_path = os.path.dirname(__file__)
-            creds = ServiceAccountCredentials.from_json_keyfile_name(base_path + '/gcs-creds.json',
+            creds = ServiceAccountCredentials.from_json_keyfile_name(base_path + '/gcs-gdrive_dev_creds.json',
                                                                      sheet_scopes)
             client = gspread.authorize(creds)
         except Exception as ex:

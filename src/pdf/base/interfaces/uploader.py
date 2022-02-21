@@ -6,7 +6,7 @@ class Uploader(Interface):
     Interface for Uploader
     """
 
-    def put(self, file_name, bucket, object_name):
+    def put(self, file_name, object_name, expires):
         """
         Upload file to Location
             bucket: name of bucket
@@ -15,7 +15,7 @@ class Uploader(Interface):
         """
         pass
 
-    def get_object(self, bucket_name, object_name):
+    def get_object(self, object_name):
         """
         Get file from Location
             bucket: name of bucket
@@ -24,7 +24,7 @@ class Uploader(Interface):
         """
         pass
 
-    def get_signed_url(self, bucket_name, object_name):
+    def get_signed_url(self, object_name, expires):
         """
         Generate a presigned URL to share an S3 object
             :param bucket_name: string

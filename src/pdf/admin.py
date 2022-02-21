@@ -12,7 +12,7 @@ class PdfAdmin(admin.ModelAdmin):
 
 
 class GenericConfigAdmin(admin.ModelAdmin):
-    fields = ['id', 'name', 'data']
+    fields = ['name', 'data', 'uploader_ref', 'shortener_ref', 'retries', 'max_concurrency']
 
 
 admin.site.register(Pdf, PdfAdmin)

@@ -17,8 +17,9 @@ from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-dotenv_path = join(dirname(__file__), '.env.dev')
-load_dotenv(dotenv_path)
+# dotenv_path = join(dirname(__file__), '.env.dev')
+# load_dotenv(dotenv_path)
+load_dotenv()
 
 
 # Quick-start development settings - unsuitable for production
@@ -28,9 +29,9 @@ load_dotenv(dotenv_path)
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = int(os.environ.get("DEBUG", default=1))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -67,6 +68,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Others
+    'rest_framework',
+    'corsheaders',
+    'django_filters',
+    'drf_yasg2',
 ]
 
 MIDDLEWARE = [
@@ -103,13 +110,24 @@ WSGI_APPLICATION = 'pdf.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv("DB_NAME"),
-        'USER': os.getenv("DB_USER_NAME"),
-        'PASSWORD': os.getenv("DB_PASSWORD"),
-        'HOST': os.getenv("DB_HOST_DJANGO"),
-        'PORT': os.getenv("DB_PORT"),
+    "default": {
+        "ENGINE":
+            os.environ.get("SQL_ENGINE", "django.db.backends.postgresql_psycopg2"),
+        "NAME":
+            os.environ.get("SQL_DATABASE"),
+        "USER":
+            os.environ.get("SQL_USER"),
+        "PASSWORD":
+            os.environ.get("SQL_PASSWORD"),
+        "HOST":
+            os.environ.get("SQL_HOST"),
+        "PORT":
+            os.environ.get("SQL_PORT"),
+        'TEST': {
+            'NAME': 'test_database_',
+        },
+        'CONN_MAX_AGE': None,
+        'DISABLE_SERVER_SIDE_CURSORS': True
     }
 }
 
@@ -135,7 +153,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = os.getenv('TIME_ZONE')
+TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -144,12 +162,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_URL = '/static/'
+STATIC_URL = '/staticfiles/'
 
 # Extra places for collectstatic to find static files.
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'pdf/static'),
-)
+# STATICFILES_DIRS = (
+#     os.path.join(BASE_DIR, 'pdf/static'),
+# )
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -161,8 +179,8 @@ CELERY = {
     'broker_url': os.getenv("CELERY_BROKER_URL"),
     'result_backend': os.getenv('CELERY_RESULT_BACKEND'),
     'timezone': os.getenv('TIME_ZONE'),
-    'CELERY_TASK_TRACK_STARTED': True,
-    'CELERY_TASK_TIME_LIMIT': 30 * 60,
+    'task_track_started': True,
+    'task_time_limit': 30 * 60,
     'imports': ('pdf.tasks',),
     'task_serializer': 'json',
     'result_serializer': 'json',
@@ -185,34 +203,57 @@ LOGGING = {
             # exact format is not important, this is the minimum information
             'format': '%(asctime)s %(name)-12s %(funcName)-15s %(message)s',
         },
-        'graylog': {
-            # exact format is not important, this is the minimum information
-            'format': "[" + os.getenv("PROJECT_NAME") + "<>" + os.getenv("ENVIRONMENT") + "] " + '%(message)s',
-        },
+        # 'graylog': {
+        #     # exact format is not important, this is the minimum information
+        #     'format': "[" + os.getenv("PROJECT_NAME") + "<>" + os.getenv("ENVIRONMENT") + "] " + '%(message)s',
+        # },
     },
     'handlers': {
-        'graypy': {
-            'level': 'INFO',
-            'class': 'graypy.GELFUDPHandler',
-            'host': os.getenv('GRAYLOG_HOST'),
-            'port': 12201,
-            'formatter': 'graylog'
-        },
+        # 'graypy': {
+        #     'level': 'INFO',
+        #     'class': 'graypy.GELFUDPHandler',
+        #     'host': os.getenv('GRAYLOG_HOST'),
+        #     'port': 12201,
+        #     'formatter': 'graylog'
+        # },
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
     },
-    'root': {
-            'handlers': ['graypy', 'console'],
-            'level': 'INFO',
-            'propagate': True,
-    },
     'loggers': {
-        'django.request': {
-            'handlers': ['graypy'],
+        'root': {
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
         },
+        # 'django.request': {
+        #     'handlers': ['graypy'],
+        #     'level': 'INFO',
+        #     'propagate': True,
+        # },
+        'django': {
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'INFO',
+        },
+        # 'django.db.backends': {
+        #     'handlers': ['console'],
+        #     'level': 'DEBUG',
+        # },
     },
+}
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = ['*']
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    "DATE_INPUT_FORMATS": ["%d-%m-%Y"]
 }

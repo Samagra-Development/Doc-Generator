@@ -2,7 +2,7 @@ import json
 import os.path
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from src.pdf.plugins.google_doc.external import GoogleDocsSheetsPlugin
+from src.pdf.plugins.google_doc_old.external import GoogleDocsSheetsPlugin
 import logging
 
 
@@ -123,7 +123,7 @@ class ODKSheetsPlugin(GoogleDocsSheetsPlugin):
             raw_data['tags'] = tags
             raw_data['instance_id'] = instance_id
             if 'DOCDELETED' in self.config[self.raw_data["FORMID"]]:
-                raw_data['is_delete'] = self.config[self.raw_data["FORMID"]]["DOCDELETED"]
+                raw_data['is_delete'] = self.config[self.raw_ data["FORMID"]]["DOCDELETED"]
             else:
                 raw_data['is_delete'] = True
             kafka_producer = self.connect_kafka_producer()

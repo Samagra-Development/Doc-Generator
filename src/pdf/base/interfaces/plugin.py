@@ -6,55 +6,47 @@ class Plugin(Interface):
     """
     **FetchData.process() -> Dict  => Fetches "new" data from the database/server/websocket
     whatever and provides it in the form of dictionary, one PDF at a time.
-    **FetchMapping.process() -> Dict => Feches mapping and yeilds it in the form of dictionary
+    **FetchTemplate.process() -> Dict => Fetches mapping and yields it in the form of dictionary
     **BuildPDF.process() -> File => Function to build PDF and return a file
-    **UploadPDF.process(key, File) ->  => Fuction to save PDF
+    **UploadPDF.process(key, File) ->  => Function to save PDF
     **RetrievePDF.process(key) -> File => Function to get the previously saved PDF from the key
+    **Publish.process(key) -> File => Function to send the response to external url/webhook
     """
 
-    @shared_task
     def fetch_data(self):
         """
         Fetches "new" data from the database/server/websocket
         whatever and provides it in the form of dictionary, one PDF at a time
         """
 
-    @shared_task
-    def fetch_mapping(self, data):
+    def fetch_template(self, template_id):
         """
-        Feches mapping and yeilds it in the form of dictionary
-        """
-
-    @shared_task
-    def build_pdf(self, raw_data, file_name):
-        """
-        Function to build PDF and return a file
+        Fetches template and returns it in the form of string
         """
 
-    @shared_task
-    def upload_pdf(self, key, file_url):
+    def build_file(self, template_id, token):
         """
-        Fuction to save PDF
+        Function to build PDF and return a file (fetch template and build pdf)
         """
 
-    @shared_task
-    def retrieve_pdf(self, key):
+    def upload_file(self, template_id, token):
+        """
+        Function to save PDF
+        """
+
+    def retrieve_file(self, key):
         """
         Function to get the previously saved PDF from the key
         """
 
-    @shared_task
-    def delete_file_drive_google_script(self, file):
+    def shorten_url(self, template_id, hash_id):
         """
-        Function to delete doc from drive
-        :param file:
-        :return:
+        Function to generate short url for the uploaded doc
         """
-
-    @shared_task
-    def shorten_url(self, url, doc_url):
         pass
 
-    @shared_task
-    def set_raw_data(self, raw_data):
+    def publish(self, id, url, headers):
+        """
+        Function to publish response on external url/webhook
+        """
         pass

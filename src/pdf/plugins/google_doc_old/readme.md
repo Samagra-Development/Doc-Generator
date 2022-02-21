@@ -39,7 +39,7 @@ The config file containes all the credentails and configurations that are requir
 
 ```json
 {
-  "GOOGLE_APPLICATION_CREDENTIALS": "GoogleDocPlugin/gcs-creds.json", #It contains the path of gcs-creds.json file.
+  "GOOGLE_APPLICATION_CREDENTIALS": "GoogleDocPlugin/gcs-gdrive_dev_creds.json", #It contains the path of gcs-creds.json file.
   "BUCKET": "test",#Google Cloud Storage bucket name
   "URL": "https://script.google.com/macros/s/AKfycbw1Et6M-NEQ9nnPw5OqSt5kCCFgasdR1dsIZasjkdhak/exec?",#It contains Google App Scripts execution url
   "GOOGLECLOUDBASEURL": "https://storage.googleapis.com/test/",#It contain google cloud storage base url

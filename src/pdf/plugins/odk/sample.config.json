@@ -1,4 +1,4 @@
-{
+[{
   "GOOGLE_APPLICATION_CREDENTIALS": "GoogleDocPlugin/gcs-creds.json",
   "BUCKET": "covid19_samagra",
   "URL": "https://script.google.com/macros/s/AKfycbw1Et6M-NEQ9nnPw5OqSt5kCCFg5orR1dsIZ0gRJB8YJTZj864/exec?",
@@ -12,4 +12,13 @@
   "ODKUSERNAME": "odkusername",
   "ODKPASSWORD": "odkpassword",
   "SESSIONCOOKIEBASEURL": "http://aggregate.cttsamagra.xyz:8080/Aggregate.html#submissions/filter///"
-}
+},
+{
+  "APPLICATION_SETTINGS_FILE": "gdrive_dev_settings",
+  "CREDENTIAL_SETTINGS_FILE": "gdrive_dev_creds",
+  "MINIO_HOST": "cdn.samagra.io",
+  "MINIO_ACCESS_KEY": "admin",
+  "MINIO_SECRET_KEY": "cttsamagra",
+  "MINIO_BUCKET_NAME": "doc-generator",
+  "SHORTENER_URL": "https://yaus.xyz/sr/addURL"
+}]

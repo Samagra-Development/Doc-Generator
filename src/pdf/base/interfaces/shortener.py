@@ -6,7 +6,7 @@ class URLShortener(Interface):
     Interface for URL Shortner
     """
 
-    def apply(self, long_url):
+    def apply(self, long_url, hash_id):
         pass
 
     def get_long(self, short_url):
