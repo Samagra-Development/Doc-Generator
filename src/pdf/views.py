@@ -33,31 +33,33 @@ def current_datetime(request):
     return HttpResponse(html)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def generate_html_str(request):
     final_data = []
     error_text = error_code = None
-    if request.method == 'GET':
-        doc_id = request.GET['doc_id']
+    if request.method == 'POST':
+        doc_id = request.data['doc_id']
         try:
             # If config_id is provided then replacing config_id
-            config_id = request.GET['config_id']
+            config_id = request.data['config_id']
 
-        except MultiValueDictKeyError:
+        except KeyError:
             # If config_id is not provided then taking default google config as config_id
             config_id = 1
         try:
-            drive = GoogleDocsSheetsPlugin(config_id)
+            raw_data = None
+            drive = PDFPlugin(config_id, raw_data)
             token = drive.get_token()
             file = token.CreateFile({'id': doc_id})
             # file.GetContentFile(f'pdf/drivefiles/{docID}.html', mimetype='text/html')
             html_str = file.GetContentString(mimetype='text/html')
-            html_str = html_str.replace("\"", "'")
             soup = BeautifulSoup(html_str, 'html.parser')
             html_str = soup.prettify()
             # raw_data = get_sample_data()
             # html_str = format_html(html_str, raw_data)
             # build_pdf(html_str, docID)
+            html_str = html_str.replace("\"", "'")
+            html_str = html_str.replace("\n", " ")
             return HttpResponse(html_str)
         except Exception as e:
             traceback.print_exc()
@@ -143,7 +145,7 @@ def register_template(request):
             return JsonResponse(
                 {"Response": [{
                     "code": req.status_code,
-                    "message": json.loads(req.json())
+                    "message": req.json()
                 }]},
                 safe=False,
                 status=200)
