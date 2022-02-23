@@ -124,15 +124,17 @@ def format_html(html_str, data):
 
 
 def build_pdf(html_str, file_name):
+    is_successful = error = None
     drive_file_loc = f'pdf/drivefiles/{file_name}.pdf'
     try:
         path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
         config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
         pdfkit.from_string(html_str, drive_file_loc, configuration=config)
-        return True
-    except:
+        is_successful = True
+    except Exception as e:
         traceback.print_exc()
-        return False
+        error = f"Failed to generate doc: {e}"
+    return is_successful, error
 
 
 def build_doc(html_str, file_name):
@@ -146,6 +148,7 @@ def build_doc(html_str, file_name):
     except:
         traceback.print_exc()
         return False
+
 
 def send_get_request(url, params=None, headers=None):
     try:
@@ -203,7 +206,3 @@ def publish_to_url(pdf_id, url, headers=None):
     pdf = Pdf.objects.get(pk=pdf_id)
     response = send_post_request(url, data=pdf, headers=headers)
     return response
-
-
-
-

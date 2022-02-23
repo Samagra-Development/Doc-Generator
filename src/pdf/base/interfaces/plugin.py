@@ -19,27 +19,27 @@ class Plugin(Interface):
         whatever and provides it in the form of dictionary, one PDF at a time
         """
 
-    def fetch_template(self, template_id):
+    def fetch_template(self):
         """
         Fetches template and returns it in the form of string
         """
 
-    def build_file(self, template_id, token):
+    def build_file(self, template):
         """
         Function to build PDF and return a file (fetch template and build pdf)
         """
 
-    def upload_file(self, template_id, token):
+    def upload_file(self):
         """
         Function to save PDF
         """
 
-    def retrieve_file(self, key):
+    def retrieve_file(self, object_name):
         """
         Function to get the previously saved PDF from the key
         """
 
-    def shorten_url(self, template_id, hash_id):
+    def shorten_url(self, url):
         """
         Function to generate short url for the uploaded doc
         """

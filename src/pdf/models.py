@@ -68,7 +68,7 @@ class Pdf(BaseModel):
         ('Data Fetching', 'Data Fetching'),
         ('Mapping Fetching', 'Mapping Fetching'),
         ('Template Processing', 'Template Processing'),
-        ('PDF Building', 'PDF Building'),
+        ('Doc Building', 'Doc Building'),
         ('Uploading', 'Uploading'),
         ('URL Shortening', 'URL Shortening'),
         ('Deleted From Drive', 'Deleted From Drive'),
