@@ -21,18 +21,21 @@ load_dotenv("../../.env")
 
 class PDFPlugin(implements(Plugin)):
 
-    def __init__(self, config_id, data, token):
+    def __init__(self, data, token):
         """
         To do authentication
         """
         # generate path
-        self.config = GenericConfig.objects.get(pk=config_id)
+        try:
+            self.config = GenericConfig.objects.get(pk=data['config_id'])
+        except KeyError:
+            self.config = GenericConfig.objects.get(pk=1)
         self.user_config = json.loads(self.config.data)
         self._data = data['data']
         self.template_id = data['template_id']
         self.token = token
-        self.settings_file_loc = f"pdf/creds/{self.user_config['APPLICATION_SETTINGS_FILE']}.yaml"
-        self.creds_file_location = f"pdf/creds/{self.user_config['CREDENTIAL_SETTINGS_FILE']}.json"
+        self.settings_file_loc = f"pdf/creds/{self.user_config['APPLICATION_SETTINGS_FILE']}"
+        self.creds_file_location = f"pdf/creds/{self.user_config['CREDENTIAL_SETTINGS_FILE']}"
         self.uploader = self.config.uploader_ref
         self.shortener = self.config.shortener_ref
 
@@ -92,9 +95,10 @@ class PDFPlugin(implements(Plugin)):
         is_successful = error_code = error_msg = None
         drive_file_loc = f'pdf/drivefiles/{self.token}.pdf'
         try:
-            path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
-            config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
-            pdfkit.from_string(template, drive_file_loc, configuration=config)
+            # path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+            # config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+            # pdfkit.from_string(template, drive_file_loc, configuration=config)
+            pdfkit.from_string(template, drive_file_loc)
             is_successful = True
         except Exception as e:
             traceback.print_exc()

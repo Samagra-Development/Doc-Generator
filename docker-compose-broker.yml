@@ -1,32 +1,35 @@
-version: "3"
+version: "2"
 services:
-  broker:
-    container_name: broker
-    networks:
-      - broker
-    image: "docker.io/bitnami/rabbitmq:latest"
-    env_file:
-      - .env
-    ports:
-      - "4369:4369"
-      - "5672:5672"
-      - "25672:25672"
-      - "15672:15672"
-    volumes:
-      - /doc_rabbitmq/bitnami:/bitnami
+#  broker:
+#    container_name: broker
+#    networks:
+#      - broker
+#    image: "docker.io/bitnami/rabbitmq:latest"
+#    env_file:
+#      - .env
+#    ports:
+#      - "4369:4369"
+#      - "5672:5672"
+#      - "25672:25672"
+#      - "15672:15672"
+#    volumes:
+#      - "doc_rabbitmq:/bitnami"
 
   worker:
-    build: .
+    build:
+      context: ./src
     restart: always
     networks:
       - broker
     env_file:
       - .env
-    depends_on:
-      - broker
     volumes:
       - ./logs:/srv/logs/
-    command: celery worker -A app.celery --loglevel=info --concurrency=10 -n worker@%h
+    command: celery --app=pdf.celery.app worker --loglevel=info --concurrency=10 -n worker@%h
+
+#volumes:
+#  doc_rabbitmq:
+#    driver: local
 
 networks:
   broker:

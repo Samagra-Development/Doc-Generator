@@ -28,6 +28,8 @@ urlpatterns = [
     path('test-page/', views.current_datetime),
     url(r'^register/$', views.register_template, name='get_test'),
     path('generate/', views.generate_pdf2, name='get_pdf'),
+    path('bulk/generate/', views.generate_bulk, name='get_status'),
+    path('bulk/generate/<uuid:token>/', views.generate_bulk, name='get_status'),
     url('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     url('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]

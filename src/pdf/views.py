@@ -1,4 +1,5 @@
 import json
+from json import JSONDecodeError
 
 import requests
 from requests import HTTPError
@@ -19,7 +20,7 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from bs4 import BeautifulSoup
-from .utils import return_response, format_html, get_sample_data, build_pdf
+from .utils import return_response, format_html, get_sample_data, build_pdf, return_tokens
 from django.utils.datastructures import MultiValueDictKeyError
 from dotenv import load_dotenv
 
@@ -73,14 +74,13 @@ def generate_pdf2(request):
     final_data = []
     error_text = error_code = None
     if request.method == 'POST':
-        token = uuid.uuid4()
-        plugin = request.GET['plugin']
         data = json.loads(request.body)
-        print(data)
-        config_id = data['config_id']
+        token = uuid.uuid4()
+        Doc.objects.create(id=token, config_id=data['config_id'])
+        plugin = request.GET['plugin']
         try:
             if plugin == 'pdf':
-                builder = Builder(PDFPlugin(config_id, data, token), config_id, data, token)
+                builder = Builder(PDFPlugin(data, token), data, token)
                 err_code, err_msg, data = builder._process()
                 if err_code is not None:
                     raise Exception("Failed to process Builder")
@@ -88,7 +88,7 @@ def generate_pdf2(request):
                     final_data = data
                 # error_text, error_code, final_data = drive.shorten_url()
             elif plugin == 'html':
-                builder = Builder(HTMLPlugin(config_id, data, token), config_id, data, token)
+                builder = Builder(HTMLPlugin(data, token), data, token)
                 err_code, err_msg, data = builder._process()
                 if err_code is not None:
                     raise Exception("Failed to process Builder")
@@ -96,7 +96,7 @@ def generate_pdf2(request):
                     final_data = data
                 # error_text, error_code, final_data = drive.shorten_url()
             elif plugin == 'docx':
-                builder = Builder(DOCXPlugin(config_id, data, token), config_id, data, token)
+                builder = Builder(DOCXPlugin(data, token), data, token)
                 err_code, err_msg, data = builder._process()
                 if err_code is not None:
                     raise Exception("Failed to process Builder")
@@ -104,7 +104,7 @@ def generate_pdf2(request):
                     final_data = data
                 # error_text, error_code, final_data = drive.shorten_url()
             elif plugin == 'pdf-make':
-                builder = Builder(PDFMakePlugin(config_id, data, token), config_id, data, token)
+                builder = Builder(PDFMakePlugin(data, token), data, token)
                 err_code, err_msg, data = builder._process()
                 if err_code is not None:
                     raise Exception("Failed to process Builder")
@@ -128,14 +128,17 @@ def register_template(request):
             req = requests.get(f"{os.getenv('TEMPLATOR_URL')}/{request.GET['id']}")
             req.raise_for_status()
             print(req.json())
-            final_data = json.loads(req.json()['body'])
+            try:
+                final_data = json.loads(req.json()['body'])
+            except JSONDecodeError:
+                final_data = req.json()['body']
         except HTTPError as http_err:
-            error_code = request.status_code,
+            error_code = req.status_code,
             error_text = http_err,
         except ValueError:
             traceback.print_exc()
-            error_code = request.status_code,
-            error_text = request.content,
+            error_code = req.status_code,
+            error_text = req.content,
         except Exception as e:
             traceback.print_exc()
             error_code = 804,
@@ -149,18 +152,10 @@ def register_template(request):
             if type == "GOOGLE_DOC":
                 doc_id = request.data['data']
                 meta = "GOOGLE_DOC"
-                transformers = request.data['transformers'] if 'transformers' in request.data else None
-                try:
-                    # If config_id is provided then replacing config_id
-                    config_id = request.data['config_id']
-
-                except KeyError:
-                    # If config_id is not provided then taking default google config as config_id
-                    config_id = 1
                 try:
                     token = uuid.uuid4()
                     data = {"data": None, "template_id": None}
-                    drive = PDFPlugin(config_id, data, token)
+                    drive = PDFPlugin(data, token)
                     client = drive.get_client()
                     file = client.CreateFile({'id': doc_id})
                     # file.GetContentFile(f'pdf/drivefiles/{docID}.html', mimetype='text/html')
@@ -180,17 +175,16 @@ def register_template(request):
             elif type == "STRING":
                 body = request.data['data']
                 meta = "STRING"
-                transformers = request.data['transformers'] if 'transformers' in request.data else None
             elif type == "JSON":
                 body = json.dumps(request.data['data'])
                 meta = "JSON"
             if 'transformers' in request.data:
                 data['transformers'] = request.data['transformers']
-            req = requests.post(f"{os.getenv('TEMPLATOR_URL')}", data={"transformers": transformers,
+            req = requests.post(os.getenv('TEMPLATOR_URL'), data={"transformers": transformers,
                                                                        "meta": meta,
                                                                        "body": body,
                                                                        "type": "JS_TEMPLATE_LITERALS",
-                                                                       "user": "25bbdbf7-5286-4b85-a03c-c53d1d990a24"})
+                                                                       "user": os.getenv('DOC_GENERATOR_ID')})
             req.raise_for_status()
             final_data = req.json()
         except HTTPError as http_err:
@@ -206,6 +200,61 @@ def register_template(request):
             error_text = f"Something went wrong!: {e}"
         print(final_data, error_code, error_text)
         return return_response(final_data, error_code, error_text)
+
+
+@api_view(['GET', 'POST'])
+def generate_bulk(request, token=''):
+    if request.method == "GET":
+        error_code = error_text = final_data = None
+        if token != '':
+            try:
+                query = Doc.objects.get(pk=token)
+                print(token, query)
+                final_data = query.serialize()
+            except ObjectDoesNotExist:
+                traceback.print_exc()
+                error_text = "Wrong Token Id"
+                error_code = 804
+            except Exception as e:
+                traceback.print_exc()
+                error_code = 804
+                error_text = f"Something went wrong: {e}"
+        else:
+            error_code = 500
+            error_text = "Method Not Allowed"
+        return return_response(final_data, error_code, error_text)
+    if request.method == "POST":
+        if token == '':
+            error_code = error_text = None
+            final_data = []
+            try:
+                raw_data = json.loads(request.body)
+                for data in raw_data:
+                    token = str(uuid.uuid4())
+                    Doc.objects.create(id=token, config_id=data['config_id'])
+                    plugin = data['plugin']
+                    if plugin == 'pdf':
+                        bulk_generate_task.delay(data, 'pdf', token)
+                        # error_text, error_code, final_data = drive.shorten_url()
+                    elif plugin == 'html':
+                        bulk_generate_task.delay(data, 'html', token)
+                        # error_text, error_code, final_data = drive.shorten_url()
+                    elif plugin == 'docx':
+                        bulk_generate_task.delay(data, 'docx', token)
+                        # error_text, error_code, final_data = drive.shorten_url()
+                    elif plugin == 'pdf-make':
+                        bulk_generate_task.delay(data, 'pdf-make', token)
+                # error_text, error_code, final_data = drive.shorten_url()
+                    final_data.append(token)
+            except Exception as e:
+                traceback.print_exc()
+                error_code = 804
+                error_text = f"Something went wrong: {e}"
+        else:
+            error_code = 500
+            error_text = "Method Not Allowed"
+        return return_tokens(final_data, error_code, error_text)
+
 
 
 data = {

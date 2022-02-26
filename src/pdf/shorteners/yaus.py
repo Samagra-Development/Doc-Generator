@@ -1,4 +1,5 @@
 import json
+import os
 import traceback
 
 import requests
@@ -8,6 +9,9 @@ import logging
 from requests import HTTPError
 
 from ..base.interfaces.shortener import URLShortener
+from dotenv import load_dotenv
+
+load_dotenv("../.env")
 
 
 class YausShortner(implements(URLShortener)):
@@ -22,14 +26,15 @@ class YausShortner(implements(URLShortener)):
         try:
             body = json.dumps({
                 'url': long_url,
-                'userID': f"{hash_id}",
-                'project': f"{hash_id}",
+                'userID': os.getenv('DOC_GENERATOR_ID'),
+                'project': os.getenv('DOC_GENERATOR_ID'),
                 'customHashId': f"{hash_id}"
             })
             headers = {
                 'Content-Type': 'application/json'
             }
             response = requests.post(self.base_url, data=body, headers=headers)
+            self.logger.info(f"resp {response}")
             response.raise_for_status()
             resp = response.json()
             if 'shortUrl' in resp:
