@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from os.path import join, dirname
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -185,6 +186,12 @@ CELERY = {
     'task_serializer': 'json',
     'result_serializer': 'json',
     'accept_content': ['json'],
+    'beat_schedule': {
+        'start_beat_schedule': {
+            'task': 'pdf.tasks.celery_tasks.beat_task',
+            'schedule': crontab(minute=0, hour=4)
+        }
+    }
 }
 
 # Health Check

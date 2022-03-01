@@ -63,6 +63,7 @@ class Builder:
                     "message": "Please provide a valid config. Needs to be an instance of GenericConfig."
                 }
                 self.object.retry = False
+                self.object.isActive = False
                 self.object.save()
                 raise ValueError('Please provide a valid config. Needs to be an instance of GenericConfig.')
             self.tries += 1
@@ -72,6 +73,7 @@ class Builder:
                     "message": "Max Retries Exceeded"
                 }
                 self.object.retry = False
+                self.object.isActive = False
                 self.object.save()
             else:
                 self._logger.info(f"not exceeded, {self.tries}, {self._max_tries}")
@@ -85,6 +87,7 @@ class Builder:
                 "message": "Wrong Token Id, Object Not Found"
             }
             self.object.retry = False
+            self.object.isActive = False
             self.object.save()
             self._logger.error("Wrong Token Id, Object Not Found")
         except Exception as e:
@@ -96,6 +99,7 @@ class Builder:
                 "message": "Please provide a valid plugin."
             }
             self.object.retry = False
+            self.object.isActive = False
             self.object.save()
             raise ValueError('Please provide a valid plugin.')
 
@@ -161,11 +165,13 @@ class Builder:
             else:
                 data = "Max Retries"
                 self._logger.info(data)
-            return error_code, error_msg, data
         except Exception as e:
             traceback.print_exc()
             error_code = 801
             error_msg = "Unable to process queue"
             update_status_choice.delay(self.token, 'Failed')
             self._logger.error(f"Exception occurred: {e}", exc_info=True)
+        finally:
+            self.object.isActive = False
+            self.object.save()
             return error_code, error_msg, data

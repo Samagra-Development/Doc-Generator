@@ -80,6 +80,8 @@ class Doc(BaseModel):
     meta = JSONField(blank=True, null=True)
     data = JSONField(blank=True, null=True)
     tags = ArrayField(models.CharField(max_length=20, blank=True), null=True)
+    isActive = models.BooleanField(default=True, blank=True, null=True)
+    plugin = models.CharField(max_length=50, null=True, blank=True)
 
     # PDF URL Management
     url = models.CharField(max_length=255, null=True, blank=True)

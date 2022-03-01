@@ -9,7 +9,7 @@ from .plugins._doc.external import DOCXPlugin
 from .plugins._html.external import HTMLPlugin
 from .plugins._pdf.external import PDFPlugin
 from .plugins._pdf_make.external import PDFMakePlugin
-from .tasks.pdf import *
+from .tasks.celery_tasks import *
 import logging
 import traceback
 import os
@@ -76,8 +76,8 @@ def generate_pdf2(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         token = uuid.uuid4()
-        Doc.objects.create(id=token, config_id=data['config_id'])
         plugin = request.GET['plugin']
+        Doc.objects.create(id=token, config_id=data['config_id'], plugin=plugin)
         try:
             if plugin == 'pdf':
                 builder = Builder(PDFPlugin(data, token), data, token)

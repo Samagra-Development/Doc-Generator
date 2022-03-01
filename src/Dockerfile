@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.8.0-alpine
+FROM ubuntu:20.04
 
 # set work directory
 WORKDIR /usr/src/app
@@ -7,17 +7,21 @@ WORKDIR /usr/src/app
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV TZ Asia/Kolkata
 
-# install psycopg2 dependencies
-RUN apk update \
-    && apk add postgresql-dev libffi-dev gcc python3-dev musl-dev
+# install python
+RUN apt-get update -qy && apt-get install -y wget
+RUN apt-get update -qy
+RUN apt-get -qq -y update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -qq -y install \
+    python3-dev python3-pip postgresql postgresql-contrib libffi-dev libpq-dev gcc musl-dev wkhtmltopdf sudo
 
-# install wkhtmltopdf \
+# install wkhtmltopdf
 #RUN apt-get install wkhtmltopdf
 
 # install dependencies
-RUN pip install --upgrade pip
-RUN pip install --upgrade setuptools
+#RUN pip install --upgrade pip
+#RUN pip install --upgrade setuptools
 COPY ./requirements.txt .
 RUN pip install -r requirements.txt
 
@@ -29,5 +33,6 @@ RUN chmod +x /usr/src/app/entrypoint.sh
 # copy project
 COPY . .
 
+USER root
 # run entrypoint.sh
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
