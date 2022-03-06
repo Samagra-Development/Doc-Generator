@@ -68,7 +68,6 @@ class Builder:
                 raise ValueError('Please provide a valid config. Needs to be an instance of GenericConfig.')
             self.tries += 1
             if self.tries > self._max_tries + 1:
-                self._logger.info(f"exceeded, {self.tries}, {self._max_tries}")
                 self.object.meta = {
                     "message": "Max Retries Exceeded"
                 }
@@ -76,7 +75,6 @@ class Builder:
                 self.object.isActive = False
                 self.object.save()
             else:
-                self._logger.info(f"not exceeded, {self.tries}, {self._max_tries}")
                 self.object.tries = self.tries
                 self.object.save()
         except ObjectDoesNotExist:
@@ -160,8 +158,12 @@ class Builder:
                         error_code = err_code
                         error_msg = err_msg
                 self._logger.info("Request Receive Pdf generation End")
-                update_status_choice.delay(self.token, 'Complete')
-                update_step_choice.delay(self.token, 'Complete')
+                if error_code is None:
+                    update_status_choice.delay(self.token, 'Complete')
+                    update_step_choice.delay(self.token, 'Complete')
+                else:
+                    update_status_choice.delay(self.token, f"{error_code}: {error_msg}")
+                    update_step_choice.delay(self.token, 'Complete')
             else:
                 data = "Max Retries"
                 self._logger.info(data)
