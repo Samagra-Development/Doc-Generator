@@ -41,10 +41,6 @@ class YausShortner(implements(URLShortener)):
                 final_data = resp
             else:
                 raise Exception("short url not generated")
-        except HTTPError as http_err:
-            traceback.print_exc()
-            error_code = response.status_code
-            error_msg = http_err
         except Exception as e:
             traceback.print_exc()
             error_code = 809

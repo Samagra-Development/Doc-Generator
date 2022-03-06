@@ -1,37 +1,83 @@
-version: '3.8'
+version: '3'
 
 services:
   web:
     build:
-      context: ./app
-      dockerfile: Dockerfile.prod
-    command: gunicorn hello_django.wsgi:application --bind 0.0.0.0:8000
+      context: ./src
+      dockerfile: Dockerfile
+    command: gunicorn --workers=8 --threads=10 pdf.wsgi:application --bind 0.0.0.0:8000
+#    command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
-      - static_volume:/home/app/web/staticfiles
-      - media_volume:/home/app/web/mediafiles
+      - static_volume:/usr/src/app/staticfiles
     expose:
       - 8000
+    ports:
+      - "8000:8000"
     env_file:
-      - ./.env.prod
+      - ./.env
     depends_on:
       - db
+
   db:
-    image: postgres:13.0-alpine
+    image: postgres:latest
+    expose:
+      - 5000
+    ports:
+      - "5000:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    env_file:
-      - ./.env.prod.db
-  nginx:
-    build: ./nginx
-    volumes:
-      - static_volume:/home/app/web/staticfiles
-      - media_volume:/home/app/web/mediafiles
+    container_name: psql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=dbpassword
+      - POSTGRES_DB=postgres
+
+  graphql-engine:
+    image: hasura/graphql-engine:latest
     ports:
-      - 1337:80
+      - "5001:8080"
     depends_on:
-      - web
+      - db
+    restart: always
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:dbpassword@db:5432/postgres
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_ADMIN_SECRET: 2OWslm5aAjlTARU
+
+  # nginx:
+  #   image: samagragovernance/esamwad-nginx:0.1.0
+  #   volumes:
+  #     - static_volume:/home/app/staticfiles
+  #     - /etc/letsencrypt/:/etc/letsencrypt/
+  #   ports:
+  #     - 1337:80
+  #   depends_on:
+  #     - web
+  broker:
+   container_name: broker
+   image: "docker.io/bitnami/rabbitmq:latest"
+   env_file:
+     - ./.env
+   ports:
+     - "4369:4369"
+     - "5672:5672"
+     - "25672:25672"
+     - "15672:15672"
+   volumes:
+     - "doc_rabbitmq:/bitnami"
+
+  worker:
+    build:
+      context: ./src
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/srv/logs/
+    command: celery --app=pdf.celery.app worker --loglevel=info --concurrency=10 -n worker@%h
 
 volumes:
   postgres_data:
   static_volume:
-  media_volume:
+  doc_rabbitmq:

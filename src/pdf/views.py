@@ -2,6 +2,7 @@ import json
 from json import JSONDecodeError
 
 import requests
+from django.views.decorators.csrf import csrf_exempt
 from requests import HTTPError
 
 from .base.builder import Builder
@@ -38,6 +39,7 @@ def current_datetime(request):
     return HttpResponse(html)
 
 
+@csrf_exempt
 @api_view(['POST'])
 def generate_pdf(request):
     final_data = []
@@ -69,6 +71,7 @@ def generate_pdf(request):
             return return_response(final_data, error_code, error_text)
 
 
+@csrf_exempt
 @api_view(['POST'])
 def generate_pdf2(request):
     final_data = []
@@ -119,6 +122,7 @@ def generate_pdf2(request):
             return return_response(final_data, error_code, error_text)
 
 
+@csrf_exempt
 @api_view(['GET', 'POST'])
 def register_template(request):
     final_data = []
@@ -131,14 +135,7 @@ def register_template(request):
             try:
                 final_data = json.loads(req.json()['body'])
             except JSONDecodeError:
-                final_data = req.json()['body']
-        except HTTPError as http_err:
-            error_code = req.status_code,
-            error_text = http_err,
-        except ValueError:
-            traceback.print_exc()
-            error_code = req.status_code,
-            error_text = req.content,
+                final_data = req.json()
         except Exception as e:
             traceback.print_exc()
             error_code = 804,
@@ -187,13 +184,6 @@ def register_template(request):
                                                                        "user": os.getenv('DOC_GENERATOR_ID')})
             req.raise_for_status()
             final_data = req.json()
-        except HTTPError as http_err:
-            error_code = req.status_code
-            error_text = http_err
-        except ValueError:
-            traceback.print_exc()
-            error_code = req.status_code
-            error_text = req.content
         except Exception as e:
             traceback.print_exc()
             error_code = 804
@@ -202,6 +192,7 @@ def register_template(request):
         return return_response(final_data, error_code, error_text)
 
 
+@csrf_exempt
 @api_view(['GET', 'POST'])
 def generate_bulk(request, token=''):
     if request.method == "GET":

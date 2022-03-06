@@ -34,8 +34,6 @@ def get_fa_token(username, password):
             token = resp['token']
         else:
             raise Exception("short url not generated")
-    except HTTPError:
-        traceback.print_exc()
     except Exception as e:
         traceback.print_exc()
         print(f"Something went wrong: {e}")
