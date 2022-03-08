@@ -146,15 +146,15 @@ class Builder:
                                 self.object.save()
                                 data = url
                             else:
-                                print("Failed to shorten the url")
+                                self._logger.info("Failed to shorten the url")
                                 error_code = err_code
                                 error_msg = err_msg
                         else:
-                            print("Failed to upload the file")
+                            self._logger.info("Failed to upload the file")
                             error_code = err_code
                             error_msg = err_msg
                     else:
-                        print("Failed to build the file")
+                        self._logger.info("Failed to build the file")
                         error_code = err_code
                         error_msg = err_msg
                 self._logger.info("Request Receive Pdf generation End")
@@ -163,7 +163,6 @@ class Builder:
                     update_step_choice.delay(self.token, 'Complete')
                 else:
                     update_status_choice.delay(self.token, f"{error_code}: {error_msg}")
-                    update_step_choice.delay(self.token, 'Complete')
             else:
                 data = "Max Retries"
                 self._logger.info(data)

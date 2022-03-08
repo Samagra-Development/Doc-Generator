@@ -109,6 +109,8 @@ class Doc(BaseModel):
             "meta": self.meta,
             "data": self.data,
             "tags": self.tags,
+            "isActive": self.isActive,
+            "plugin": self.plugin,
             "url": self.url,
             "url_meta": self.url_meta,
             "url_expiry": self.url_expiry,
