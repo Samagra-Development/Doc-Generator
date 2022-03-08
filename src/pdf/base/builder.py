@@ -161,6 +161,7 @@ class Builder:
                 if error_code is None:
                     update_status_choice.delay(self.token, 'Complete')
                     update_step_choice.delay(self.token, 'Complete')
+                    self.object.retry = False
                 else:
                     update_status_choice.delay(self.token, f"{error_code}: {error_msg}")
             else:

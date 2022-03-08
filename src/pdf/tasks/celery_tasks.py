@@ -69,7 +69,7 @@ def sch():
 
 @shared_task
 def run_retries():
-    retry_tasks = list(Doc.objects.filter(Q(config__retries__lte=F('tries')), Q(status='Failed'), Q(isActive=False)))
+    retry_tasks = list(Doc.objects.filter(Q(config__retries__lte=F('tries')), Q(status='Failed'), Q(isActive=False), Q(retry=True)))
     for tasks in retry_tasks:
         try:
             plugin = tasks.plugin
@@ -117,7 +117,7 @@ def run_retries():
 
 @shared_task
 def delete_max_retries():
-    failed_tasks = list(Doc.objects.filter(Q(config__retries__gt=F('tries')), Q(isActive=False)))
+    failed_tasks = list(Doc.objects.filter(Q(config__retries__gt=F('tries')), Q(isActive=False), Q(retry=True)))
     for task in failed_tasks:
         print(f"Deleting object ID: {task.id}, {task.meta}", {task.data})
         task.delete()
