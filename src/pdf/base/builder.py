@@ -192,7 +192,7 @@ class Builder:
                     self.step += 1
                     self.status += 1
                     update_status_choice.delay(self.token, 'Complete', self.status)
-                    update_step_choice.delay(self.token, 'Complete', self.step)
+                    update_step_choice.delay(self.token, 'Completed', self.step)
                     self.object.retry = False
                 else:
                     self.status += 1
