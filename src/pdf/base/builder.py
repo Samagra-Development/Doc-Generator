@@ -44,6 +44,7 @@ def update_step_choice(id, step, idx):
         doc = Doc.objects.get(pk=id)
         doc.step = step
         doc.save()
+        print("saved step")
 
 
 @shared_task
@@ -56,11 +57,13 @@ def update_status_choice(id, status, idx):
             doc = Doc.objects.get(pk=id)
             doc.status = status
             doc.save()
+            print("saved status")
     else:
         print(f"status: {status}")
         doc = Doc.objects.get(pk=id)
         doc.status = status
         doc.save()
+        print("saved status")
 
 
 class Builder:
