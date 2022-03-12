@@ -38,7 +38,7 @@ def current_datetime(request):
     html = "<html><body>It is now %s.</body></html>" % now
     return HttpResponse(html)
 
-
+  
 @csrf_exempt
 @api_view(['POST'])
 def generate_pdf(request):
