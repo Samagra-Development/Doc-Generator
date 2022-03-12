@@ -17,19 +17,42 @@ from .interfaces.uploader import Uploader
 from ..models import *
 import logging
 
+steps = [
+    'Not Started',
+    'Template Processing',
+    'Doc Building',
+    'Uploading',
+    'URL Shortening',
+    'Completed',
+]
+
+status = [
+    'Queued',
+    'Processing',
+    'Complete',
+    'Failed',
+    'Error',
+]
+
 
 @shared_task
-def update_step_choice(id, step):
-    doc = Doc.objects.get(pk=id)
-    doc.step = step
-    doc.save()
+def update_step_choice(id, step, idx):
+    if idx > steps.index(step):
+        print("older step")
+    else:
+        doc = Doc.objects.get(pk=id)
+        doc.step = step
+        doc.save()
 
 
 @shared_task
-def update_status_choice(id, status):
-    doc = Doc.objects.get(pk=id)
-    doc.status = status
-    doc.save()
+def update_status_choice(id, status, idx):
+    if idx > status.index(step) and status not in ['Failed', 'Error']:
+        print("older status")
+    else:
+        doc = Doc.objects.get(pk=id)
+        doc.status = status
+        doc.save()
 
 
 class Builder:
@@ -41,12 +64,15 @@ class Builder:
         self._data = pdf_data
         self.token = token
         self.config_id = self._data['config_id']
+        self.step = 0
+        self.status = 0
         try:
             self.object = Doc.objects.get(pk=token)
             self.object.data = pdf_data
             self.object.save()
             self.tries = self.object.tries
-            update_status_choice.delay(token, 'Processing')
+            self.status += 1
+            update_status_choice.delay(token, 'Processing', self.status)
             config = GenericConfig.objects.get(pk=self.config_id)
             self._logger = logging.getLogger()
             Plugin.verify(type(plugin))
@@ -119,17 +145,20 @@ class Builder:
         error_code = error_msg = data = None
         try:
             if self.tries <= self._max_tries + 1 and self.object.retry is True:
-                update_step_choice.delay(self.token, 'Template Processing')
+                self.step += 1
+                update_step_choice.delay(self.token, 'Template Processing', self.step)
                 self._logger.info("Step: Template Processing")
                 err_code, err_msg, fetch_template = self._plugin.fetch_template()
                 if not err_code:
                     # self._step = Pdf.STEP_CHOICES('Doc Building')
-                    update_step_choice.delay(self.token, 'Doc Building')
+                    self.step += 1
+                    update_step_choice.delay(self.token, 'Doc Building', self.step)
                     self._logger.info("Step: Doc Building")
                     err_code, err_msg, file_build = self._plugin.build_file(fetch_template)
                     if not err_code and file_build is True:
                         # self._step = Pdf.STEP_CHOICES('Uploading')
-                        update_step_choice.delay(self.token, 'Uploading')
+                        self.step += 1
+                        update_step_choice.delay(self.token, 'Uploading', self.step)
                         self._logger.info("Step: Uploading")
                         err_code, err_msg, long_url = self._plugin.upload_file()
                         if err_code is None:
@@ -137,7 +166,8 @@ class Builder:
                             self.object.url = long_url['url']
                             self.object.url_meta = long_url['meta']
                             self.object.save()
-                            update_step_choice.delay(self.token, 'URL Shortening')
+                            self.step += 1
+                            update_step_choice.delay(self.token, 'URL Shortening', self.step)
                             self._logger.info("Step: URL Shortening")
                             err_code, err_msg, url = self._plugin.shorten_url(long_url['url'])
                             if err_code is None:
@@ -159,11 +189,14 @@ class Builder:
                         error_msg = err_msg
                 self._logger.info("Request Receive Pdf generation End")
                 if error_code is None:
-                    update_status_choice.delay(self.token, 'Complete')
-                    update_step_choice.delay(self.token, 'Complete')
+                    self.step += 1
+                    self.status += 1
+                    update_status_choice.delay(self.token, 'Complete', self.status)
+                    update_step_choice.delay(self.token, 'Complete', self.step)
                     self.object.retry = False
                 else:
-                    update_status_choice.delay(self.token, f"{error_code}: {error_msg}")
+                    self.status += 1
+                    update_status_choice.delay(self.token, f"{error_code}: {error_msg}", self.status)
             else:
                 data = "Max Retries"
                 self._logger.info(data)
@@ -171,7 +204,8 @@ class Builder:
             traceback.print_exc()
             error_code = 801
             error_msg = "Unable to process queue"
-            update_status_choice.delay(self.token, 'Failed')
+            self.status += 1
+            update_status_choice.delay(self.token, 'Failed', self.status)
             self._logger.error(f"Exception occurred: {e}", exc_info=True)
         finally:
             self.object.isActive = False
