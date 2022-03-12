@@ -10,7 +10,7 @@ import pdfkit
 from minio import Minio
 from requests import HTTPError
 
-from .models import Pdf
+from .models import Doc
 
 
 def get_sample_data():
@@ -91,6 +91,52 @@ def return_response(final_data, error_code, error_text):
                 "code": error_code,
                 "message": error_text
             }]}, status=401)
+        elif error_code == 500:
+            return JsonResponse({"error": [{
+                "code": error_code,
+                "message": error_text
+            }]}, status=500)
+        else:
+            response = JsonResponse(
+                {"error": [{
+                    "code": error_code,
+                    "message": error_text
+                }]},
+                safe=False,
+                status=200)
+    return response
+
+
+def return_tokens(final_data, error_code, error_text):
+    """
+    The function used to give response in all APIs
+
+    Args:
+        final_data:
+        error_code:
+        error_text:
+
+    Returns:
+        response
+
+    """
+    # Adding the response status code
+    if error_code is None:
+        status_code = 200
+        response = JsonResponse({"tokens": final_data},
+                                safe=False,
+                                status=status_code)
+    else:
+        if error_code == 802:
+            return JsonResponse({"error": [{
+                "code": error_code,
+                "message": error_text
+            }]}, status=401)
+        elif error_code == 500:
+            return JsonResponse({"error": [{
+                "code": error_code,
+                "message": error_text
+            }]}, status=500)
         else:
             response = JsonResponse(
                 {"error": [{
@@ -124,15 +170,17 @@ def format_html(html_str, data):
 
 
 def build_pdf(html_str, file_name):
+    is_successful = error = None
     drive_file_loc = f'pdf/drivefiles/{file_name}.pdf'
     try:
         path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
         config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
         pdfkit.from_string(html_str, drive_file_loc, configuration=config)
-        return True
-    except:
+        is_successful = True
+    except Exception as e:
         traceback.print_exc()
-        return False
+        error = f"Failed to generate doc: {e}"
+    return is_successful, error
 
 
 def build_doc(html_str, file_name):
@@ -146,6 +194,7 @@ def build_doc(html_str, file_name):
     except:
         traceback.print_exc()
         return False
+
 
 def send_get_request(url, params=None, headers=None):
     try:
@@ -200,10 +249,6 @@ def send_post_request(url, params=None, data=None, json=None, headers=None):
 
 
 def publish_to_url(pdf_id, url, headers=None):
-    pdf = Pdf.objects.get(pk=pdf_id)
+    pdf = Doc.objects.get(pk=pdf_id)
     response = send_post_request(url, data=pdf, headers=headers)
     return response
-
-
-
-

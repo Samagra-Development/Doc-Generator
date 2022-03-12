@@ -34,8 +34,6 @@ def get_fa_token(username, password):
             token = resp['token']
         else:
             raise Exception("short url not generated")
-    except HTTPError:
-        traceback.print_exc()
     except Exception as e:
         traceback.print_exc()
         print(f"Something went wrong: {e}")
@@ -83,7 +81,8 @@ class MinioUploader(implements(Uploader)):
         self.client = Minio(host, access_key=access_key, secret_key=secret_key, session_token=session_token)
 
     def put(self, file_name, object_name, expires):
-        error_code = error_msg = final_data = None
+        error_code = error_msg = None
+        final_data = dict()
         try:
             found = self.client.bucket_exists(self.bucket_name)
             if not found:
@@ -93,13 +92,20 @@ class MinioUploader(implements(Uploader)):
             result = self.client.fput_object(
                 self.bucket_name, object_name, file_loc,
             )
-            print(
+            self.logger.info(
                 "created {0} object; etag: {1}, version-id: {2}".format(
                     result.object_name, result.etag, result.version_id,
                 ),
             )
             # get signed url
-            error_code, error_msg, final_data = self.get_signed_url(file_name, expires)
+            error_code, error_msg, url = self.get_signed_url(file_name, expires)
+            final_data['url'] = url
+            final_data['meta'] = {
+                "bucket_name": self.bucket_name,
+                "object_name": result.object_name,
+                "etag": result.etag,
+                "version_id": result.version_id,
+            }
         except Exception as e:
             traceback.print_exc()
             error_code = 807

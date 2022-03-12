@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from os.path import join, dirname
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -161,8 +162,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_URL = '/staticfiles/'
+STATIC_ROOT = 'staticfiles'
+STATIC_URL = '/static/'
 
 # Extra places for collectstatic to find static files.
 # STATICFILES_DIRS = (
@@ -185,6 +186,12 @@ CELERY = {
     'task_serializer': 'json',
     'result_serializer': 'json',
     'accept_content': ['json'],
+    'beat_schedule': {
+        'start_beat_schedule': {
+            'task': 'pdf.tasks.celery_tasks.beat_task',
+            'schedule': crontab(minute=0, hour=4)
+        }
+    }
 }
 
 # Health Check

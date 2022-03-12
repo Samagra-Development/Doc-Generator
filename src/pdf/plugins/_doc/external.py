@@ -1,53 +1,69 @@
 import os
 import traceback
-
+import aspose.words as aw
+from docx import Document
 
 from ...plugins._pdf.external import PDFPlugin
 from ...uploaders.minio import MinioUploader
 from ...utils import build_doc
 
 
+def delete_paragraph(paragraph):
+    p = paragraph._element
+    p.getparent().remove(p)
+    p._p = p._element = None
+
+
 class DOCXPlugin(PDFPlugin):
     """
         Plugin class which extend from PDFPlugin
     """
-    def build_file(self, template_id, token):
+
+    def build_file(self, template):
         """
         Function to build PDF and return a file (fetch template and build pdf)
         """
-        is_successful = False
-        template = self.fetch_template(template_id)
-        if template is not None:
-            is_successful = build_doc(template, token)
-        return is_successful
+        is_successful = error_code = error_msg = None
+        drive_file_loc = f'pdf/drivefiles/{self.token}.docx'
+        try:
+            doc = aw.Document()
+            builder = aw.DocumentBuilder(doc);
+            builder.insert_html(template)
+            doc.save(drive_file_loc)
+            document = Document(drive_file_loc)
+            paragraph = document.paragraphs[0]
+            print(paragraph.text)
+            delete_paragraph(paragraph)
+            document.save(drive_file_loc)
+            is_successful = True
+        except Exception as e:
+            traceback.print_exc()
+            error_msg = f"Failed to generate doc: {e}"
+            error_code = 803
+        return error_code, error_msg, is_successful
 
-    def upload_file(self, template_id, token):
+    def upload_file(self):
         """
         Function to save PDF
         """
         error_code = error_msg = final_data = None
         try:
-            template = self.build_file(template_id, token)
-            print("isSuccessful", template)
-            drive_file_loc = f'pdf/drivefiles/{token}.docx"'
-            if template is not None:
-                if self.uploader == "minio":
-                    host = self.user_config["MINIO_HOST"]
-                    access_key = self.user_config["MINIO_ACCESS_KEY"]
-                    secret_key = self.user_config["MINIO_SECRET_KEY"]
-                    bucket_name = self.user_config["MINIO_BUCKET_NAME"]
-                    uploader = MinioUploader(host, access_key, secret_key, bucket_name)
-                    error_code, error_msg, final_data = uploader.put(f"{token}.docx", f"{token}.docx", None)
-                    if error_code is None:
-                        if os.path.exists(drive_file_loc):
-                            os.remove(drive_file_loc)
-                    else:
-                        raise Exception("Failed to build the pdf")
-                    return error_code, error_msg, final_data
+            drive_file_loc = f'pdf/drivefiles/{self.token}.docx'
+            if self.uploader == "minio":
+                host = self.user_config["MINIO_HOST"]
+                access_key = self.user_config["MINIO_ACCESS_KEY"]
+                secret_key = self.user_config["MINIO_SECRET_KEY"]
+                bucket_name = self.user_config["MINIO_BUCKET_NAME"]
+                uploader = MinioUploader(host, access_key, secret_key, bucket_name)
+                error_code, error_msg, final_data = uploader.put(f'{self.token}.docx', f'{self.token}.docx', None)
+                if error_code is None:
+                    if os.path.exists(drive_file_loc):
+                        os.remove(drive_file_loc)
                 else:
-                    raise Exception("Uploader plugin not supported")
+                    raise Exception("Failed to build the pdf")
+                return error_code, error_msg, final_data
             else:
-                raise Exception("Failed to upload the pdf")
+                raise Exception("Uploader plugin not supported")
         except Exception as e:
             traceback.print_exc()
             error_code = 805
