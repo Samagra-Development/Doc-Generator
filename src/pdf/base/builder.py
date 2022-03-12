@@ -26,7 +26,7 @@ steps = [
     'Completed',
 ]
 
-status = [
+statuses = [
     'Queued',
     'Processing',
     'Complete',
@@ -49,7 +49,7 @@ def update_step_choice(id, step, idx):
 @shared_task
 def update_status_choice(id, status, idx):
     if status not in ['Failed', 'Error']:
-        if idx > status.index(status):
+        if idx > statuses.index(status):
             print(f"older status: {status}")
         else:
             print(f"status: {status}")
