@@ -202,8 +202,8 @@ class Builder:
                 if error_code is None:
                     self.step += 1
                     self.status += 1
-                    self.object.status("Complete")
-                    self.object.step("Completed")
+                    self.object.status = "Complete"
+                    self.object.step = "Completed"
                     self.object.retry = False
                 else:
                     self.status += 1
