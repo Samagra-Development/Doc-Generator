@@ -48,8 +48,14 @@ def update_step_choice(id, step, idx):
 
 @shared_task
 def update_status_choice(id, status, idx):
-    if idx > status.index(status) and status not in ['Failed', 'Error']:
-        print(f"older status: {status}")
+    if status not in ['Failed', 'Error']:
+        if idx > status.index(status):
+            print(f"older status: {status}")
+        else:
+            print(f"status: {status}")
+            doc = Doc.objects.get(pk=id)
+            doc.status = status
+            doc.save()
     else:
         print(f"status: {status}")
         doc = Doc.objects.get(pk=id)
