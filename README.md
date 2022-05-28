@@ -39,7 +39,7 @@ An easily integrable and resusable tool built on OSS, can be easily leveraged to
 ```sh
 python --version
 
-lab_release -a
+lsb_release -a
 
 ```
 
