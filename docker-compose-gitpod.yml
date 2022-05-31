@@ -50,7 +50,7 @@ services:
       - POSTGRES_DB=${DB_NAME}
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
+      - ./pgdata1:/var/lib/postgresql/data
 
   gql:
     image: ${HASURA_VERSION}
