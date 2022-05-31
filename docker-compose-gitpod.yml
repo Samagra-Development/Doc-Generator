@@ -1,0 +1,76 @@
+version: "3"
+
+services:
+
+  web:
+    image: samagragovernance/doc-generator:latest
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./src/:/usr/src/app/
+    ports:
+      - 8000:8000
+    env_file:
+      - src/pdf/.env.dev
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${DB_USER_NAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/pgdata
+
+  graphql-engine:
+    image: ${HASURA_VERSION}
+    ports:
+      - "5001:8080"
+    depends_on:
+      - db
+    restart: always
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://${DB_USER_NAME}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_ADMIN_PASS}
+
+  templaterdb:
+    container_name: templaterdb
+    image: postgres:12
+    ports:
+      - '${POSTGRES_HOST}:5432'
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+
+  gql:
+    image: ${HASURA_VERSION}
+    ports:
+      - '10022:8080'
+    depends_on:
+      - templaterdb
+    restart: always
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://${DB_USERNAME}:${DB_PASSWORD}@templaterdb:5432/${DB_NAME}
+      HASURA_GRAPHQL_ENABLE_CONSOLE: 'true' # set to "false" to disable console
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_ADMIN_PASS}
+
+  templater:
+    image: samagragovernance/templater:latest
+    ports:
+      - '3007:3000'
+    depends_on:
+      - templaterdb
+    restart: always
+    environment:
+      DATABASE_URL: ${DATABASE_URL}

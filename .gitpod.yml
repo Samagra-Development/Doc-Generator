@@ -1,0 +1,17 @@
+tasks:
+  - name: Doc Genrator Server
+    init: bash ./deploy.sh
+
+ports:
+  - port: 8000
+    onOpen: ignore
+  - port: 5432
+    onOpen: ignore
+  - port: 5001
+    onOpen: ignore
+  - port: 10021
+    onOpen: ignore
+  - port: 10022
+    onOpen: ignore
+  - port: 3007
+    onOpen: ignore
