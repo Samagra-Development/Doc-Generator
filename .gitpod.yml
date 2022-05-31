@@ -1,6 +1,8 @@
 tasks:
   - name: Doc Genrator Server
     init: bash ./deploy.sh
+    env:
+      DATABASE_URL: "postgresql://postgresql:yoursupersecret@localhost:10021/templaterdb?schema=public"
 
 ports:
   - port: 8000
