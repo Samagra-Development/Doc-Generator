@@ -4,7 +4,7 @@ services:
 
   web:
     image: samagragovernance/doc-generator:latest
-    command: python manage.py runserver 0.0.0.0:8000
+    command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - ./src/:/usr/src/app/
     ports:
