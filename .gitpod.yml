@@ -5,13 +5,19 @@ tasks:
 ports:
   - port: 8000
     onOpen: ignore
+    visibility: public
   - port: 5432
     onOpen: ignore
+    visibility: public
   - port: 5001
     onOpen: ignore
+    visibility: public
   - port: 10021
     onOpen: ignore
+    visibility: public
   - port: 10022
     onOpen: ignore
+    visibility: public
   - port: 3007
     onOpen: ignore
+    visibility: public
