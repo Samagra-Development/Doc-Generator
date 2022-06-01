@@ -121,26 +121,16 @@ Start the server and go to ```http://localhost:8000/swagger/```
 
 Sample GeneralConfig entry:
 
-```
-
+```json
 {
-
-"APPLICATION_SETTINGS_FILE": "gdrive_dev_settings.yaml", //needed in case of integration with google drive for docs
-
-"CREDENTIAL_SETTINGS_FILE": "gdrive_dev_creds.json", //needed in case of integration with google drive for docs
-
-"MINIO_HOST": "YOUR MINIO HOST WITH PORT", // host:port
-
-"MINIO_ACCESS_KEY": "", // minio/s3 username for login
-
-"MINIO_SECRET_KEY": "", // minio/s3 password for login
-
-"MINIO_BUCKET_NAME": "doc-generator", // name of the minio bucket used for storing docs
-
-"SHORTENER_URL": "{{yaus_host_address}}/sr/addURL" // can be any url shortener service url
-
+  "APPLICATION_SETTINGS_FILE": "gdrive_dev_settings.yaml", //needed in case of integration with google drive for docs
+  "CREDENTIAL_SETTINGS_FILE": "gdrive_dev_creds.json", //needed in case of integration with google drive for docs
+  "MINIO_HOST": "YOUR MINIO HOST WITH PORT", // host:port
+  "MINIO_ACCESS_KEY": "", // minio/s3 username for login
+  "MINIO_SECRET_KEY": "", // minio/s3 password for login
+  "MINIO_BUCKET_NAME": "doc-generator", // name of the minio bucket used for storing docs
+  "SHORTENER_URL": "{{yaus_host_address}}/sr/addURL" // can be any url shortener service url
 }
-
 ```
 
 > you will need to move the .yaml and .json file downloaded on first authentication with your google drive in ```creds``` folder for non interactive authentications to google drive. check this [link](https://medium.com/analytics-vidhya/how-to-connect-google-drive-to-python-using-pydrive-9681b2a14f20) for reference on how to integrate with google APIs.
