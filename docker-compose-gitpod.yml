@@ -73,4 +73,4 @@ services:
       - templaterdb
     restart: always
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: postgres://${DB_USERNAME}:${DB_PASSWORD}@templaterdb:5432/${DB_NAME}
