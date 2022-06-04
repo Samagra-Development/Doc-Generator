@@ -86,7 +86,7 @@ services:
      - "25672:25672"
      - "15672:15672"
    volumes:
-     - ./doc_rabbitmq:/bitnami
+     - "doc_rabbitmq:/bitnami"
 
   worker:
     image: samagragovernance/doc-generator:latest
@@ -96,3 +96,7 @@ services:
     volumes:
       - ./logs:/srv/logs/
     command: celery --app=pdf.celery.app worker --loglevel=info --concurrency=10 -n worker@%h
+
+volumes:
+  doc_rabbitmq:
+    driver: local
