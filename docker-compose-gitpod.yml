@@ -74,3 +74,26 @@ services:
     restart: always
     environment:
       DATABASE_URL: postgres://${DB_USERNAME}:${DB_PASSWORD}@templaterdb:5432/${DB_NAME}
+      
+  broker:
+   container_name: broker
+   image: "docker.io/bitnami/rabbitmq:latest"
+   env_file:
+     - ./.env
+   ports:
+     - "4369:4369"
+     - "5672:5672"
+     - "25672:25672"
+     - "15672:15672"
+   volumes:
+     - "doc_rabbitmq:/bitnami"
+
+  worker:
+    build:
+      context: ./src
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/srv/logs/
+    command: celery --app=pdf.celery.app worker --loglevel=info --concurrency=10 -n worker@%h
