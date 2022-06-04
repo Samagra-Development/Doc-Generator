@@ -86,7 +86,7 @@ services:
      - "25672:25672"
      - "15672:15672"
    volumes:
-     - "doc_rabbitmq:/bitnami"
+     - ./doc_rabbitmq:/bitnami
 
   worker:
     build:
