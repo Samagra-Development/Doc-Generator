@@ -145,4 +145,4 @@ You can check sample plugins [here](https://github.com/Samagra-Development/Doc-G
 
 ### 7. Documentation :book:
 
-Docs [link](https://documenter.getpostman.com/view/10166110/UyxogiW3)
+> Docs can be found [here](https://documenter.getpostman.com/view/10166110/UyxogiW3)
