@@ -45,6 +45,8 @@ python --version
 lsb_release -a
 
 ```
+## PRD:
+[Link](https://docs.google.com/document/d/1aX9OL_LKnkAojXyfvYLjSxXoUnhlYMjVkO9Obr0Fh0E/edit?usp=sharing)
 
 ## Installation Steps :walking:
 
