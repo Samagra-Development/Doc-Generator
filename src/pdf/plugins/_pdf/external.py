@@ -151,7 +151,7 @@ class PDFPlugin(implements(Plugin)):
                 shortener = YausShortner(host)
                 error_code, error_msg, final_data = shortener.apply(url, self.token)
                 if error_code is None:
-                    final_data = final_data['shortUrl']
+                    final_data = final_data['url']
             else:
                 raise Exception("Shortener plugin not available")
         except Exception as e:
