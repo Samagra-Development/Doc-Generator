@@ -37,7 +37,7 @@ class YausShortner(implements(URLShortener)):
             self.logger.info(f"resp {response}")
             response.raise_for_status()
             resp = response.json()
-            if 'shortUrl' in resp:
+            if 'url' in resp:
                 final_data = resp
             else:
                 raise Exception("short url not generated")
