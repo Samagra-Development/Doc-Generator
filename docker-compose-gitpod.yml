@@ -34,7 +34,7 @@ services:
       - db
     restart: always
     environment:
-      HASURA_GRAPHQL_DATABASE_URL: postgres://${DB_USERNAME}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      HASURA_GRAPHQL_DATABASE_URL: postgres://${SQL_USER}:${SQL_PASSWORD}@db:5432/${SQL_DATABASE}
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
       HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_ADMIN_PASS}
@@ -96,6 +96,18 @@ services:
     volumes:
       - ./logs:/srv/logs/
     command: celery --app=pdf.celery.app worker --loglevel=info --concurrency=10 -n worker@%h
+  
+  minio:
+    image: quay.io/minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=root
+      - MINIO_ROOT_PASSWORD=password
+    volumes:
+      - ./minio:/data
+    command: server /data --console-address ":9001"
 
 volumes:
   doc_rabbitmq:
