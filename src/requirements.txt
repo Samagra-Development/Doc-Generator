@@ -41,7 +41,7 @@ Jinja2==3.0.3
 jsonformatter
 jsonify
 kombu==5.2.3
-MarkupSafe==2.0.1
+MarkupSafe==2.1.1
 minio==7.1.3
 oauth2client==4.1.3
 oauthlib==3.2.0
@@ -71,9 +71,10 @@ sqlparse==0.4.2
 static3==0.7.0
 uritemplate==4.1.1
 urllib3==1.26.8
-uwsgi
+# uwsgi
 vine==5.0.0
-Werkzeug
+Werkzeug==2.2.2
 wget
 xmltodict==0.12.0
 zipp==3.7.0
+watchdog==2.1.9
