@@ -98,7 +98,13 @@ class PDFPlugin(implements(Plugin)):
             # path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
             # config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
             # pdfkit.from_string(template, drive_file_loc, configuration=config)
-            pdfkit.from_string(template, drive_file_loc)
+            # pdfkit.from_string(template, drive_file_loc)
+            path_wkhtmltopdf = os.environ.get('WKHTMLTOPDF', None)
+            if path_wkhtmltopdf:
+                config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+                pdfkit.from_string(template, drive_file_loc, configuration=config)
+            else:
+                pdfkit.from_string(template, drive_file_loc)
             is_successful = True
         except Exception as e:
             traceback.print_exc()

@@ -2,6 +2,7 @@
 Generate Pdf for all the request
 """
 import json
+from pathlib import Path
 import traceback
 import uuid
 import os.path
@@ -68,6 +69,8 @@ def update_status_choice(id, status, idx):
 
 class Builder:
     def __init__(self, plugin, pdf_data, token):
+        if not Path('pdf/drivefiles').is_dir():
+            os.makedirs('pdf/drivefiles')
 
         # Setup Constants
         self._logger = logging.getLogger()
