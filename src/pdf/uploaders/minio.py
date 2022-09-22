@@ -21,11 +21,11 @@ def get_fa_token(username, password):
         body = json.dumps({
             "loginId": f"{username}",
             "password": f"{password}",
-            "applicationId": "2011a6c9-7fb7-4306-8c6d-c96cb07c7859"
+            "applicationId": os.getenv('MINIO_FA_APPLICATION_ID')
         })
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'YFpyHxhW0-NoKRwQrXgCU5QIAQq8nBNhE--i5_n3pTU'
+            'Authorization': os.getenv('MINIO_FA_AUTHORIZATION')
         }
         response = requests.post("http://auth.samagra.io:9011/api/login", data=body, headers=headers)
         response.raise_for_status()
