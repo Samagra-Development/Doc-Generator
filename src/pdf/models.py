@@ -18,6 +18,7 @@ class BaseModel(models.Model):
 class GenericConfig(BaseModel):
     UPLOADERS = [
         ('minio', 'Minio'),
+        ('generic_minio', 'Generic Minio'),
     ]
     SHORTENERS = [
         ('yaus', 'YAUS'),
