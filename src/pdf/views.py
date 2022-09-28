@@ -4,6 +4,7 @@ from json import JSONDecodeError
 import requests
 from django.views.decorators.csrf import csrf_exempt
 from requests import HTTPError
+from django.http import HttpResponseRedirect
 
 from .base.builder import Builder
 from .plugins._doc.external import DOCXPlugin
@@ -14,6 +15,12 @@ from .tasks.celery_tasks import *
 import logging
 import traceback
 import os
+import requests
+from django.conf import settings
+
+import jwt
+# from jwt import PyJWKClient
+
 import uuid
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
@@ -24,6 +31,8 @@ from bs4 import BeautifulSoup
 from .utils import return_response, format_html, get_sample_data, build_pdf, return_tokens
 from django.utils.datastructures import MultiValueDictKeyError
 from dotenv import load_dotenv
+
+from .models import *
 
 load_dotenv()
 
@@ -297,3 +306,56 @@ data = {
     "47": "Yes",
     "48": "09-02-2022",
 }
+
+
+@csrf_exempt
+@api_view(['GET'])
+def register_user_init(request):
+    redirect_url=os.getenv('GC_REDIRECT_URL')
+    scope = "https://www.googleapis.com/auth/drive openid profile email"
+    url = f"https://accounts.google.com/o/oauth2/auth?client_id={settings.GC_CLIENT_ID}&redirect_uri={redirect_url}&scope={scope}&access_type=offline&response_type=code"
+    print(url)
+    return HttpResponseRedirect(url)
+
+
+@csrf_exempt
+@api_view(['GET'])
+def register_user(request):
+    redirect_url=os.getenv('GC_REDIRECT_URL')
+    code = request.GET['code']
+    url = "https://oauth2.googleapis.com/token"
+    payload=f'code={code}&client_id={settings.GC_CLIENT_ID}&client_secret={settings.GC_CLIENT_SECRET}&redirect_uri={redirect_url}&grant_type=authorization_code'
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    data = json.loads(response.text)
+    print(data)
+    url = "https://www.googleapis.com/oauth2/v3/certs"
+    client = jwt.PyJWKClient(url)
+    pub_key = client.get_signing_key_from_jwt(data["id_token"]).key
+    aud = jwt.decode(data["id_token"], options={"verify_signature": False})["aud"]
+    decoded = jwt.decode(data["id_token"], pub_key, algorithms=["RS256"], audience=aud, options={"verify_exp": False})
+
+    try:
+        existing_user = Tenant.objects.filter(email=decoded["email"])
+        if existing_user.count() > 0:
+            existing_user.update(name=decoded["name"], email=decoded["email"], google_token=json.dumps(data))
+            user = Tenant.objects.get(email=decoded["email"])
+            # return JsonResponse({"status": "User already registered"})
+        else:
+            user = Tenant.objects.create(name=decoded["name"], email=decoded["email"], google_token=json.dumps(data))
+
+        file_id = "12X-wR0BL3rB_vBr0zzfYdOUasMsqdgUJ1Q-yqQJMS9A"
+        resp = requests.get(f'https://www.googleapis.com/drive/v3/files/{file_id}/export', params={
+            'mimeType': 'text/html'
+        }, headers={
+            'Authorization': f"Bearer {json.loads(user.google_token)['access_token']}"
+        })
+
+        print(resp.content)
+
+        return JsonResponse({"status": "User registered successfully"})
+    except Exception as e:
+        traceback.print_exc()
+        return JsonResponse({"status": "Exception in registering user", "error": traceback.format_exc()})

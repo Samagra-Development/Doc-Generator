@@ -1,12 +1,11 @@
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import include
-from . import views
 from rest_framework import permissions
 from drf_yasg2.views import get_schema_view
 from drf_yasg2 import openapi
 from django.conf.urls import url
-
+from . import views
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -26,6 +25,8 @@ urlpatterns = [
     path('grappelli/', include('grappelli.urls')),  # Admin grappelli URLS
     path('admin/', admin.site.urls),
     path('test-page/', views.current_datetime),
+    path('register-user/', views.register_user_init),
+    path('redirect/', views.register_user),
     url(r'^register/$', views.register_template, name='get_test'),
     path('generate/', views.generate_pdf2, name='get_pdf'),
     path('bulk/generate/', views.generate_bulk, name='get_status'),
