@@ -156,28 +156,53 @@ def register_template(request):
             type = request.data["type"]
             body = None
             if type == "GOOGLE_DOC":
-                doc_id = request.data['data']
-                meta = "GOOGLE_DOC"
-                try:
-                    token = uuid.uuid4()
-                    data = {"data": None, "template_id": None}
-                    drive = PDFPlugin(data, token)
-                    client = drive.get_client()
-                    file = client.CreateFile({'id': doc_id})
-                    # file.GetContentFile(f'pdf/drivefiles/{docID}.html', mimetype='text/html')
-                    html_str = file.GetContentString(mimetype='text/html')
-                    html_str = html_str.replace("\"", "'")
-                    # soup = BeautifulSoup(html_str, 'html.parser')
-                    # html_str = soup.prettify()
-                    html_str = html_str.replace("\n", " ")
-                    # raw_data = get_sample_data()
-                    # html_str = format_html(html_str, raw_data)
-                    # build_pdf(html_str, docID)
-                    body = html_str
-                except Exception as e:
-                    traceback.print_exc()
-                    error_code = 804
-                    error_text = f"Something went wrong!: {e}"
+                if 'GA-OAUTH-TOKEN' in request.headers:
+                    doc_id = request.data['data']
+                    meta = "GOOGLE_DOC"
+                    try:
+                        resp = requests.get(f'https://www.googleapis.com/drive/v3/files/{doc_id}/export', params={
+                            'mimeType': 'text/html'
+                        }, headers={
+                            'Authorization': f"Bearer {request.headers.get('GA-OAUTH-TOKEN')}"
+                        })
+
+                        if resp.status_code == 200:
+                            token = uuid.uuid4()
+                            data = {"data": None, "template_id": None}
+                            drive = PDFPlugin(data, token)
+                            html_str = str(resp.content)
+                            html_str = html_str.replace("\"", "'")
+                            html_str = html_str.replace("\n", " ")
+                            body = html_str
+                        else:
+                            raise Exception(resp.content)
+                    except Exception as e:
+                        traceback.print_exc()
+                        error_code = 804
+                        error_text = f"Something went wrong!: {e}"
+                else:
+                    doc_id = request.data['data']
+                    meta = "GOOGLE_DOC"
+                    try:
+                        token = uuid.uuid4()
+                        data = {"data": None, "template_id": None}
+                        drive = PDFPlugin(data, token)
+                        client = drive.get_client()
+                        file = client.CreateFile({'id': doc_id})
+                        # file.GetContentFile(f'pdf/drivefiles/{docID}.html', mimetype='text/html')
+                        html_str = file.GetContentString(mimetype='text/html')
+                        html_str = html_str.replace("\"", "'")
+                        # soup = BeautifulSoup(html_str, 'html.parser')
+                        # html_str = soup.prettify()
+                        html_str = html_str.replace("\n", " ")
+                        # raw_data = get_sample_data()
+                        # html_str = format_html(html_str, raw_data)
+                        # build_pdf(html_str, docID)
+                        body = html_str
+                    except Exception as e:
+                        traceback.print_exc()
+                        error_code = 804
+                        error_text = f"Something went wrong!: {e}"
             elif type == "STRING":
                 body = request.data['data']
                 meta = "STRING"
@@ -341,21 +366,14 @@ def register_user(request):
         existing_user = Tenant.objects.filter(email=decoded["email"])
         if existing_user.count() > 0:
             existing_user.update(name=decoded["name"], email=decoded["email"], google_token=json.dumps(data))
-            user = Tenant.objects.get(email=decoded["email"])
             # return JsonResponse({"status": "User already registered"})
         else:
-            user = Tenant.objects.create(name=decoded["name"], email=decoded["email"], google_token=json.dumps(data))
+            Tenant.objects.create(name=decoded["name"], email=decoded["email"], google_token=json.dumps(data))
 
-        file_id = "12X-wR0BL3rB_vBr0zzfYdOUasMsqdgUJ1Q-yqQJMS9A"
-        resp = requests.get(f'https://www.googleapis.com/drive/v3/files/{file_id}/export', params={
-            'mimeType': 'text/html'
-        }, headers={
-            'Authorization': f"Bearer {json.loads(user.google_token)['access_token']}"
-        })
-
-        print(resp.content)
-
-        return JsonResponse({"status": "User registered successfully"})
+        return JsonResponse({
+                "status": "User registered successfully",
+                "token": data
+            })
     except Exception as e:
         traceback.print_exc()
         return JsonResponse({"status": "Exception in registering user", "error": traceback.format_exc()})
