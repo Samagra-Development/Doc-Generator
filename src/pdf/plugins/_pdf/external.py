@@ -172,3 +172,114 @@ class PDFPlugin(implements(Plugin)):
         Function to publish response on external url/webhook
         """
         publish_to_url(id, url, headers=headers)
+
+
+class PDFPluginWithoutTemplate(implements(Plugin)):
+    def __init__(self, data, token):
+        try:
+            self.config = GenericConfig.objects.get(pk=data['config_id'])
+        except KeyError:
+            self.config = GenericConfig.objects.get(pk=1)
+        self.user_config = json.loads(self.config.data)
+        if 'html' in data:
+            self._html = data['html']
+        else:
+            raise Exception('html is not provided')
+        self.token = token
+        self.uploader = self.config.uploader_ref
+        self.shortener = self.config.shortener_ref
+
+    def fetch_data(self):
+        """
+        Fetches "new" data from the database/server/websocket
+        whatever and provides it in the form of dictionary, one PDF at a time
+        """
+        pass
+
+    def fetch_template(self):
+        """
+        Fetches template and returns it in the form of string
+        """
+        return None, None, self._html
+
+    def build_file(self, template):
+        """
+        Function to build PDF and return a file (fetch template and build pdf)
+        """
+        is_successful = error_code = error_msg = None
+        drive_file_loc = f'pdf/drivefiles/{self.token}.pdf'
+        try:
+            path_wkhtmltopdf = os.environ.get('WKHTMLTOPDF', None)
+            if path_wkhtmltopdf:
+                config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+                pdfkit.from_string(template, drive_file_loc, configuration=config)
+            else:
+                pdfkit.from_string(template, drive_file_loc)
+            is_successful = True
+        except Exception as e:
+            traceback.print_exc()
+            error_msg = f"Failed to generate doc: {e}"
+            error_code = 803
+        return error_code, error_msg, is_successful
+
+    def upload_file(self):
+        """
+        Function to save PDF
+        """
+        error_code = error_msg = final_data = None
+        try:
+            drive_file_loc = f'pdf/drivefiles/{self.token}.pdf'
+            if self.uploader == "minio":
+                host = self.user_config["MINIO_HOST"]
+                access_key = self.user_config["MINIO_ACCESS_KEY"]
+                secret_key = self.user_config["MINIO_SECRET_KEY"]
+                bucket_name = self.user_config["MINIO_BUCKET_NAME"]
+                uploader = MinioUploader(host, access_key, secret_key, bucket_name)
+                error_code, error_msg, final_data = uploader.put(f'{self.token}.pdf', f'{self.token}.pdf', None)
+                if error_code is None:
+                    if os.path.exists(drive_file_loc):
+                        os.remove(drive_file_loc)
+                else:
+                    raise Exception("Failed to build the pdf")
+                return error_code, error_msg, final_data
+            else:
+                raise Exception("Uploader plugin not supported")
+        except Exception as e:
+            traceback.print_exc()
+            error_code = 805
+            error_msg = f"Something went wrong: {e}"
+        finally:
+            return error_code, error_msg, final_data
+
+    def retrieve_file(self, object_name):
+        """
+        Function to get the previously saved PDF from the key
+        """
+        pass
+
+    def shorten_url(self, url):
+        """
+        Function to generate short url for the uploaded doc
+        """
+        error_code = error_msg = final_data = None
+        try:
+            if self.shortener == "yaus":
+                host = self.user_config["SHORTENER_URL"]
+                shortener = YausShortner(host)
+                error_code, error_msg, final_data = shortener.apply(url, self.token)
+                if error_code is None:
+                    final_data = final_data['url']
+            else:
+                raise Exception("Shortener plugin not available")
+        except Exception as e:
+            traceback.print_exc()
+            error_code = 806
+            error_msg = f"Something went wrong: {e}"
+        finally:
+            return error_code, error_msg, final_data
+
+    def publish(self, id, url, headers):
+        """
+        Function to publish response on external url/webhook
+        """
+        publish_to_url(id, url, headers=headers)

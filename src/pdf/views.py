@@ -9,6 +9,7 @@ from .base.builder import Builder
 from .plugins._doc.external import DOCXPlugin
 from .plugins._html.external import HTMLPlugin
 from .plugins._pdf.external import PDFPlugin
+from .plugins._pdf.external import PDFPluginWithoutTemplate
 from .plugins._pdf_make.external import PDFMakePlugin
 from .tasks.celery_tasks import *
 import logging
@@ -108,6 +109,32 @@ def generate_pdf2(request):
                 # error_text, error_code, final_data = drive.shorten_url()
             elif plugin == 'pdf-make':
                 builder = Builder(PDFMakePlugin(data, token), data, token)
+                err_code, err_msg, data = builder._process()
+                if err_code is not None:
+                    raise Exception("Failed to process Builder")
+                else:
+                    final_data = data
+                # error_text, error_code, final_data = drive.shorten_url()
+        except Exception as e:
+            traceback.print_exc()
+            error_code = 804
+            error_text = f"Something went wrong: {e}"
+        finally:
+            return return_response(final_data, error_code, error_text)
+
+@csrf_exempt
+@api_view(['POST'])
+def generate_pdf2_without_template(request):
+    final_data = []
+    error_text = error_code = None
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        token = uuid.uuid4()
+        plugin = request.GET['plugin']
+        Doc.objects.create(id=token, config_id=data['config_id'], plugin=plugin)
+        try:
+            if plugin == 'pdf':
+                builder = Builder(PDFPluginWithoutTemplate(data, token), data, token)
                 err_code, err_msg, data = builder._process()
                 if err_code is not None:
                     raise Exception("Failed to process Builder")
