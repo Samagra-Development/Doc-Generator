@@ -14,7 +14,8 @@ RUN apt-get update -qy && apt-get install -y wget
 RUN apt-get update -qy
 RUN apt-get -qq -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -qq -y install \
-    python3-dev python3-pip postgresql postgresql-contrib libffi-dev libpq-dev gcc musl-dev wkhtmltopdf sudo
+    python3-dev python3-pip postgresql postgresql-contrib libffi-dev libpq-dev gcc musl-dev wkhtmltopdf sudo \
+    fonts-indic
 
 # install wkhtmltopdf
 #RUN apt-get install wkhtmltopdf
