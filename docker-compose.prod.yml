@@ -2,9 +2,7 @@ version: '3'
 
 services:
   web:
-    build:
-      context: ./src
-      dockerfile: Dockerfile
+    image: samagragovernance/doc-generator:latest
     command: gunicorn --workers=8 --threads=10 pdf.wsgi:application --bind 0.0.0.0:8000
 #    command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
@@ -68,8 +66,7 @@ services:
      - "doc_rabbitmq:/bitnami"
 
   worker:
-    build:
-      context: ./src
+    image: samagragovernance/doc-generator:latest
     restart: always
     env_file:
       - .env
