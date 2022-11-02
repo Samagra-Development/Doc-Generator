@@ -160,3 +160,6 @@ drivefiles/
 
 # health check stats
 health_check*
+
+# minio
+minio

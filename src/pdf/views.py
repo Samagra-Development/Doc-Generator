@@ -4,6 +4,7 @@ from json import JSONDecodeError
 import requests
 from django.views.decorators.csrf import csrf_exempt
 from requests import HTTPError
+from django.http import HttpResponseRedirect
 
 from .base.builder import Builder
 from .plugins._doc.external import DOCXPlugin
@@ -14,6 +15,12 @@ from .tasks.celery_tasks import *
 import logging
 import traceback
 import os
+import requests
+from django.conf import settings
+
+import jwt
+# from jwt import PyJWKClient
+
 import uuid
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
@@ -24,6 +31,8 @@ from bs4 import BeautifulSoup
 from .utils import return_response, format_html, get_sample_data, build_pdf, return_tokens
 from django.utils.datastructures import MultiValueDictKeyError
 from dotenv import load_dotenv
+
+from .models import *
 
 load_dotenv()
 
@@ -143,32 +152,76 @@ def register_template(request):
         return return_response(final_data, error_code, error_text)
     elif request.method == "POST":
         try:
+            access_token = None
             transformers = None
             type = request.data["type"]
             body = None
             if type == "GOOGLE_DOC":
-                doc_id = request.data['data']
-                meta = "GOOGLE_DOC"
-                try:
-                    token = uuid.uuid4()
-                    data = {"data": None, "template_id": None}
-                    drive = PDFPlugin(data, token)
-                    client = drive.get_client()
-                    file = client.CreateFile({'id': doc_id})
-                    # file.GetContentFile(f'pdf/drivefiles/{docID}.html', mimetype='text/html')
-                    html_str = file.GetContentString(mimetype='text/html')
-                    html_str = html_str.replace("\"", "'")
-                    # soup = BeautifulSoup(html_str, 'html.parser')
-                    # html_str = soup.prettify()
-                    html_str = html_str.replace("\n", " ")
-                    # raw_data = get_sample_data()
-                    # html_str = format_html(html_str, raw_data)
-                    # build_pdf(html_str, docID)
-                    body = html_str
-                except Exception as e:
-                    traceback.print_exc()
-                    error_code = 804
-                    error_text = f"Something went wrong!: {e}"
+                if 'GA-OAUTH-TOKEN' in request.headers:
+                    access_token = request.headers.get('GA-OAUTH-TOKEN')
+                    if not 'GA-OAUTH-REFRESHTOKEN' in request.headers:
+                        raise Exception('Refresh token missing')
+                    
+                    doc_id = request.data['data']
+                    meta = "GOOGLE_DOC"
+                    try:
+                        resp = requests.get(f'https://www.googleapis.com/drive/v3/files/{doc_id}/export', params={
+                            'mimeType': 'text/html'
+                        }, headers={
+                            'Authorization': f"Bearer {access_token}"
+                        })
+
+                        if resp.status_code == 200:
+                            token = uuid.uuid4()
+                            data = {"data": None, "template_id": None}
+                            drive = PDFPlugin(data, token)
+                            html_str = str(resp.text)
+                            html_str = html_str.replace("\"", "'")
+                            html_str = html_str.replace("\n", " ")
+                            body = html_str
+                        elif resp.status_code == 401:
+                            status, data = refresh_gc_token(request.headers.get('GA-OAUTH-REFRESHTOKEN'))
+                            if status == 200:
+                                # TODO: save updated token in database
+                                access_token = data['access_token']
+                                # repeat request
+                                r = requests.post(request.build_absolute_uri(), headers={
+                                    'GA-OAUTH-TOKEN': access_token,
+                                    'GA-OAUTH-REFRESHTOKEN': request.headers.get('GA-OAUTH-REFRESHTOKEN'),
+                                }, data=request.data)
+                                return return_response(
+                                    r.json()['data'] if 'data' in r.json() else None, 
+                                    r.json()['error'][0]['code'] if 'error' in r.json() else None, 
+                                    r.json()['error'][0]['message'] if 'error' in r.json() else None)
+                        else:
+                            raise Exception(resp.content)
+                    except Exception as e:
+                        traceback.print_exc()
+                        error_code = 804
+                        error_text = f"Something went wrong!: {e}"
+                else:
+                    doc_id = request.data['data']
+                    meta = "GOOGLE_DOC"
+                    try:
+                        token = uuid.uuid4()
+                        data = {"data": None, "template_id": None}
+                        drive = PDFPlugin(data, token)
+                        client = drive.get_client()
+                        file = client.CreateFile({'id': doc_id})
+                        # file.GetContentFile(f'pdf/drivefiles/{docID}.html', mimetype='text/html')
+                        html_str = file.GetContentString(mimetype='text/html')
+                        html_str = html_str.replace("\"", "'")
+                        # soup = BeautifulSoup(html_str, 'html.parser')
+                        # html_str = soup.prettify()
+                        html_str = html_str.replace("\n", " ")
+                        # raw_data = get_sample_data()
+                        # html_str = format_html(html_str, raw_data)
+                        # build_pdf(html_str, docID)
+                        body = html_str
+                    except Exception as e:
+                        traceback.print_exc()
+                        error_code = 804
+                        error_text = f"Something went wrong!: {e}"
             elif type == "STRING":
                 body = request.data['data']
                 meta = "STRING"
@@ -183,7 +236,12 @@ def register_template(request):
                                                                        "type": "JS_TEMPLATE_LITERALS",
                                                                        "user": os.getenv('DOC_GENERATOR_ID')})
             req.raise_for_status()
-            final_data = req.json()
+            final_data = {
+                **req.json(),
+                **{
+                    'access_token': access_token
+                }
+            }
         except Exception as e:
             traceback.print_exc()
             error_code = 804
@@ -297,3 +355,62 @@ data = {
     "47": "Yes",
     "48": "09-02-2022",
 }
+
+
+@csrf_exempt
+@api_view(['GET'])
+def register_user_init(request):
+    redirect_url=os.getenv('GC_REDIRECT_URL')
+    scope = f"https://www.googleapis.com/auth/{settings.GC_SCOPES}"
+    url = f"https://accounts.google.com/o/oauth2/auth?client_id={settings.GC_CLIENT_ID}&redirect_uri={redirect_url}&scope={scope}&access_type=offline&response_type=code"
+    return HttpResponseRedirect(url)
+
+
+@csrf_exempt
+@api_view(['GET'])
+def register_user(request):
+    redirect_url=os.getenv('GC_REDIRECT_URL')
+    code = request.GET['code']
+    url = "https://oauth2.googleapis.com/token"
+    payload=f'code={code}&client_id={settings.GC_CLIENT_ID}&client_secret={settings.GC_CLIENT_SECRET}&redirect_uri={redirect_url}&grant_type=authorization_code'
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    data = json.loads(response.text)
+    decoded = decode_gc_jwttoken(data)
+
+    try:
+        existing_user = Tenant.objects.filter(email=decoded["email"])
+        if existing_user.count() > 0:
+            existing_user.update(name=decoded["name"], email=decoded["email"], google_token=json.dumps(data))
+            # return JsonResponse({"status": "User already registered"})
+        else:
+            Tenant.objects.create(name=decoded["name"], email=decoded["email"], google_token=json.dumps(data))
+
+        return JsonResponse({
+                "status": "User registered successfully",
+                "token": data
+            })
+    except Exception as e:
+        traceback.print_exc()
+        return JsonResponse({"status": "Exception in registering user", "error": traceback.format_exc()})
+
+
+def decode_gc_jwttoken(jwttoken):
+    url = "https://www.googleapis.com/oauth2/v3/certs"
+    client = jwt.PyJWKClient(url)
+    pub_key = client.get_signing_key_from_jwt(jwttoken["id_token"]).key
+    aud = jwt.decode(jwttoken["id_token"], options={"verify_signature": False})["aud"]
+    return jwt.decode(jwttoken["id_token"], pub_key, algorithms=["RS256"], audience=aud, options={"verify_exp": False})
+
+
+def refresh_gc_token(refresh_token):
+    url = "https://oauth2.googleapis.com/token"
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    payload=f'client_id={settings.GC_CLIENT_ID}&client_secret={settings.GC_CLIENT_SECRET}&refresh_token={refresh_token}&grant_type=refresh_token'
+    response = requests.request("POST", url, headers=headers, data=payload)
+    data = json.loads(response.text)
+    return response.status_code, data

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Audit, Doc, GenericConfig
+from .models import Audit, Doc, GenericConfig, Tenant
 
 
 class AuditAdmin(admin.ModelAdmin):
@@ -15,7 +15,12 @@ class GenericConfigAdmin(admin.ModelAdmin):
     fields = ['name', 'data', 'uploader_ref', 'shortener_ref', 'retries', 'max_concurrency']
 
 
+class TenantAdmin(admin.ModelAdmin):
+    fields = ['name', 'email', 'google_token']
+
+
 admin.site.register(Doc, DocAdmin)
+admin.site.register(Tenant, TenantAdmin)
 admin.site.register(Audit, AuditAdmin)
 admin.site.register(GenericConfig, GenericConfigAdmin)
 

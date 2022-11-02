@@ -12,6 +12,7 @@ from ...base.interfaces.plugin import Plugin
 from ...models import GenericConfig
 from ...shorteners.yaus import YausShortner
 from ...uploaders.minio import MinioUploader
+from ...uploaders.generic_minio import GenericMinioUploader
 from ...utils import publish_to_url, build_pdf
 import requests
 from dotenv import load_dotenv
@@ -98,7 +99,13 @@ class PDFPlugin(implements(Plugin)):
             # path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
             # config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
             # pdfkit.from_string(template, drive_file_loc, configuration=config)
-            pdfkit.from_string(template, drive_file_loc)
+            # pdfkit.from_string(template, drive_file_loc)
+            path_wkhtmltopdf = os.environ.get('WKHTMLTOPDF', None)
+            if path_wkhtmltopdf:
+                config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+                pdfkit.from_string(template, drive_file_loc, configuration=config)
+            else:
+                pdfkit.from_string(template, drive_file_loc)
             is_successful = True
         except Exception as e:
             traceback.print_exc()
@@ -119,6 +126,19 @@ class PDFPlugin(implements(Plugin)):
                 secret_key = self.user_config["MINIO_SECRET_KEY"]
                 bucket_name = self.user_config["MINIO_BUCKET_NAME"]
                 uploader = MinioUploader(host, access_key, secret_key, bucket_name)
+                error_code, error_msg, final_data = uploader.put(f'{self.token}.pdf', f'{self.token}.pdf', None)
+                if error_code is None:
+                    if os.path.exists(drive_file_loc):
+                        os.remove(drive_file_loc)
+                else:
+                    raise Exception("Failed to build the pdf")
+                return error_code, error_msg, final_data
+            elif self.uploader == "generic_minio":
+                host = self.user_config["MINIO_HOST"]
+                access_key = self.user_config["MINIO_ACCESS_KEY"]
+                secret_key = self.user_config["MINIO_SECRET_KEY"]
+                bucket_name = self.user_config["MINIO_BUCKET_NAME"]
+                uploader = GenericMinioUploader(host, access_key, secret_key, bucket_name)
                 error_code, error_msg, final_data = uploader.put(f'{self.token}.pdf', f'{self.token}.pdf', None)
                 if error_code is None:
                     if os.path.exists(drive_file_loc):

@@ -29,6 +29,10 @@ load_dotenv()
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
 
+GC_CLIENT_ID = os.getenv('GC_CLIENT_ID')
+GC_CLIENT_SECRET = os.getenv('GC_CLIENT_SECRET')
+GC_SCOPES = os.getenv('GC_SCOPES')
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get("DEBUG", default=1))
 

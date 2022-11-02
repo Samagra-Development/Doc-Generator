@@ -18,6 +18,7 @@ class BaseModel(models.Model):
 class GenericConfig(BaseModel):
     UPLOADERS = [
         ('minio', 'Minio'),
+        ('generic_minio', 'Generic Minio'),
     ]
     SHORTENERS = [
         ('yaus', 'YAUS'),
@@ -143,3 +144,9 @@ class Audit(BaseModel):
         verbose_name = "Audit"
         verbose_name_plural = "Audits"
         app_label = 'pdf'
+
+
+class Tenant(BaseModel):
+    name = models.CharField(max_length=50)
+    email = models.CharField(max_length=100)
+    google_token = EncryptedTextField(null=True, blank=True)
