@@ -78,9 +78,11 @@ class PDFPlugin(implements(Plugin)):
             headers = {
                 'Content-Type': 'application/json'
             }
-            response = requests.post(f"{os.getenv('TEMPLATOR_URL')}/process", data=data, headers=headers)
+            response = requests.post(
+                f"{os.getenv('TEMPLATOR_URL')}/process", data=data, headers=headers)
             if response.status_code == 201:
-                template_string = response.json()['processed'] if "processed" in response.json() else None
+                template_string = response.json(
+                )['processed'] if "processed" in response.json() else None
             else:
                 error = response.text
         except Exception as e:
@@ -95,6 +97,16 @@ class PDFPlugin(implements(Plugin)):
         """
         is_successful = error_code = error_msg = None
         drive_file_loc = f'pdf/drivefiles/{self.token}.pdf'
+        options = {
+            'page-size': 'A4',
+            'orientation': 'Portrait',
+            'margin-top': '0',
+            'margin-bottom': '0',
+            'margin-right': '0',
+            'margin-left': '0',
+            'encoding': 'UTF-8',
+            'disable-smart-shrinking': '',
+        }
         try:
             # path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
             # config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
@@ -103,9 +115,10 @@ class PDFPlugin(implements(Plugin)):
             path_wkhtmltopdf = os.environ.get('WKHTMLTOPDF', None)
             if path_wkhtmltopdf:
                 config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
-                pdfkit.from_string(template, drive_file_loc, configuration=config)
+                pdfkit.from_string(template, drive_file_loc,
+                                   configuration=config, options=options)
             else:
-                pdfkit.from_string(template, drive_file_loc)
+                pdfkit.from_string(template, drive_file_loc, options=options)
             is_successful = True
         except Exception as e:
             traceback.print_exc()
@@ -125,8 +138,10 @@ class PDFPlugin(implements(Plugin)):
                 access_key = self.user_config["MINIO_ACCESS_KEY"]
                 secret_key = self.user_config["MINIO_SECRET_KEY"]
                 bucket_name = self.user_config["MINIO_BUCKET_NAME"]
-                uploader = MinioUploader(host, access_key, secret_key, bucket_name)
-                error_code, error_msg, final_data = uploader.put(f'{self.token}.pdf', f'{self.token}.pdf', None)
+                uploader = MinioUploader(
+                    host, access_key, secret_key, bucket_name)
+                error_code, error_msg, final_data = uploader.put(
+                    f'{self.token}.pdf', f'{self.token}.pdf', None)
                 if error_code is None:
                     if os.path.exists(drive_file_loc):
                         os.remove(drive_file_loc)
@@ -138,8 +153,10 @@ class PDFPlugin(implements(Plugin)):
                 access_key = self.user_config["MINIO_ACCESS_KEY"]
                 secret_key = self.user_config["MINIO_SECRET_KEY"]
                 bucket_name = self.user_config["MINIO_BUCKET_NAME"]
-                uploader = GenericMinioUploader(host, access_key, secret_key, bucket_name)
-                error_code, error_msg, final_data = uploader.put(f'{self.token}.pdf', f'{self.token}.pdf', None)
+                uploader = GenericMinioUploader(
+                    host, access_key, secret_key, bucket_name)
+                error_code, error_msg, final_data = uploader.put(
+                    f'{self.token}.pdf', f'{self.token}.pdf', None)
                 if error_code is None:
                     if os.path.exists(drive_file_loc):
                         os.remove(drive_file_loc)
@@ -169,7 +186,8 @@ class PDFPlugin(implements(Plugin)):
             if self.shortener == "yaus":
                 host = self.user_config["SHORTENER_URL"]
                 shortener = YausShortner(host)
-                error_code, error_msg, final_data = shortener.apply(url, self.token)
+                error_code, error_msg, final_data = shortener.apply(
+                    url, self.token)
                 if error_code is None:
                     final_data = final_data['url']
             else:
