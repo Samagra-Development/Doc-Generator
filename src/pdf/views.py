@@ -10,6 +10,7 @@ from .base.builder import Builder
 from .plugins._doc.external import DOCXPlugin
 from .plugins._html.external import HTMLPlugin
 from .plugins._pdf.external import PDFPlugin
+from .plugins._template.external import TemplatePlugin
 from .plugins._pdf_make.external import PDFMakePlugin
 from .tasks.celery_tasks import *
 import logging
@@ -304,6 +305,59 @@ def generate_bulk(request, token=''):
             error_text = "Method Not Allowed"
         return return_tokens(final_data, error_code, error_text)
 
+
+@csrf_exempt
+@api_view(['POST'])
+def generate_by_template(request):
+    final_data = []
+    error_text = error_code = None
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        token = data['token']
+        plugin = request.GET['plugin']
+        Doc.objects.create(id=token, config_id=data['config_id'], plugin=plugin)
+        try:
+            if plugin == 'pdf':
+                builder = Builder(TemplatePlugin(data, token), data, token)
+                err_code, err_msg, data = builder._process()
+                if err_code is not None:
+                    raise Exception("Failed to process Builder")
+                else:
+                    final_data = data
+                # error_text, error_code, final_data = drive.shorten_url()
+            ## TODO: Impl other plugins
+            # elif plugin == 'html':
+            #     builder = Builder(HTMLPlugin(data, token), data, token)
+            #     err_code, err_msg, data = builder._process()
+            #     if err_code is not None:
+            #         raise Exception("Failed to process Builder")
+            #     else:
+            #         final_data = data
+            #     # error_text, error_code, final_data = drive.shorten_url()
+            # elif plugin == 'docx':
+            #     builder = Builder(DOCXPlugin(data, token), data, token)
+            #     err_code, err_msg, data = builder._process()
+            #     if err_code is not None:
+            #         raise Exception("Failed to process Builder")
+            #     else:
+            #         final_data = data
+            #     # error_text, error_code, final_data = drive.shorten_url()
+            # elif plugin == 'pdf-make':
+            #     builder = Builder(PDFMakePlugin(data, token), data, token)
+            #     err_code, err_msg, data = builder._process()
+            #     if err_code is not None:
+            #         raise Exception("Failed to process Builder")
+            #     else:
+            #         final_data = data
+                # error_text, error_code, final_data = drive.shorten_url()
+            else:
+                final_data = "Plugin Not Supported"
+        except Exception as e:
+            traceback.print_exc()
+            error_code = 804
+            error_text = f"Something went wrong: {e}"
+        finally:
+            return return_response(final_data, error_code, error_text)
 
 
 data = {
