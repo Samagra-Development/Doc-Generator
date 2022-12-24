@@ -99,7 +99,7 @@ docker-compose up -d
 
 Start the server and go to ```http://localhost:8000/swagger/```
 
-> Sample Postman Collection [here](https://www.getpostman.com/collections/9203f723b0a754454fd5)
+> Sample Postman Collection [here](https://www.postman.com/collections/906eb4679af014e264fc)
 
 ### 6. Contribution :hammer:
 
