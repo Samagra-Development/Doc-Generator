@@ -1,0 +1,75 @@
+version: '3'
+
+services:
+  db:
+    container_name: db
+    image: postgres:12
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+    ports:
+      - 5432:5432
+    volumes:
+      - ./scripts/1-init.sql:/docker-entrypoint-initdb.d/1-init.sql
+      - pgdata:/var/lib/postgresql/data
+
+  gql:
+    image: hasura/graphql-engine:v2.16.1
+    ports:
+      - 15003:8080
+    env_file:
+      - .env
+    environment:
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      HASURA_GRAPHQL_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
+      HASURA_GRAPHQL_DEV_MODE: "true"
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_ADMIN_SECRET}
+    depends_on:
+      - db
+    restart: always
+  
+  broker:
+    container_name: broker
+    image: "arm64v8/rabbitmq"
+    environment:
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+    ports:
+      - 4369:4369
+      - 5672:5672
+      - 25672:25672
+      - 15672:15672
+    volumes:
+      - broker:/bitnami
+  
+  # redis:
+  #   container_name: redis
+  #   restart: always
+  #   image: redis:latest
+  #   ports:
+  #     - "6381:6379"
+  #   command: ["redis-server", "--appendonly", "yes"]
+  #   hostname: redis
+  #   volumes:
+  #     - ./redis-data:/data
+  #     - ./redis.conf:/usr/local/etc/redis/redis.conf
+
+  # redis-ui:
+  #   container_name: redis-ui
+  #   image: redislabs/redisinsight:latest
+  #   restart: always
+  #   volumes:
+  #     - redisinsight:/db 
+  #   ports:
+  #     - 8088:8001
+
+volumes:
+  pgdata:
+  broker:
+  # redisinsight:
+  #   driver: local     
