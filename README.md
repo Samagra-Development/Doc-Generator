@@ -12,9 +12,12 @@ An easy tool for generating single and bulk documents in several supported forma
 
 ## Dev Setup
 ```bash
+# create .env file
+$ cp .env.copy .env
 
 # start all microservices and application(watch mode)
 $ bash run.sh start
+## swagger docs available at /swagger
 
 # stop all microservices
 $ bash run.sh stop
