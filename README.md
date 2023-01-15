@@ -26,6 +26,20 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Local Dev Setup (Complete)
+```bash
+
+# start all microservices and application(watch mode)
+$ bash run.sh start
+
+# stop all microservices
+$ bash run.sh stop
+
+# help
+$ bash run.sh --help
+```
+ > To set up Manually
+
 ## Installation
 
 ```bash
@@ -35,6 +49,9 @@ $ yarn install
 ## Running the app
 
 ```bash
+# docker
+$ docker-compose up -d
+
 # development
 $ yarn run start
 

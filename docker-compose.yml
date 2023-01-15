@@ -35,7 +35,8 @@ services:
   
   broker:
     container_name: broker
-    image: "arm64v8/rabbitmq"
+    image: "docker.io/bitnami/rabbitmq:latest"
+    # image: "arm64v8/rabbitmq"
     environment:
       - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
       - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
