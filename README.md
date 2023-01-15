@@ -8,7 +8,7 @@
 
 ## About :open_book:
 
-An easily integrable and resusable tool built on OSS, can be easily leveraged to generate single and bulk documents in the any available formats interoperably and at same time it can upload the docs to your CDN and generate a short url for the content, you can integerate any url shortener service like bit.ly, tinyurl, etc (check our own url shortener service [here](https://github.com/Samagra-Development/yaus)). This service is developed on a plugin based model to ensure API federation across service and allow easy development of new plugins with less chances of error.
+An easy tool for generating single and bulk documents in several supported formats from templates.
 
 ## Dev Setup
 ```bash
