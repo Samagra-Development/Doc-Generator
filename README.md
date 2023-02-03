@@ -139,7 +139,7 @@ Sample GeneralConfig entry:
 
 >> Note: This is a sample json config which can be fetched at runtime by the service. It can store all kinds of variables in a key value pair.
 
-7. Now you can import the postman API collections provided [above](https://www.getpostman.com/collections/9203f723b0a754454fd5) and make sample requests to check APIs.
+7. Now you can import the postman API collections provided [above](https://elements.getpostman.com/redirect?entityId=22847306-f2f7f442-ec3b-4086-b9ec-8cc819a2ee21&entityType=collection) and make sample requests to check APIs.
 
 8. You can find sample interfaces for creating new Plugin creation [here](https://github.com/Samagra-Development/Doc-Generator/tree/v2/src/pdf/base/interfaces).
 
