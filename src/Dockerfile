@@ -15,7 +15,7 @@ RUN apt-get update -qy
 RUN apt-get -qq -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -qq -y install \
     python3-dev python3-pip postgresql postgresql-contrib libffi-dev libpq-dev gcc musl-dev sudo \
-    fonts-indic
+    fonts-indic -o Dpkg::Progress-Fancy="1"
 
 # install wkhtmltopdf
 RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.focal_amd64.deb
