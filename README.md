@@ -31,6 +31,11 @@ An easily integrable and resusable tool built on OSS, can be easily leveraged to
 
 - [ ] Interactive UI for template validation and doc preview before generation
 
+
+## C4GT 2023
+- Please refer to [Roadmap-2023](https://github.com/Samagra-Development/Doc-Generator/tree/Roadmap-2023) branch which will be used throughout the period.
+- [v2](https://github.com/Samagra-Development/Doc-Generator/tree/v2) branch contains the original source code written in python, you can check it for reference.
+
 ## Requirements :scroll:
 
 1. Your machine should have [Python](https://www.python.org/downloads/) and ```pip``` installed.
