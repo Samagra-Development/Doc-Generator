@@ -17,7 +17,6 @@ import logging
 import traceback
 import os
 import requests
-from django.conf import settings
 
 import jwt
 # from jwt import PyJWKClient
@@ -48,7 +47,7 @@ def current_datetime(request):
     html = "<html><body>It is now %s.</body></html>" % now
     return HttpResponse(html)
 
-  
+
 @csrf_exempt
 @api_view(['POST'])
 def generate_pdf(request):
@@ -90,7 +89,8 @@ def generate_pdf2(request):
         data = json.loads(request.body)
         token = uuid.uuid4()
         plugin = request.GET['plugin']
-        Doc.objects.create(id=token, config_id=data['config_id'], plugin=plugin)
+        Doc.objects.create(
+            id=token, config_id=data['config_id'], plugin=plugin)
         try:
             if plugin == 'pdf':
                 builder = Builder(PDFPlugin(data, token), data, token)
@@ -139,7 +139,8 @@ def register_template(request):
     error_text = error_code = None
     if request.method == "GET":
         try:
-            req = requests.get(f"{os.getenv('TEMPLATOR_URL')}/{request.GET['id']}")
+            req = requests.get(
+                f"{os.getenv('TEMPLATOR_URL')}/{request.GET['id']}")
             req.raise_for_status()
             print(req.json())
             try:
@@ -162,7 +163,7 @@ def register_template(request):
                     access_token = request.headers.get('GA-OAUTH-TOKEN')
                     if not 'GA-OAUTH-REFRESHTOKEN' in request.headers:
                         raise Exception('Refresh token missing')
-                    
+
                     doc_id = request.data['data']
                     meta = "GOOGLE_DOC"
                     try:
@@ -181,9 +182,9 @@ def register_template(request):
                             html_str = html_str.replace("\n", " ")
                             body = html_str
                         elif resp.status_code == 401:
-                            status, data = refresh_gc_token(request.headers.get('GA-OAUTH-REFRESHTOKEN'))
+                            status, data = refresh_gc_token(
+                                request.headers.get('GA-OAUTH-REFRESHTOKEN'))
                             if status == 200:
-                                # TODO: save updated token in database
                                 access_token = data['access_token']
                                 # repeat request
                                 r = requests.post(request.build_absolute_uri(), headers={
@@ -191,8 +192,10 @@ def register_template(request):
                                     'GA-OAUTH-REFRESHTOKEN': request.headers.get('GA-OAUTH-REFRESHTOKEN'),
                                 }, data=request.data)
                                 return return_response(
-                                    r.json()['data'] if 'data' in r.json() else None, 
-                                    r.json()['error'][0]['code'] if 'error' in r.json() else None, 
+                                    r.json()[
+                                        'data'] if 'data' in r.json() else None,
+                                    r.json()[
+                                        'error'][0]['code'] if 'error' in r.json() else None,
                                     r.json()['error'][0]['message'] if 'error' in r.json() else None)
                         else:
                             raise Exception(resp.content)
@@ -232,10 +235,10 @@ def register_template(request):
             if 'transformers' in request.data:
                 data['transformers'] = request.data['transformers']
             req = requests.post(os.getenv('TEMPLATOR_URL'), data={"transformers": transformers,
-                                                                       "meta": meta,
-                                                                       "body": body,
-                                                                       "type": "JS_TEMPLATE_LITERALS",
-                                                                       "user": os.getenv('DOC_GENERATOR_ID')})
+                                                                  "meta": meta,
+                                                                  "body": body,
+                                                                  "type": "JS_TEMPLATE_LITERALS",
+                                                                  "user": os.getenv('DOC_GENERATOR_ID')})
             req.raise_for_status()
             final_data = {
                 **req.json(),
@@ -315,7 +318,8 @@ def generate_by_template(request):
         data = json.loads(request.body)
         token = data['token']
         plugin = request.GET['plugin']
-        Doc.objects.create(id=token, config_id=data['config_id'], plugin=plugin)
+        Doc.objects.create(
+            id=token, config_id=data['config_id'], plugin=plugin)
         try:
             if plugin == 'pdf':
                 builder = Builder(TemplatePlugin(data, token), data, token)
@@ -325,7 +329,7 @@ def generate_by_template(request):
                 else:
                     final_data = data
                 # error_text, error_code, final_data = drive.shorten_url()
-            ## TODO: Impl other plugins
+            # TODO: Impl other plugins
             # elif plugin == 'html':
             #     builder = Builder(HTMLPlugin(data, token), data, token)
             #     err_code, err_msg, data = builder._process()
@@ -414,57 +418,95 @@ data = {
 @csrf_exempt
 @api_view(['GET'])
 def register_user_init(request):
-    redirect_url=os.getenv('GC_REDIRECT_URL')
-    scope = f"https://www.googleapis.com/auth/{settings.GC_SCOPES}"
-    url = f"https://accounts.google.com/o/oauth2/auth?client_id={settings.GC_CLIENT_ID}&redirect_uri={redirect_url}&scope={scope}&access_type=offline&response_type=code"
+    url = f"https://accounts.google.com/o/oauth2/auth"
+    url += f"?client_id={os.getenv('GC_CLIENT_ID')}"
+    url += f"&redirect_uri={os.getenv('GC_REDIRECT_URL')}"
+    url += f"&scope={os.getenv('GC_SCOPES')}"
+    url += f"&access_type=offline"
+    url += f"&response_type=code"
     return HttpResponseRedirect(url)
 
 
 @csrf_exempt
 @api_view(['GET'])
 def register_user(request):
-    redirect_url=os.getenv('GC_REDIRECT_URL')
-    code = request.GET['code']
-    url = "https://oauth2.googleapis.com/token"
-    payload=f'code={code}&client_id={settings.GC_CLIENT_ID}&client_secret={settings.GC_CLIENT_SECRET}&redirect_uri={redirect_url}&grant_type=authorization_code'
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded'
-    }
-    response = requests.request("POST", url, headers=headers, data=payload)
-    data = json.loads(response.text)
-    decoded = decode_gc_jwttoken(data)
+    final_data = []
+    error_text = error_code = None
 
     try:
-        existing_user = Tenant.objects.filter(email=decoded["email"])
-        if existing_user.count() > 0:
-            existing_user.update(name=decoded["name"], email=decoded["email"], google_token=json.dumps(data))
-            # return JsonResponse({"status": "User already registered"})
-        else:
-            Tenant.objects.create(name=decoded["name"], email=decoded["email"], google_token=json.dumps(data))
+        if 'error' in request.GET:
+            raise Exception(request.GET['error'])
+        elif not 'code' in request.GET:
+            raise Exception('Authorization code is missing')
 
-        return JsonResponse({
-                "status": "User registered successfully",
-                "token": data
-            })
+        url = "https://oauth2.googleapis.com/token"
+        payload = {
+            'code': request.GET['code'],
+            'client_id': os.getenv('GC_CLIENT_ID'),
+            'client_secret': os.getenv('GC_CLIENT_SECRET'),
+            'redirect_uri': os.getenv('GC_REDIRECT_URL'),
+            'grant_type': 'authorization_code'
+        }
+        response = requests.post(url, json=payload)
+        data = response.json()
+
+        if response.status_code != 200:
+            raise Exception(response.text)
+
+        decoded = decode_id_token(data['id_token'])
+
+        user = Tenant.objects.filter(email=decoded["email"]).first()
+        if user:
+            google_token = {**json.loads(user.google_token), **data}
+            user.name = decoded["name"]
+            user.email = decoded["email"]
+            user.google_token = json.dumps(google_token)
+            user.save()
+        else:
+            user = Tenant.objects.create(
+                name=decoded["name"], email=decoded["email"], google_token=json.dumps(data))
+
+        final_data = json.loads(user.google_token)
     except Exception as e:
         traceback.print_exc()
-        return JsonResponse({"status": "Exception in registering user", "error": traceback.format_exc()})
+        error_code = 804
+        error_text = f"Something went wrong!: {e}"
+    finally:
+        return return_response(final_data, error_code, error_text)
 
 
-def decode_gc_jwttoken(jwttoken):
+def decode_id_token(jwttoken):
     url = "https://www.googleapis.com/oauth2/v3/certs"
     client = jwt.PyJWKClient(url)
-    pub_key = client.get_signing_key_from_jwt(jwttoken["id_token"]).key
-    aud = jwt.decode(jwttoken["id_token"], options={"verify_signature": False})["aud"]
-    return jwt.decode(jwttoken["id_token"], pub_key, algorithms=["RS256"], audience=aud, options={"verify_exp": False})
+    pub_key = client.get_signing_key_from_jwt(jwttoken).key
+    aud = jwt.decode(jwttoken, options={
+                     "verify_signature": False})["aud"]
+    return jwt.decode(jwttoken, pub_key, algorithms=["RS256"], audience=aud, options={"verify_exp": False})
 
 
 def refresh_gc_token(refresh_token):
     url = "https://oauth2.googleapis.com/token"
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded'
+    payload = {
+        'client_id': os.getenv('GC_CLIENT_ID'),
+        'client_secret': os.getenv('GC_CLIENT_SECRET'),
+        'grant_type': 'refresh_token',
+        'refresh_token': refresh_token
     }
-    payload=f'client_id={settings.GC_CLIENT_ID}&client_secret={settings.GC_CLIENT_SECRET}&refresh_token={refresh_token}&grant_type=refresh_token'
-    response = requests.request("POST", url, headers=headers, data=payload)
-    data = json.loads(response.text)
+    response = requests.post(url, json=payload)
+    data = response.json()
+
+    if response.status_code == 200:
+        resp = requests.get('https://www.googleapis.com/oauth2/v1/userinfo', headers={
+            'Authorization': f"Bearer {data['access_token']}"
+        })
+        if (resp.status_code == 200):
+            existing_user = Tenant.objects.filter(
+                email=resp.json()['email']).first()
+            if not existing_user:
+                raise Exception('User not found')
+            existing_user.google_token = json.dumps(
+                {**json.loads(existing_user.google_token), **data})
+            existing_user.save()
+        else:
+            raise Exception('Failed to update user details')
     return response.status_code, data
