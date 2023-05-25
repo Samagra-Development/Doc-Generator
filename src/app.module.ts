@@ -5,28 +5,31 @@ import { TerminusModule } from '@nestjs/terminus';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaService } from './prisma.service';
-import { PrismaHealthIndicator } from '../prisma/prisma.health';
+import { PrismaHealthIndicator } from './health/prisma.health';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
     }),
     ClientsModule.registerAsync([
       {
         name: 'BATCH_PROCESSING',
         imports: [ConfigModule],
         useFactory: async (config: ConfigService) => ({
-            transport: Transport.RMQ,
-            options: {
-              urls: [config.get<string>('RMQ_URL')],
-              queue: config.get<string>('RMQ_QUEUE'),
-              queueOptions: {
-                durable: config.get<boolean>('RMQ_QUEUE_DURABLE'),
-              },
+          transport: Transport.RMQ,
+          options: {
+            urls: [config.getOrThrow<string>('RMQ_URL')],
+            queue: config.getOrThrow<string>('RMQ_QUEUE'),
+            queueOptions: {
+              durable:
+                config.getOrThrow<string>('RMQ_QUEUE_DURABLE') === 'true'
+                  ? true
+                  : false,
             },
+          },
         }),
         inject: [ConfigService],
       },
@@ -34,7 +37,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     HttpModule,
     TerminusModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [AppService, PrismaService, PrismaHealthIndicator],
 })
 export class AppModule {}
