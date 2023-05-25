@@ -6,7 +6,7 @@ In addition, it can
 - Upload the generated docs to CDN, google drive, s3, custom sink.
 - Generate a shortened URL for the uploaded file for easy sharing.
 
-The project is build based on plugin model, so ensure customizability and wide adoption.
+The project is built based on plugin model, to ensure customizability and wide adoption.
 
 ## C4GT 2023
 - [v2](https://github.com/Samagra-Development/Doc-Generator/tree/v2) branch contains the original source code written in python, you can check it for reference.
