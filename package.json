@@ -80,8 +80,8 @@
     "testEnvironment": "node"
   },
   "lint-staged": {
+    "*": "prettier --write --ignore-unknown",
     "*.{ts,tsx}": [
-      "prettier --write --ignore-unknown",
       "tsc-files --noEmit --emitDeclarationOnly false --pretty --incremental false"
     ]
   }
