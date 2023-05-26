@@ -79,11 +79,6 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged && yarn run test"
-    }
-  },
   "lint-staged": {
     "*.{ts,tsx}": [
       "prettier --write --ignore-unknown",
