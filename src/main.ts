@@ -18,7 +18,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Doc Generator')
-    .setDescription('Doc Gen APIs ')
+    .setDescription('Doc Gen APIs')
     .setVersion('1.0')
     .addTag('doc-gen')
     .build();
