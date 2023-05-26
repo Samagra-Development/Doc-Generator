@@ -35,7 +35,8 @@
     "amqplib": "^0.10.3",
     "prisma": "^4.8.1",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.2.0"
+    "rxjs": "^7.2.0",
+    "tsc-files": "^1.1.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
@@ -82,5 +83,11 @@
     "hooks": {
       "pre-commit": "lint-staged"
     }
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "prettier --write --ignore-unknown",
+      "tsc-files --noEmit --emitDeclarationOnly false --pretty --incremental false"
+    ]
   }
 }
