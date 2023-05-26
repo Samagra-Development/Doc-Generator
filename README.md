@@ -10,7 +10,8 @@ The project is built based on plugin model, to ensure customizability and wide a
 
 ## C4GT 2023
 - [v2](https://github.com/Samagra-Development/Doc-Generator/tree/v2) branch contains the original source code written in python, you can check it for reference.
-
+- Join our discord here: [https://discord.com/invite/VPrXf7Jxpr](https://discord.com/invite/VPrXf7Jxpr), head to [doc-generator](https://discord.com/channels/973851473131761674/1107697276475941024) channel
+- Check out [good-first-issues](https://github.com/Samagra-Development/Doc-Generator/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) to start contributing
 
 ## Installation
 
