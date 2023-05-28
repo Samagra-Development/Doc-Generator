@@ -84,6 +84,7 @@
     "*": "prettier --write --ignore-unknown",
     "*.{ts,tsx}": [
       "tsc-files --noEmit --emitDeclarationOnly false --pretty --incremental false"
-    ]
+    ],
+    "--allow-empty": "true"
   }
 }
