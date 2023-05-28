@@ -3,15 +3,11 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
+import { PrismaClient } from '@prisma/client';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
-
-  const mockPrismaService = {
-    $connect: jest.fn().mockImplementation(async () => {
-      return Promise.resolve();
-    }),
-  };
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -19,7 +15,7 @@ describe('AppController (e2e)', () => {
       providers: [PrismaService],
     })
       .overrideProvider(PrismaService)
-      .useValue(mockPrismaService)
+      .useValue(mockDeep<PrismaService>())
       .compile();
 
     app = moduleFixture.createNestApplication();
