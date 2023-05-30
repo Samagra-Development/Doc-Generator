@@ -13,7 +13,7 @@ async function bootstrap() {
     new FastifyAdapter(),
     { cors: true },
   );
-  const globalPrefix = 'api/';
+  const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
 
   const config = new DocumentBuilder()
