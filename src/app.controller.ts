@@ -12,7 +12,7 @@ export class AppController {
     status: 200,
     description: 'Check if service is alive',
   })
-  getHello() {
-    return 'Doc Generator';
+  getHello(): string {
+    return this.appService.getHello();
   }
 }
