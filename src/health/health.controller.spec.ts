@@ -3,7 +3,7 @@ import { HealthController } from './health.controller';
 import { PrismaHealthIndicator } from './prisma.health';
 import { ConfigService } from '@nestjs/config';
 import { TerminusModule } from '@nestjs/terminus';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 describe('HealthController', () => {
   let controller: HealthController;

@@ -4,10 +4,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TerminusModule } from '@nestjs/terminus';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaService } from './prisma.service';
+import { PrismaService } from './prisma/prisma.service';
 import { PrismaHealthIndicator } from './health/prisma.health';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { HealthController } from './health/health.controller';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { HealthController } from './health/health.controller';
     ]),
     HttpModule,
     TerminusModule,
+    PrismaModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService, PrismaService, PrismaHealthIndicator],
