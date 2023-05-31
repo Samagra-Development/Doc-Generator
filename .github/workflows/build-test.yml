@@ -24,9 +24,6 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Copy nest-cli.json
-        run: cp nest-cli.json dist/nest-cli.json
-
       - name: Generate Prisma Client
         run: npx prisma generate
 
