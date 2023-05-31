@@ -1,20 +1,6 @@
 version: '3'
 
 services:
-  app:
-    build: .
-    env_file:
-      - .env
-    depends_on:
-      - db
-      - broker
-    ports:
-      - ${APP_PORT}:3000
-    volumes:
-      - ./src:/app/src
-      - ./test:/app/test
-    entrypoint: "yarn start:dev"
-
   db:
     container_name: db
     image: postgres:14

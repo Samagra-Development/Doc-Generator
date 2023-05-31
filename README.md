@@ -20,11 +20,23 @@ The project is built based on plugin model, to ensure customizability and wide a
 $ cp .env.copy .env
 ```
 
+### Development
+
 ```bash
 # Specify the local compose file
 $ docker-compose -f docker-compose.local.yml up -d --build
 
-# For production
+# Installing app dependencies
+$ yarn install
+
+# Start in watch mode
+$ yarn start:dev
+```
+
+### Production
+
+```bash
+# Production build includes the app service
 $ docker-compose up -d --build
 ```
 
