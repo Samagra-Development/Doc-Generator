@@ -16,6 +16,13 @@ The project is built on a plugin model, which ensures customizability and wide a
 
 ### Development
 
+_Prerequisites_ -
+
+- Node 16
+- Yarn 1
+- Docker
+- Docker Compose
+
 ```bash
 # Copy env file
 $ cp .env.copy .env
@@ -35,8 +42,13 @@ $ yarn start:dev
 
 ### Production
 
+_Prerequisites_ -
+
+- Docker
+- Docker Compose
+
 ```bash
-# Copy env file
+# Edit .env file according to your production setup
 $ cp .env.copy .env
 
 # Production build includes the app service
