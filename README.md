@@ -14,19 +14,20 @@ The project is built on a plugin model, which ensures customizability and wide a
 
 ## Running the app
 
-```bash
-# Copy env file
-$ cp .env.copy .env
-```
-
 ### Development
 
 ```bash
+# Copy env file
+$ cp .env.copy .env
+
 # Specify the local compose file
-$ docker-compose -f docker-compose.local.yml up -d --build
+$ docker-compose -f docker-compose.local.yml up -d
 
 # Installing app dependencies
 $ yarn install
+
+# Run Prisma migrations
+$ yarn prisma migrate dev -n init
 
 # Start in watch mode
 $ yarn start:dev
@@ -35,8 +36,20 @@ $ yarn start:dev
 ### Production
 
 ```bash
+# Copy env file
+$ cp .env.copy .env
+
 # Production build includes the app service
 $ docker-compose up -d --build
+
+# go inside the container
+docker-compose exec app bash
+
+# run migration
+npx prisma migrate dev
+
+# exit out of container
+exit
 ```
 
 Check if all the containers are running using `docker ps`
