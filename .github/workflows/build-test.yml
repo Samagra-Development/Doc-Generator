@@ -22,7 +22,7 @@ jobs:
           node-version: 18.12.1
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install
 
       - name: Generate Prisma Client
         run: npx prisma generate
