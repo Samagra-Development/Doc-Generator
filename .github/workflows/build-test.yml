@@ -1,0 +1,34 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - Roadmap-2023
+  pull_request:
+    branches:
+      - Roadmap-2023
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18.12.1
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build
+        run: yarn build
+
+      - name: Test
+        run: yarn test
