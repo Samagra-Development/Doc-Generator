@@ -15,3 +15,16 @@ model User {
   email String  @unique
   name  String?
 }
+model Batch {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name        String
+  description String?
+  templateType       String
+  templateInput         String 
+  dataInput     String 
+  status       String
+  output       String
+}
