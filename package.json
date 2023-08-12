@@ -37,6 +37,7 @@
     "prisma": "^4.8.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
+    "templater": "file:templater-0.0.1.tgz",
     "tsc-files": "^1.1.3"
   },
   "devDependencies": {

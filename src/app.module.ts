@@ -9,6 +9,8 @@ import { PrismaHealthIndicator } from './health/prisma.health';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
+import { RenderModule } from 'templater';
+import { GeneratorModule } from './generator/generator.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { PrismaModule } from './prisma/prisma.module';
     HttpModule,
     TerminusModule,
     PrismaModule,
+    RenderModule,
+    GeneratorModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService, PrismaService, PrismaHealthIndicator],
