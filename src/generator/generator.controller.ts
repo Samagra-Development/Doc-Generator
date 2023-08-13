@@ -6,7 +6,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 @Controller('generate')
 @ApiTags('generator')
 export class GeneratorController {
-  constructor(private generate: GeneratorService) {}
+  constructor(private generateService: GeneratorService) {}
 
   @Post('/')
   @ApiOperation({ summary: 'For realtime rendering of templates' })
@@ -16,7 +16,7 @@ export class GeneratorController {
     type: GenRes,
   })
   gen(@Body() body: GenReq): Promise<string | string[]> {
-    const res = this.generate.generate(body);
+    const res = this.generateService.generate(body);
     return res;
   }
 }

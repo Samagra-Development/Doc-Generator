@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TemplateType, TemplateTest } from 'src/app.interface';
+import { TemplateType, TemplateTest } from '../app.interface';
 
 export class GenReq {
   @ApiProperty({

@@ -7,5 +7,6 @@ import { GeneratorService } from './generator.service';
   imports: [RenderModule],
   providers: [GeneratorService],
   controllers: [GeneratorController],
+  exports: [GeneratorService],
 })
 export class GeneratorModule {}
