@@ -10,7 +10,7 @@ import { PluginService } from './pdf-plugin.service';
 import { PluginOutput } from './pdf-plugin.interfaces';
 import { PdfOutputPlugin } from './pdf-output-plugin';
 import { PdfInputPlugin } from './pdf-input-plugin';
-import { DocxOutputPlugin } from './docsx-output-plugin'; // Import the DocxOutputPlugin
+import { DocxOutputPlugin } from './docsx-output-plugin';
 import { DocxInputPlugin } from './docsx-input-plugin';
 import { ImageInputPlugin } from './image-input-plugin'; // Import the ImageInputPlugin
 import { ImageOutputPlugin } from './image-output-plugin'; // Import the ImageOutputPlugin

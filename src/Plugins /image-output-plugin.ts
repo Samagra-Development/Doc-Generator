@@ -12,7 +12,7 @@ export class ImageOutputPlugin {
       context.fillStyle = '#FF0000';
       context.fillRect(0, 0, 400, 200);
 
-      // Draw text on the image
+      // Draw text on the image //
       context.fillStyle = '#FFFFFF';
       context.font = '20px Arial';
       context.fillText('Hello Image!', 50, 100);
