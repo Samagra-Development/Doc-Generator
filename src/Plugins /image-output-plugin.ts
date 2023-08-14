@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { createCanvas } from 'canvas';
+import { createCanvas } from 'canvas'; //
 import { PluginOutput } from './pdf-plugin.interfaces';
 
 export class ImageOutputPlugin {

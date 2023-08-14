@@ -12,7 +12,6 @@ import { PdfOutputPlugin } from './pdf-output-plugin';
 import { PdfInputPlugin } from './pdf-input-plugin';
 import { DocxOutputPlugin } from './docsx-output-plugin';
 import { DocxInputPlugin } from './docsx-input-plugin';
-import { ImageInputPlugin } from './image-input-plugin'; // Import the ImageInputPlugin
 import { ImageOutputPlugin } from './image-output-plugin'; // Import the ImageOutputPlugin
 
 @Controller('plugin')
