@@ -1,11 +1,19 @@
-import { Controller, Post, Get, Param, Dependencies } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Dependencies,
+} from '@nestjs/common';
 import { PluginService } from './pdf-plugin.service';
 import { PluginOutput } from './pdf-plugin.interfaces';
 import { PdfOutputPlugin } from './pdf-output-plugin';
 import { PdfInputPlugin } from './pdf-input-plugin';
 import { DocxOutputPlugin } from './docsx-output-plugin'; // Import the DocxOutputPlugin
 import { DocxInputPlugin } from './docsx-input-plugin';
-import * as path from 'path';
+import { ImageInputPlugin } from './image-input-plugin'; // Import the ImageInputPlugin
+import { ImageOutputPlugin } from './image-output-plugin'; // Import the ImageOutputPlugin
 
 @Controller('plugin')
 @Dependencies(PluginService)
@@ -14,6 +22,7 @@ export class PluginController {
   private pdfInputPlugin!: PdfInputPlugin;
   private docxOutputPlugin!: DocxOutputPlugin;
   private docxInputPlugin!: DocxInputPlugin;
+  private imageOutputPlugin!: ImageOutputPlugin; // Add the ImageOutputPlugin
 
   constructor(private readonly pluginService: PluginService) {}
 
@@ -22,6 +31,7 @@ export class PluginController {
     this.pdfInputPlugin = new PdfInputPlugin();
     this.docxOutputPlugin = new DocxOutputPlugin();
     this.docxInputPlugin = new DocxInputPlugin();
+    this.imageOutputPlugin = new ImageOutputPlugin(); // Initialize the ImageOutputPlugin
   }
 
   @Post('generate-doc/:outputType')
@@ -33,6 +43,9 @@ export class PluginController {
         return this.pdfOutputPlugin.generateDoc(outputType);
       } else if (outputType === 'DOCX') {
         return this.docxOutputPlugin.generateDoc(outputType);
+      } else if (outputType === 'IMG') {
+        // Add this condition for image generation
+        return this.imageOutputPlugin.generateImage(outputType);
       } else {
         throw new Error('Unsupported output type');
       }
@@ -42,10 +55,12 @@ export class PluginController {
     }
   }
 
-  @Post('convert-docx-to-pdf') // Adjust the route
-  async convertDocxToPdf(): Promise<PluginOutput> {
+  @Post('convert-docx-to-pdf/:docxFilePath')
+  async convertDocxToPdf(
+    @Param('docxFilePath') docxFilePath: string,
+  ): Promise<PluginOutput> {
     try {
-      return this.docxInputPlugin.convertDocxToPdf(); // Call the conversion function
+      return this.docxInputPlugin.convertDocxToPdf(docxFilePath);
     } catch (error: any) {
       console.error('Error converting DOCX to PDF:', error.message);
       throw new Error('Failed to convert DOCX to PDF');
