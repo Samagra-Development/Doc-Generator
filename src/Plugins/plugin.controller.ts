@@ -1,4 +1,14 @@
-import { Controller, Post, Get, Param, Dependencies } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Query,
+  UseInterceptors,
+  Res,
+  Get,
+  Body,
+  Param,
+  Dependencies,
+} from '@nestjs/common';
 import * as fs from 'fs';
 import { PluginService } from './pdf-plugin.service';
 import { PluginOutput } from './pdf-plugin.interfaces';
@@ -8,6 +18,12 @@ import { DocxOutputPlugin } from './docsx-output-plugin';
 import { DocxInputPlugin } from './docsx-input-plugin';
 import { ImageOutputPlugin } from './image-output-plugin'; // Import the ImageOutputPlugin
 import { ImageInputPlugin } from './image-input-plugin';
+import { DrawioInputPlugin } from './Drawio-input-plugin';
+import * as path from 'path';
+import { parseString } from 'xml2js'; // Import parseString from xml2js
+import puppeteer from 'puppeteer';
+import { ExcalidrawInputPlugin } from './excalidraw.input-plugin'; // Adjust the import path
+import { MermaidInputPlugin } from './Mermaid.input.plugin'; // Adjust the import path
 
 @Controller('plugin')
 @Dependencies(PluginService)
@@ -18,6 +34,9 @@ export class PluginController {
   private docxInputPlugin!: DocxInputPlugin;
   private imageOutputPlugin!: ImageOutputPlugin; // Add the ImageOutputPlugin
   private imageInputPlugin!: ImageInputPlugin;
+  private ExcalidrawInputPlugin!: ExcalidrawInputPlugin;
+  private MermaidInputPlugin!: MermaidInputPlugin;
+  private DrawioInputPlugin!: DrawioInputPlugin;
   constructor(private readonly pluginService: PluginService) {}
 
   onModuleInit() {
@@ -27,90 +46,24 @@ export class PluginController {
     this.docxInputPlugin = new DocxInputPlugin();
     this.imageOutputPlugin = new ImageOutputPlugin(); // Initialize the ImageOutputPlugin
     this.imageInputPlugin = new ImageInputPlugin();
+    this.ExcalidrawInputPlugin = new ExcalidrawInputPlugin();
+    this.DrawioInputPlugin = new DrawioInputPlugin();
+    this.MermaidInputPlugin = new MermaidInputPlugin();
   }
 
-  @Post('generate-doc/:outputType')
-  async generateDocument(
-    @Param('outputType') outputType: string,
-  ): Promise<PluginOutput> {
-    try {
-      if (outputType === 'PDF') {
-        return this.pdfOutputPlugin.generateDoc(outputType);
-      } else if (outputType === 'DOCX') {
-        return this.docxOutputPlugin.generateDoc(outputType);
-      } else if (outputType === 'IMG') {
-        // Add this condition for image generation
-        return this.imageOutputPlugin.generateImage(outputType);
-      } else {
-        throw new Error('Unsupported output type');
-      }
-    } catch (error: any) {
-      console.error('Error generating document:', error.message);
-      throw new Error('Failed to generate document');
-    }
-  }
-
-  @Get('convert-img-to-pdf')
-  async convertImageToPdf(): Promise<PluginOutput> {
-    try {
-      const imageFilePath = './generatedImage.png'; // Replace with the actual path to the image
-      const pdfFilePath = './generatedImage.pdf';
-
-      await this.imageInputPlugin.convertImageToPdf(imageFilePath, pdfFilePath);
-
-      return { file: 'generatedImage.pdf' };
-    } catch (error: any) {
-      console.error('Error converting image to PDF:', error.message);
-      throw new Error('Failed to convert image to PDF');
-    }
-  }
-
-  @Get('convert-docx-to-pdf')
-  async convertDocxToPdf(): Promise<PluginOutput> {
-    try {
-      const docxFilePath = './generatedDocxDocument.docx'; // Adjust the path accordingly
-      const pdfFilePath = './generated-document.pdf';
-
-      const pluginOutput = await this.docxInputPlugin.convertDocxToPdf(
-        docxFilePath,
-      );
-
-      if (!pluginOutput.file) {
-        throw new Error('Generated PDF file not found.');
-      }
-
-      fs.renameSync(pluginOutput.file, pdfFilePath);
-
-      return { file: 'generated-document.pdf' };
-    } catch (error: any) {
-      console.error('Error converting DOCX to PDF:', error.message);
-      throw new Error('Failed to convert DOCX to PDF');
-    }
-  }
   @Get()
   getPluginStatus(): string {
     return 'Plugin is running!';
   }
 
-  @Get('/pdf-to-image')
-  async convertPdfToImage(): Promise<{ images?: { url: string }[] }> {
-    const pdfFilePath = './generatedDocument.pdf';
+  @Post('generate-pdf')
+  async generatePdf(@Body() userInput: string[]): Promise<PluginOutput> {
     try {
-      const pluginOutput = await this.pdfInputPlugin.transformPdfToImage(
-        pdfFilePath,
-      );
-
-      if (pluginOutput.images) {
-        const images = pluginOutput.images;
-        images.forEach((image: { url: string }) => {
-          console.log('Image URL:', image.url);
-        });
-      }
-
-      return { images: pluginOutput.images };
-    } catch (error) {
-      console.error('Error converting PDF to image:', error);
-      throw new Error('PDF to image conversion failed');
+      const result = await this.pdfOutputPlugin.generateDoc('pdf', userInput);
+      return result;
+    } catch (error: any) {
+      console.error('Error generating PDF:', error.message);
+      throw new Error('Failed to generate PDF');
     }
   }
 
@@ -121,6 +74,162 @@ export class PluginController {
     } catch (error: any) {
       console.error('Error creating default PDF:', error.message);
       throw new Error('Failed to create default PDF');
+    }
+  }
+  @Post('generate-docx')
+  async generateDocx(@Body() userInput: string[]): Promise<PluginOutput> {
+    try {
+      const result = await this.docxOutputPlugin.generateDoc('docx', userInput);
+      return result;
+    } catch (error: any) {
+      console.error('Error generating DOCX:', error.message);
+      throw new Error('Failed to generate DOCX');
+    }
+  }
+  @Post('generate-image')
+  async generateImage(@Body() userInput: string): Promise<PluginOutput> {
+    try {
+      return await this.imageOutputPlugin.generateImage('img', userInput);
+    } catch (error: any) {
+      console.error('Error generating image:', error.message);
+      throw new Error('Failed to generate image');
+    }
+  }
+
+  @Get('convert-image-to-pdf')
+  async convertImageToPdf(
+    @Query('imagePath') imagePath: string,
+  ): Promise<PluginOutput> {
+    try {
+      if (!imagePath) {
+        console.error('Image file path not provided.');
+        throw new Error('Image file path not provided.');
+      }
+
+      const pdfFilePath = `./generatedImage.pdf`; // Output PDF file path
+
+      await this.imageInputPlugin.convertImageToPdf(imagePath, pdfFilePath);
+
+      return { pdfPath: pdfFilePath };
+    } catch (error: any) {
+      console.error('Error converting image to PDF:', error.message);
+      throw new Error('Failed to convert image to PDF');
+    }
+  }
+
+  @Get('convert-docx-to-pdf')
+  async convertDocxToPdf(
+    @Query('docxPath') docxPath: string,
+  ): Promise<PluginOutput> {
+    try {
+      if (!docxPath) {
+        console.error('DOCX file path not provided.');
+        throw new Error('DOCX file path not provided.');
+      }
+
+      const pluginOutput = await this.docxInputPlugin.convertDocxToPdf(
+        docxPath,
+      );
+
+      if (!pluginOutput.file) {
+        throw new Error('Generated PDF file not found.');
+      }
+
+      return { file: 'generatedPdfDocument.pdf' };
+    } catch (error: any) {
+      console.error('Error converting DOCX to PDF:', error.message);
+      throw new Error('Failed to convert DOCX to PDF');
+    }
+  }
+
+  @Get('convert-docx-to-images')
+  async convertDocxToImages(
+    @Query('docxPath') docxPath: string,
+  ): Promise<PluginOutput> {
+    try {
+      if (!docxPath) {
+        console.error('DOCX file path not provided.');
+        throw new Error('DOCX file path not provided.');
+      }
+
+      const pluginOutput = await this.docxInputPlugin.convertDocxToImages(
+        docxPath,
+      );
+
+      if (!pluginOutput.folder) {
+        throw new Error('Generated images folder not found.');
+      }
+
+      return { folder: pluginOutput.folder };
+    } catch (error: any) {
+      console.error('Error converting DOCX to images:', error.message);
+      throw new Error('Failed to convert DOCX to images');
+    }
+  }
+
+  @Get('convert-drawio-to-pdf')
+  async convertDrawioFileToPdf(): Promise<PluginOutput> {
+    try {
+      const drawioFilePath =
+        'C:/Users/Kartik/Documents/C4gt/Doc-Generator/abc.drawio'; // Adjust the path accordingly
+      const pluginOutput = await this.DrawioInputPlugin.convertDrawioFileToPdf(
+        drawioFilePath,
+      );
+
+      return pluginOutput;
+    } catch (error: any) {
+      console.error('Error converting Draw.io file to PDF:', error.message);
+      throw new Error('Failed to convert Draw.io file to PDF');
+    }
+  }
+
+  @Get('convert-excalidraw-to-pdf')
+  async convertExcalidrawToPdf(
+    @Query('excalidrawpath') excalidrawContent: string,
+  ): Promise<PluginOutput> {
+    try {
+      if (!excalidrawContent) {
+        console.error('Excalidraw content not provided.');
+        throw new Error('Excalidraw content not provided.');
+      }
+
+      const pluginOutput =
+        await this.ExcalidrawInputPlugin.convertExcalidrawToPdf(
+          excalidrawContent,
+        );
+
+      if (!pluginOutput.file) {
+        throw new Error('Generated PDF file not found.');
+      }
+
+      return { file: pluginOutput.file }; // Use the correct property from the pluginOutput
+    } catch (error: any) {
+      console.error('Error converting Excalidraw to PDF:', error.message);
+      throw new Error('Failed to convert Excalidraw to PDF');
+    }
+  }
+  @Get('convert-drawio-to-pdf')
+  async convertDrawioToPdf(
+    @Query('drawioFilePath') drawioFilePath: string,
+  ): Promise<PluginOutput> {
+    try {
+      if (!drawioFilePath) {
+        console.error('Draw.io file path not provided.');
+        throw new Error('Draw.io file path not provided.');
+      }
+
+      const pluginOutput = await this.DrawioInputPlugin.convertDrawioFileToPdf(
+        drawioFilePath,
+      );
+
+      if (!pluginOutput.file) {
+        throw new Error('Generated PDF file not found.');
+      }
+
+      return { file: pluginOutput.file };
+    } catch (error: any) {
+      console.error('Error converting Draw.io to PDF:', error.message);
+      throw new Error('Failed to convert Draw.io to PDF');
     }
   }
 }
