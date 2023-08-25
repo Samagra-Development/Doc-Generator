@@ -1,22 +1,82 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { GeneratorService } from './generator.service';
-import { GenReq, GenRes } from './types';
+import { BatchRequest, BatchResponse, GenRequest, GenResponse } from './types';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { BatchService } from './batch.service';
+import { Batch } from '@prisma/client';
 
 @Controller('generate')
 @ApiTags('generator')
 export class GeneratorController {
-  constructor(private generateService: GeneratorService) {}
+  constructor(
+    private generateService: GeneratorService,
+    private batchService: BatchService,
+  ) {}
 
-  @Post('/')
+  @Post('/render')
   @ApiOperation({ summary: 'For realtime rendering of templates' })
   @ApiResponse({
     status: 200,
     description: 'processed string',
-    type: GenRes,
+    type: GenResponse,
   })
-  gen(@Body() body: GenReq): Promise<string | string[]> {
-    const res = this.generateService.generate(body);
-    return res;
+  generateTemplate(@Body() body: GenRequest): Promise<string | string[]> {
+    return this.generateService.generate(body);
+  }
+
+  @ApiOperation({ summary: 'For submitting batches of templates' })
+  @ApiResponse({
+    status: 201,
+    description: 'Batch created',
+    type: BatchResponse,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Template not found',
+  })
+  @Post('/batches')
+  async submitNewBatch(@Body() body: BatchRequest): Promise<Batch> {
+    return await this.batchService.createBatch(body);
+  }
+
+  @ApiOperation({ summary: 'For getting all  submitted batches' })
+  @ApiResponse({
+    status: 200,
+    description: 'Batches',
+    type: BatchResponse,
+  })
+  @Get('/batches')
+  async getBatches(): Promise<Batch[]> {
+    return await this.batchService.getBatches();
+  }
+
+  @ApiOperation({ summary: 'For getting a submitted batch' })
+  @ApiResponse({
+    status: 200,
+    description: 'Batch',
+    type: BatchResponse,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Batch not found',
+  })
+  @Get('/batches/:id')
+  async getBatch(@Param('id') id: string): Promise<Batch> {
+    return await this.batchService.getBatch(id);
+  }
+
+  @ApiOperation({ summary: 'For deleting a submitted batch' })
+  @ApiResponse({
+    status: 200,
+    description: 'Batch deleted',
+    type: BatchResponse,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Batch not found',
+  })
+  @Delete('/batches/:id')
+  async deleteBatch(@Param('id') id: string): Promise<Batch> {
+    return await this.batchService.deleteBatch(id);
   }
 }

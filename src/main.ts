@@ -20,7 +20,6 @@ async function bootstrap() {
     .setTitle('Doc Generator')
     .setDescription('Doc Gen APIs')
     .setVersion('1.0')
-    .addTag('doc-gen')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);

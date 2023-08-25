@@ -11,8 +11,7 @@ import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { RenderModule } from 'templater';
 import { GeneratorModule } from './generator/generator.module';
-import { GeneratorService } from './generator/generator.service';
-import { GeneratorController } from './generator/generator.controller';
+import { TemplateModule } from './template/template.module';
 
 @Module({
   imports: [
@@ -44,13 +43,9 @@ import { GeneratorController } from './generator/generator.controller';
     PrismaModule,
     RenderModule,
     GeneratorModule,
+    TemplateModule,
   ],
-  controllers: [AppController, HealthController, GeneratorController],
-  providers: [
-    AppService,
-    PrismaService,
-    PrismaHealthIndicator,
-    GeneratorService,
-  ],
+  controllers: [AppController, HealthController],
+  providers: [AppService, PrismaService, PrismaHealthIndicator],
 })
 export class AppModule {}
