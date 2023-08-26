@@ -4,14 +4,29 @@ import { BatchRequest, BatchResponse, GenRequest, GenResponse } from './types';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BatchService } from './batch.service';
 import { Batch } from '@prisma/client';
+import {
+  Ctx,
+  MessagePattern,
+  Payload,
+  RmqContext,
+} from '@nestjs/microservices';
 
 @Controller('generate')
 @ApiTags('generator')
 export class GeneratorController {
   constructor(
-    private generateService: GeneratorService,
-    private batchService: BatchService,
+    private readonly generateService: GeneratorService,
+    private readonly batchService: BatchService,
   ) {}
+
+  @MessagePattern('process-batch')
+  async processBatch(
+    @Payload() data: { batchId: string },
+    @Ctx() context: RmqContext,
+  ) {
+    console.log(data);
+    return await this.batchService.processBatch(data.batchId);
+  }
 
   @Post('/render')
   @ApiOperation({ summary: 'For realtime rendering of templates' })
@@ -36,7 +51,7 @@ export class GeneratorController {
   })
   @Post('/batches')
   async submitNewBatch(@Body() body: BatchRequest): Promise<Batch> {
-    return await this.batchService.createBatch(body);
+    return await this.batchService.createBatchAndEnqueue(body);
   }
 
   @ApiOperation({ summary: 'For getting all  submitted batches' })

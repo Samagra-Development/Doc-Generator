@@ -1,14 +1,23 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { Batch } from '@prisma/client';
 import { BatchRequest } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class BatchService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject('BATCH_PROCESSING')
+    private readonly batchProcessingClient: ClientProxy,
+    private readonly prisma: PrismaService,
+  ) {}
 
-  async createBatch(data: BatchRequest): Promise<Batch> {
+  async processBatch(data: any) {
+    console.log(data + 'rec');
+  }
+
+  async createBatchAndEnqueue(data: BatchRequest): Promise<Batch> {
     const { templateID, payload } = data;
     const batchId = uuidv4();
     const isTemplate = await this.prisma.template.findUnique({
@@ -33,7 +42,7 @@ export class BatchService {
         template: true,
       },
     });
-    // add to RabbitMQ for processing
+    await this.batchProcessingClient.emit('process-batch', { batchId: 'test' });
     return batch;
   }
 
