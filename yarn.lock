@@ -5807,7 +5807,7 @@ tapable@^2.1.1, tapable@^2.2.0, tapable@^2.2.1:
 "templater@file:templater-0.0.1.tgz":
   version "0.0.1"
   resolved "file:templater-0.0.1.tgz"
-  integrity sha512-n2RyR7y0MuyilRl8UQTt5DKghbdPv9r3+E+F9EljUy0TJne2Cx4nVgnx4vLjFhnXfc9KQa2eMXMSENxApyfVhg==
+  integrity sha512-OLBUmjB0D2+as7JK5UKsPFAgBt7LYTJCfIHitYCA9vsU1/FP6k5KPcV1qR6oFFWn0fgmtp+FF9NfLzYvCCM2hQ==
   dependencies:
     "@grpc/grpc-js" "^1.6.7"
     "@grpc/proto-loader" "^0.6.9"

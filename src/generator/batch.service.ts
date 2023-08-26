@@ -1,9 +1,10 @@
 import { HttpException, Inject, Injectable } from '@nestjs/common';
-import { Batch } from '@prisma/client';
+import { Batch, BatchStatus } from '@prisma/client';
 import { BatchRequest } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ClientProxy } from '@nestjs/microservices';
+import { RenderService } from 'templater';
 
 @Injectable()
 export class BatchService {
@@ -11,10 +12,42 @@ export class BatchService {
     @Inject('BATCH_PROCESSING')
     private readonly batchProcessingClient: ClientProxy,
     private readonly prisma: PrismaService,
+    private readonly renderService: RenderService,
   ) {}
 
-  async processBatch(data: any) {
-    console.log(data + 'rec');
+  // is used for processing batches by RabbitMQ
+  async processBatch(uid: string) {
+    const batch = await this.prisma.batch.findUnique({
+      where: {
+        id: uid,
+      },
+      include: {
+        template: true,
+      },
+    });
+    if (!batch) {
+      throw new HttpException(`Batch not found with ID: ${uid}`, 404);
+    }
+    const { template, payload } = batch;
+    const { templateType, content } = template;
+    const output: string[] = [];
+    for (const data of payload) {
+      const { processed } = await this.renderService.renderTemplate({
+        templateContent: content,
+        data,
+        engineType: templateType,
+      });
+      output.push(processed);
+    }
+    await this.prisma.batch.update({
+      where: {
+        id: uid,
+      },
+      data: {
+        output: output,
+        status: BatchStatus.done,
+      },
+    });
   }
 
   async createBatchAndEnqueue(data: BatchRequest): Promise<Batch> {
@@ -26,7 +59,10 @@ export class BatchService {
       },
     });
     if (!isTemplate) {
-      throw new HttpException(`Template not found with ID: ${templateID}`, 404);
+      throw new HttpException(
+        `Template not found or deleted with ID: ${templateID}`,
+        404,
+      );
     }
     const batch = await this.prisma.batch.create({
       data: {
@@ -42,11 +78,13 @@ export class BatchService {
         template: true,
       },
     });
-    await this.batchProcessingClient.emit('process-batch', { batchId: 'test' });
+    await this.batchProcessingClient.emit('process-batch', {
+      batchId: batchId,
+    });
     return batch;
   }
 
-  async getBatch(id: string) {
+  async getBatch(id: string): Promise<Batch> {
     const batch = await this.prisma.batch.findUnique({
       where: {
         id,

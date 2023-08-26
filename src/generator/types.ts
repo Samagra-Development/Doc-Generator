@@ -1,13 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TemplateTest } from '../app.interface';
 import { TemplateType } from '@prisma/client';
 
 export class GenRequest {
   @ApiProperty({
     description: 'Template to be rendered',
-    type: TemplateTest,
+    type: String,
   })
-  template: TemplateTest;
+  templateContent: string;
 
   @ApiProperty({
     description: 'Data to be rendered in json format',
