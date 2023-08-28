@@ -96,7 +96,8 @@ class TemplatePlugin(implements(Plugin)):
                 access_key = self.user_config["MINIO_ACCESS_KEY"]
                 secret_key = self.user_config["MINIO_SECRET_KEY"]
                 bucket_name = self.user_config["MINIO_BUCKET_NAME"]
-                uploader = MinioUploader(host, access_key, secret_key, bucket_name)
+                cred_expiry_duration = self.user_config.get("MINIO_CREDENTIAL_EXPIRY_DURATION")
+                uploader = MinioUploader(host, access_key, secret_key, bucket_name, cred_expiry_duration)
                 error_code, error_msg, final_data = uploader.put(f'{self.token}.pdf', f'{self.token}.pdf', None)
                 if error_code is None:
                     if os.path.exists(drive_file_loc):

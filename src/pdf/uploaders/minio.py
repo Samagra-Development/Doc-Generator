@@ -21,13 +21,13 @@ def get_fa_token(username, password):
         body = json.dumps({
             "loginId": f"{username}",
             "password": f"{password}",
-            "applicationId": os.getenv('MINIO_FA_APPLICATION_ID')
+            "applicationId": os.getenv('FA_APPLICATION_ID')
         })
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': os.getenv('MINIO_FA_AUTHORIZATION')
+            'Authorization': os.getenv('FA_AUTHORIZATION')
         }
-        response = requests.post("http://auth.samagra.io:9011/api/login", data=body, headers=headers)
+        response = requests.post(f"{os.getenv('FA_URL')}/api/login", data=body, headers=headers)
         response.raise_for_status()
         resp = response.json()
         if 'token' in resp:
@@ -41,12 +41,12 @@ def get_fa_token(username, password):
         return token
 
 
-def get_minio_cred(username, password, bucket_name):
+def get_minio_cred(username, password, bucket_name, cred_expiry_duration=36000):
     access_key = secret_key = session_token = None
     try:
         token = get_fa_token(username, password)
         if token is not None:
-            minio_url = f"https://cdn.samagra.io/minio/{bucket_name}/?Action=AssumeRoleWithWebIdentity&DurationSeconds=36000&WebIdentityToken={token}&Version=2011-06-15"
+            minio_url = f"{os.getenv('MINIO_URL')}/minio/{bucket_name}/?Action=AssumeRoleWithWebIdentity&DurationSeconds={cred_expiry_duration}&WebIdentityToken={token}&Version=2011-06-15"
             response = requests.post(minio_url)
             response.raise_for_status()
             resp = response.text
@@ -71,13 +71,16 @@ def get_minio_cred(username, password, bucket_name):
 
 class MinioUploader(implements(Uploader)):
 
-    def __init__(self, host, username, password, bucket_name):
+    def __init__(self, host, username, password, bucket_name, cred_expiry_duration):
         self.host = host
         self.bucket_name = bucket_name
         # Get the logger specified in the file
         self.logger = logging.getLogger()
         # Create a client with the MinIO, its access key and secret key.
-        access_key, secret_key, session_token = get_minio_cred(username, password, bucket_name)
+        if cred_expiry_duration:
+            access_key, secret_key, session_token = get_minio_cred(username, password, bucket_name, cred_expiry_duration)
+        else:
+            access_key, secret_key, session_token = get_minio_cred(username, password, bucket_name)
         self.client = Minio(host, access_key=access_key, secret_key=secret_key, session_token=session_token)
 
     def put(self, file_name, object_name, expires):
