@@ -1,8 +1,8 @@
 import { HttpException, Inject, Injectable } from '@nestjs/common';
-import { Batch, BatchStatus, OutputType, Prisma } from '@prisma/client';
+import { Batch, BatchStatus, OutputType } from '@prisma/client';
 import { BatchRequest } from './types';
 import { v4 as uuidv4 } from 'uuid';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { RenderService } from 'templater';
 
@@ -15,7 +15,43 @@ export class BatchService {
     private readonly renderService: RenderService,
   ) {}
 
-  // is used for processing batches by RabbitMQ
+  // This is just a sample implementation of how the batch will be processed in the background testing the renderService
+  async processBatchTest(uid: string) {
+    const batch = await this.prisma.batch.findUnique({
+      where: {
+        id: uid,
+      },
+      include: {
+        template: true,
+      },
+    });
+    console.log(batch);
+
+    if (!batch) {
+      throw new HttpException(`Batch not found with ID: ${uid}`, 404);
+    }
+    const { template, payload } = batch;
+    const { templateType, content } = template;
+    const output: string[] = [];
+    for (const data of payload) {
+      const { processed } = await this.renderService.renderTemplate({
+        templateContent: content,
+        data,
+        engineType: templateType,
+      });
+      output.push(processed);
+    }
+    await this.prisma.batch.update({
+      where: {
+        id: uid,
+      },
+      data: {
+        output: output,
+        status: BatchStatus.done,
+      },
+    });
+  }
+
   async processBatch(uid: string) {
     const batch = await this.prisma.batch.findUnique({
       where: {
@@ -59,8 +95,8 @@ export class BatchService {
           output.push('Invalid output type');
           break;
       }
-      // Below is just an implementation of what the processed string looks like
-      output.push(processed);
+      // Below is just an implementation of how the output will be stored as links in the database
+      output.push('https://jsonplaceholder.typicode.com/todos/1');
     }
     await this.prisma.batch.update({
       where: {

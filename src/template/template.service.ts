@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTemplateDto } from './types';
 
@@ -17,23 +17,36 @@ export class TemplateService {
     return template;
   }
 
-  async findAll() {
+  async getTemplates() {
     return await this.prisma.template.findMany();
   }
 
-  async findOne(id: number) {
-    return await this.prisma.template.findUnique({
+  async getTemplate(id: number) {
+    const template = await this.prisma.template.findUnique({
       where: {
         id,
       },
     });
+    if (!template) {
+      throw new HttpException(`Template not found with ID: ${id}`, 404);
+    }
+    return template;
   }
 
   async remove(id: number) {
-    return await this.prisma.template.delete({
+    const template = await this.prisma.template.findUnique({
       where: {
         id,
       },
     });
+    if (!template) {
+      throw new HttpException(`Template not found with ID: ${id}`, 404);
+    }
+    await this.prisma.template.delete({
+      where: {
+        id,
+      },
+    });
+    return template;
   }
 }

@@ -27,7 +27,7 @@ export class TemplateController {
   })
   @Get()
   findAll() {
-    return this.templateService.findAll();
+    return this.templateService.getTemplates();
   }
 
   @ApiOperation({ summary: 'For getting a template' })
@@ -38,7 +38,7 @@ export class TemplateController {
   })
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.templateService.findOne(+id);
+    return this.templateService.getTemplate(+id);
   }
 
   @ApiOperation({ summary: 'For deleting a template' })
