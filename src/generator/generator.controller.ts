@@ -4,7 +4,12 @@ import { BatchRequest, BatchResponse, GenRequest, GenResponse } from './types';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BatchService } from './batch.service';
 import { Batch } from '@prisma/client';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import {
+  Ctx,
+  MessagePattern,
+  Payload,
+  RmqContext,
+} from '@nestjs/microservices';
 
 @Controller('generate')
 @ApiTags('generator')
@@ -15,9 +20,10 @@ export class GeneratorController {
   ) {}
 
   @MessagePattern('process-batch')
-  async processBatch(@Payload() data: { batchId: string }) {
-    // const delayMilliseconds = 30000; // 5 seconds
-    // await new Promise((resolve) => setTimeout(resolve, delayMilliseconds));
+  async processBatch(
+    @Payload() data: { batchId: string },
+    @Ctx() ctx: RmqContext,
+  ) {
     return await this.batchService.processBatch(data.batchId);
   }
 

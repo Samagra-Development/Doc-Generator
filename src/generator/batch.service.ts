@@ -1,5 +1,5 @@
 import { HttpException, Inject, Injectable } from '@nestjs/common';
-import { Batch, BatchStatus } from '@prisma/client';
+import { Batch, BatchStatus, OutputType, Prisma } from '@prisma/client';
 import { BatchRequest } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -25,10 +25,12 @@ export class BatchService {
         template: true,
       },
     });
+    console.log(batch);
+
     if (!batch) {
       throw new HttpException(`Batch not found with ID: ${uid}`, 404);
     }
-    const { template, payload } = batch;
+    const { template, payload, outputType } = batch;
     const { templateType, content } = template;
     const output: string[] = [];
     for (const data of payload) {
@@ -37,7 +39,28 @@ export class BatchService {
         data,
         engineType: templateType,
       });
-      output.push(processed as string);
+      switch (outputType as OutputType) {
+        case OutputType.png:
+          // Implement corresponding Plugin with processed string will return a link where the file is stored
+          break;
+        case OutputType.pdf:
+          // Implement corresponding Plugin with processed string will return a link where the file is stored
+          break;
+        case OutputType.qr:
+          // Implement corresponding Plugin with processed string will return a link where the file is stored
+          break;
+        case OutputType.jpeg:
+          // Implement corresponding Plugin with processed string will return a link where the file is stored
+          break;
+        case OutputType.html:
+          // Implement corresponding Plugin with processed string will return a link where the file is stored
+          break;
+        default:
+          output.push('Invalid output type');
+          break;
+      }
+      // Below is just an implementation of what the processed string looks like
+      output.push(processed);
     }
     await this.prisma.batch.update({
       where: {
