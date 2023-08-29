@@ -46,7 +46,7 @@ def get_minio_cred(username, password, bucket_name, cred_expiry_duration=36000):
     try:
         token = get_fa_token(username, password)
         if token is not None:
-            minio_url = f"{os.getenv('MINIO_URL')}/minio/{bucket_name}/?Action=AssumeRoleWithWebIdentity&DurationSeconds={cred_expiry_duration}&WebIdentityToken={token}&Version=2011-06-15"
+            minio_url = f"{os.getenv('MINIO_URL')}/{bucket_name}/?Action=AssumeRoleWithWebIdentity&DurationSeconds={cred_expiry_duration}&WebIdentityToken={token}&Version=2011-06-15"
             response = requests.post(minio_url)
             response.raise_for_status()
             resp = response.text
@@ -71,7 +71,7 @@ def get_minio_cred(username, password, bucket_name, cred_expiry_duration=36000):
 
 class MinioUploader(implements(Uploader)):
 
-    def __init__(self, host, username, password, bucket_name, cred_expiry_duration):
+    def __init__(self, host, username, password, bucket_name, cred_expiry_duration, isHttps=False):
         self.host = host
         self.bucket_name = bucket_name
         # Get the logger specified in the file
@@ -81,7 +81,7 @@ class MinioUploader(implements(Uploader)):
             access_key, secret_key, session_token = get_minio_cred(username, password, bucket_name, cred_expiry_duration)
         else:
             access_key, secret_key, session_token = get_minio_cred(username, password, bucket_name)
-        self.client = Minio(host, access_key=access_key, secret_key=secret_key, session_token=session_token)
+        self.client = Minio(host, access_key=access_key, secret_key=secret_key, session_token=session_token, secure=isHttps)
 
     def put(self, file_name, object_name, expires):
         error_code = error_msg = None
@@ -142,4 +142,4 @@ class MinioUploader(implements(Uploader)):
         pass
 
     def get_public_url(self, file_name):
-        return f"https://{self.host}/{self.bucket_name}/{file_name}"
+        return f"{'https' if self.client._base_url.is_https else 'http'}://{self.host}/{self.bucket_name}/{file_name}"
