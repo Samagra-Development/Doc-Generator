@@ -51,10 +51,12 @@ class DOCXPlugin(PDFPlugin):
             drive_file_loc = f'pdf/drivefiles/{self.token}.docx'
             if self.uploader == "minio":
                 host = self.user_config["MINIO_HOST"]
+                isHttps = self.user_config.get("MINIO_IS_HTTPS", False)
                 access_key = self.user_config["MINIO_ACCESS_KEY"]
                 secret_key = self.user_config["MINIO_SECRET_KEY"]
                 bucket_name = self.user_config["MINIO_BUCKET_NAME"]
-                uploader = MinioUploader(host, access_key, secret_key, bucket_name)
+                cred_expiry_duration = self.user_config.get("MINIO_CREDENTIAL_EXPIRY_DURATION")
+                uploader = MinioUploader(host, access_key, secret_key, bucket_name, cred_expiry_duration, isHttps)
                 error_code, error_msg, final_data = uploader.put(f'{self.token}.docx', f'{self.token}.docx', None)
                 if error_code is None:
                     if os.path.exists(drive_file_loc):
