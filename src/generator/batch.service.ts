@@ -39,7 +39,7 @@ export class BatchService {
         data,
         engineType: templateType,
       });
-      output.push(processed);
+      output.push(processed as string);
     }
     await this.prisma.batch.update({
       where: {
