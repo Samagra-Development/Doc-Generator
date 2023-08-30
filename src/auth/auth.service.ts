@@ -1,8 +1,13 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
 import axios from 'axios';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { AccessToken, AuthorizationOptions, UserDTO } from './types';
+import { PrismaService } from '../prisma/prisma.service';
+import {
+  AccessToken,
+  AuthorizationOptions,
+  ExchangeResponse,
+  UserDTO,
+} from './types';
 
 @Injectable({})
 export class AuthService {
@@ -25,7 +30,7 @@ export class AuthService {
 
   async exchangeAuthorizationCode(
     authorizationCode: string,
-  ): Promise<AccessToken> {
+  ): Promise<ExchangeResponse> {
     // get code from url from frontend
     const url = 'https://oauth2.googleapis.com/token';
     const values: any = {

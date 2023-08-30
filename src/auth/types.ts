@@ -28,6 +28,33 @@ export class AccessToken {
   refreshToken?: string;
 }
 
+export class ExchangeResponse {
+  @ApiProperty({
+    description: 'Access token',
+  })
+  access_token: string;
+  @ApiProperty({
+    description: 'Expires in',
+  })
+  expires_in: number;
+  @ApiProperty({
+    description: 'Scopes',
+  })
+  scope?: string;
+  @ApiProperty({
+    description: 'Refresh token',
+  })
+  refresh_token: string;
+  @ApiProperty({
+    description: 'Token type',
+  })
+  token_type?: string;
+  @ApiProperty({
+    description: 'Id token',
+  })
+  id_token?: string;
+}
+
 export class UserDTO {
   @ApiProperty({
     description: 'Update User first name',
@@ -66,7 +93,7 @@ export class UserResponse {
   @ApiProperty({
     description: 'User profile image',
   })
-  profileImg: string;
+  profileImg?: string;
   @ApiProperty({
     description: 'User first name',
   })
