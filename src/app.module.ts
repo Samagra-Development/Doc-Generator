@@ -9,6 +9,7 @@ import { PrismaHealthIndicator } from './health/prisma.health';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { PrismaModule } from './prisma/prisma.module';
     HttpModule,
     TerminusModule,
     PrismaModule,
+    AuthModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService, PrismaService, PrismaHealthIndicator],
