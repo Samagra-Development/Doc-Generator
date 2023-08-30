@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 import {
   AccessToken,
   AuthURL,
+  ExchangeResponse,
   ExchangeToken,
   RefreshToken,
   RevokeToken,
@@ -53,7 +54,7 @@ export class AuthController {
   @Post('exchange-code')
   async exchangeAuthorizationCode(
     @Body() body: ExchangeToken,
-  ): Promise<AccessToken> {
+  ): Promise<ExchangeResponse> {
     return await this.authService.exchangeAuthorizationCode(body.code);
   }
 
