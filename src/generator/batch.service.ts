@@ -25,8 +25,6 @@ export class BatchService {
         template: true,
       },
     });
-    console.log(batch);
-
     if (!batch) {
       throw new HttpException(`Batch not found with ID: ${uid}`, 404);
     }
@@ -95,7 +93,7 @@ export class BatchService {
           output.push('Invalid output type');
           break;
       }
-      // Below is just an implementation of how the output will be stored as links in the database
+      // Below is just a Mock implementation of how the output will be stored as links in the database
       output.push('https://jsonplaceholder.typicode.com/todos/1');
     }
     await this.prisma.batch.update({
