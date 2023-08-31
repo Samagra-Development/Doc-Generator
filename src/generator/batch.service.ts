@@ -59,9 +59,6 @@ export class BatchService {
         template: true,
       },
     });
-    console.log(batch);
-    // simulate a long running process
-    await new Promise((resolve) => setTimeout(resolve, 5000));
     if (!batch) {
       throw new HttpException(`Batch not found with ID: ${uid}`, 404);
     }

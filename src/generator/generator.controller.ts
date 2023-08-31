@@ -27,10 +27,12 @@ export class GeneratorController {
     const channel = ctx.getChannelRef();
     const originalMsg = ctx.getMessage();
     try {
+      // simulating processing time
+      // await new Promise((resolve) => setTimeout(resolve, 5000));
       await this.batchService.processBatch(data.batchId);
       await channel.ack(originalMsg);
     } catch (error: any) {
-      throw new Error(error.message);
+      throw new Error(error);
     }
   }
 
