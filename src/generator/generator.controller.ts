@@ -24,7 +24,14 @@ export class GeneratorController {
     @Payload() data: { batchId: string },
     @Ctx() ctx: RmqContext,
   ) {
-    return await this.batchService.processBatch(data.batchId);
+    const channel = ctx.getChannelRef();
+    const originalMsg = ctx.getMessage();
+    try {
+      await this.batchService.processBatch(data.batchId);
+      await channel.ack(originalMsg);
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
   }
 
   @Post('/render')

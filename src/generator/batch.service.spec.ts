@@ -3,7 +3,7 @@ import { BatchService } from './batch.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RenderService } from 'templater';
 import { HttpException } from '@nestjs/common';
-import { BatchStatus, OutputType } from '@prisma/client';
+import { BatchStatus } from '@prisma/client';
 import { ClientProxy } from '@nestjs/microservices';
 
 describe('BatchService', () => {
