@@ -142,3 +142,20 @@
   max-width: 600px;
   min-width: 600px;
 }
+.responseContainer {
+  margin: 20px;
+  padding: 20px;
+  background-color: #30555b39;
+}
+.responseHeading {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgb(179, 201, 225);
+}
+
+.responseText {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(225, 243, 249);
+  margin: 10px;
+}

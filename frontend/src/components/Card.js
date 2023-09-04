@@ -7,7 +7,6 @@ const Card = ({ title, content, footer, imageUrl }) => {
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <img src={imageUrl} alt={title} className={styles.cardImage} />
-        <FiBookmark className={styles.bookmarkIcon} />
       </div>
       <h3>{title}</h3>
       <p>{content}</p>

@@ -2,23 +2,27 @@
 import React, { useState } from 'react';
 import styles from '../styles/generator.module.css';
 import Navbar from '@/components/Navbar';
+import { generateRender } from '../services/apiService';
 
 const Generator = () => {
   const [templateType, setTemplateType] = useState('');
   const [outputType, setOutputType] = useState('');
   const [templateInput, setTemplateInput] = useState('');
   const [dataInput, setDataInput] = useState('');
+  const [responseBody, setResponseBody] = useState('');
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log('Template type:', templateType);
-    console.log('Output type:', outputType);
-    console.log('Template Input:', templateInput);
-    console.log('Data input:', dataInput);
-    setTemplateType('');
-    setOutputType('');
-    setTemplateInput('');
-    setDataInput('');
+
+    try {
+      const data = JSON.parse(dataInput);
+      const response = await generateRender(templateType, templateInput, data);
+
+      setResponseBody(JSON.stringify(response, null, 2));
+      console.log('Response:', response);
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   return (
@@ -37,9 +41,9 @@ const Generator = () => {
                     className={styles.formInput1}
                   >
                     <option value="">Select a template type</option>
-                    <option value="html">HTML</option>
-                    <option value="pdf">PDF</option>
-                    <option value="doc">DOC</option>
+                    <option value="JINJA">JINJA</option>
+                    <option value="EJS">EJS</option>
+                    <option value="JSTL">JSTL</option>
                   </select>
                 </div>
               </div>
@@ -52,9 +56,11 @@ const Generator = () => {
                     className={styles.formInput1}
                   >
                     <option value="">Select an output type</option>
-                    <option value="html">HTML</option>
+                    <option value="png">PNG</option>
+                    <option value="jpeg">JPEG</option>
+                    <option value="html">DOC</option>
                     <option value="pdf">PDF</option>
-                    <option value="doc">DOC</option>
+                    <option value="qr">QR</option>
                   </select>
                 </div>
               </div>
@@ -85,7 +91,12 @@ const Generator = () => {
             />
           </form>
         </div>
-        <div className={styles.rightColumn}></div>
+        <div className={styles.rightColumn}>
+          <div className={styles.responseContainer}>
+            <h3 className={styles.responseHeading}>Rendered Document</h3>
+            <pre className={styles.responseText}>{responseBody}</pre>
+          </div>
+        </div>
       </section>
     </>
   );
