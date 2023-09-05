@@ -12,19 +12,16 @@ const Home = () => {
       title: 'Student Reports',
       content: 'This is the content of Card 1.',
       footer: 'Last Updated: 22/12/2023 18:55:45',
-      imageUrl: 'https://example.com/card1-image.jpg',
     },
     {
       title: 'Govt Docs',
       content: 'This is the content of Card 2.',
       footer: 'Last Updated: 22/8/2023 01:50:15',
-      imageUrl: 'https://example.com/card2-image.jpg',
     },
     {
       title: 'ID Cards',
       content: 'This is the content of Card 2.',
       footer: 'Last Updated: 5/6/2023 20:06:45',
-      imageUrl: 'https://example.com/card2-image.jpg',
     },
     // Add more card data objects here
   ];
@@ -62,7 +59,6 @@ const Home = () => {
               title={card.title}
               content={card.content}
               footer={card.footer}
-              imageUrl={card.imageUrl}
             />
           ))}
         </div>
