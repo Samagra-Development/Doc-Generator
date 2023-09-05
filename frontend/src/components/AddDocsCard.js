@@ -8,7 +8,7 @@ const AddDocsCard = () => {
   const router = useRouter();
 
   const handleAddDocs = () => {
-    router.push('/generator');
+    router.push('/createBatches');
   };
 
   return (
@@ -17,7 +17,7 @@ const AddDocsCard = () => {
         <div className={styles.addIcon}>
           <FiPlus />
         </div>
-        <h3 className={styles.cardHeading}>Add Docs</h3>
+        <h3 className={styles.cardHeading}>Create a Batch</h3>
       </div>
     </div>
   );
