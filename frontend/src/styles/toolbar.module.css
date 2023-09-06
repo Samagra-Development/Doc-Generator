@@ -1,6 +1,6 @@
 .toolbar {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
   margin: 0 auto;
   padding: 20px;
@@ -26,4 +26,5 @@
   text-decoration: none;
   color: #fff;
   font-size: 15px;
+  margin-left: 15px;
 }
