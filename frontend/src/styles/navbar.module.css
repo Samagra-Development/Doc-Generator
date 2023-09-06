@@ -1,0 +1,36 @@
+/* styles/navbar.module.css */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background-color: rgba(39, 54, 68, 1);
+}
+
+.logo img {
+  height: 40px;
+  width: 80px;
+}
+
+.buttons button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.buttonTransparent {
+  border: 2px solid cyan;
+  background-color: transparent;
+  color: rgba(245, 246, 184, 1);
+}
+
+.buttonGradient {
+  background-image: radial-gradient(
+    farthest-corner at 50% 50%,
+    rgba(102, 252, 241, 1) 0%,
+    rgba(187, 235, 244, 0.447) 100%
+  );
+  margin-left: 10px;
+  border: none;
+  color: black;
+}
