@@ -10,8 +10,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Template {
+  id           Int          @id @default(autoincrement())
+  content      String
+  templateType TemplateType
+  Batch        Batch[]
+}
+
+enum TemplateType {
+  JINJA
+  EJS
+  JSTL
+}
+
+enum BatchStatus {
+  submitted
+  queued
+  running
+  done
+  aborted
+}
+
+enum OutputType {
+  png
+  jpeg
+  html
+  pdf
+  qr
+}
+
+model Batch {
+  id           String       @id
+  createdAt    DateTime     @default(now())
+  templateID   Int
+  template     Template     @relation(fields: [templateID], references: [id])
+  payload      Json[]
+  status       BatchStatus  @default(submitted)
+  output       String[]     @default([])
+  outputType   OutputType   @default(pdf)
+}
+
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id         Int    @id @default(autoincrement())
+  username   String @unique
+  firstName  String
+  lastName   String
+  email      String @unique
+  password   String
+  phone      String
+  userStatus Int
 }

@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { Transport } from '@nestjs/microservices';
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -13,6 +14,17 @@ async function bootstrap() {
     new FastifyAdapter(),
     { cors: true },
   );
+  app.connectMicroservice({
+    transport: Transport.RMQ,
+    options: {
+      urls: [process.env.RMQ_URL],
+      queue: process.env.RMQ_QUEUE,
+      noAck: false,
+      queueOptions: {
+        durable: process.env.RMQ_QUEUE_DURABLE === 'true' ? true : false,
+      },
+    },
+  });
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
 
@@ -20,7 +32,6 @@ async function bootstrap() {
     .setTitle('Doc Generator')
     .setDescription('Doc Gen APIs')
     .setVersion('1.0')
-    .addTag('doc-gen')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
