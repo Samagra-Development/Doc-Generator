@@ -42,6 +42,7 @@
   font-weight: bold;
 }
 .inputText {
+  text-align: left;
   color: rgb(225, 225, 233);
 }
 
@@ -63,13 +64,14 @@
   border-color: #66fcf1;
   border-radius: 5px;
   font-size: 16px;
-  text-align: center;
+  text-align: left;
   text-decoration: none;
   transition: background-color 0.3s ease;
 }
 .formInput1 option {
   background-color: #1f2833;
   color: rgb(215, 246, 244);
+  text-align: left;
 }
 .formInput2 {
   width: 100%;
@@ -84,7 +86,7 @@
   border-color: #66fcf1;
   border-radius: 5px;
   font-size: 16px;
-  text-align: center;
+  text-align: left;
   text-decoration: none;
   transition: background-color 0.3s ease;
 }
@@ -101,7 +103,7 @@
   border-color: #66fcf1;
   border-radius: 5px;
   font-size: 16px;
-  text-align: center;
+  text-align: left;
   text-decoration: none;
   transition: background-color 0.3s ease;
 }
@@ -175,4 +177,23 @@
 }
 .addInputButton:hover {
   background-color: #33333341;
+}
+
+.templateButton {
+  background-image: radial-gradient(
+    farthest-corner at 50% 50%,
+    rgba(102, 252, 241, 1) 0%,
+    rgba(18, 107, 119, 0.414) 100%
+  );
+  border: none;
+  cursor: pointer;
+  color: black;
+  border-radius: 5px;
+  padding: 7px;
+  margin-bottom: 10px;
+}
+.overlayHeading {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(177, 192, 210);
 }

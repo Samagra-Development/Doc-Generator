@@ -1,4 +1,3 @@
-// pages/generator.js
 import React, { useState } from 'react';
 import styles from '../styles/generator.module.css';
 import Navbar from '../components/Navbar';
