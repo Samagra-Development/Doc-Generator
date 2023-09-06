@@ -1,7 +1,6 @@
 import Head from 'next/head';
-import Hero from '@/components/Hero';
-import Navbar from '@/components/Navbar';
-import Information from '@/components/Information';
+import HomePage from '@/pages/homepage';
+
 export default function Home() {
   return (
     <div>
@@ -9,9 +8,7 @@ export default function Home() {
         <title>Doc Generator</title>
       </Head>
       <main>
-        <Navbar />
-        <Hero />
-        <Information />
+        <HomePage />
       </main>
     </div>
   );

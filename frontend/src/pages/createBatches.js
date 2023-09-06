@@ -1,7 +1,7 @@
 // pages/generator.js
 import React, { useState } from 'react';
 import styles from '../styles/createBatches.module.css';
-import Navbar from '@/components/Navbar';
+import Navbar from '../components/Navbar';
 import { generateRender } from '../services/apiService';
 
 const Generator = () => {

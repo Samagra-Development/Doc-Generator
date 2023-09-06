@@ -1,6 +1,6 @@
 import React from 'react';
-import Navbar from '@/components/Navbar';
-import Toolbar from '@/components/Toolbar';
+import Navbar from '../components/Navbar';
+import Toolbar from '../components/Toolbar';
 import { FiBookmark, FiDownload, FiShare2 } from 'react-icons/fi';
 import styles from '../styles/dashboard.module.css';
 import Card from '../components/Card';

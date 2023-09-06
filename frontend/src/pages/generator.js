@@ -1,8 +1,9 @@
 // pages/generator.js
 import React, { useState } from 'react';
 import styles from '../styles/generator.module.css';
-import Navbar from '@/components/Navbar';
+import Navbar from '../components/Navbar';
 import { generateRender } from '../services/apiService';
+import TemplateOverlay from '../components/TemplateOverlay';
 
 const Generator = () => {
   const [templateType, setTemplateType] = useState('');
@@ -10,6 +11,8 @@ const Generator = () => {
   const [templateInput, setTemplateInput] = useState('');
   const [dataInput, setDataInput] = useState('');
   const [responseBody, setResponseBody] = useState('');
+  const [isNewTemplate, setIsNewTemplate] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -23,6 +26,17 @@ const Generator = () => {
     } catch (error) {
       console.error('Error:', error);
     }
+  };
+  const existingTemplates = [
+    { heading: 'Template 1', text: 'This is template 1.' },
+    { heading: 'Template 2', text: 'This is template 2.' },
+  ];
+  const toggleOverlay = () => {
+    setShowOverlay(!showOverlay);
+  };
+
+  const toggleTemplateInput = () => {
+    setIsNewTemplate(!isNewTemplate);
   };
 
   return (
@@ -65,23 +79,54 @@ const Generator = () => {
                 </div>
               </div>
             </div>
-
             <div className={styles.inputBox}>
+              <p className={styles.inputHeading}>Template Input</p>
+              <div className={styles.templateButtonContainer}>
+                <button
+                  onClick={() => {
+                    toggleOverlay();
+                  }}
+                  className={styles.templateButton}
+                >
+                  Choose from existing templates
+                </button>
+              </div>
+              {showOverlay ? (
+                <div>
+                  <h3 className={styles.overlayHeading}>
+                    Select a Suitable Template
+                  </h3>
+                  <TemplateOverlay
+                    onClose={toggleOverlay}
+                    existingTemplates={existingTemplates}
+                  />
+                </div>
+              ) : (
+                <textarea
+                  value={templateInput}
+                  onChange={(e) => setTemplateInput(e.target.value)}
+                  className={`${styles.formInput2} ${styles.nonExpandable}`}
+                  placeholder="Enter string for Template Input"
+                />
+              )}
+            </div>
+
+            {/* <div className={styles.inputBox}>
               <p className={styles.inputHeading}>Template Input</p>
               <textarea
                 value={templateInput}
                 onChange={(e) => setTemplateInput(e.target.value)}
                 className={`${styles.formInput2} ${styles.nonExpandable}`}
-                placeholder="Enter text for Template Input"
+                placeholder="Enter string for Template Input"
               />
-            </div>
+            </div> */}
             <div className={styles.inputBox}>
               <p className={styles.inputHeading}>Data Input</p>
               <textarea
                 value={dataInput}
                 onChange={(e) => setDataInput(e.target.value)}
                 className={`${styles.formInput3} ${styles.nonExpandable}`}
-                placeholder="Enter text for Data Input"
+                placeholder="Enter JSON object for Data Input"
               />
             </div>
             <input
