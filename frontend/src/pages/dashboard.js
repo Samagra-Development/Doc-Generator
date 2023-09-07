@@ -9,6 +9,12 @@ import { fetchBatches } from '../services/apiService';
 const Home = () => {
   const [batches, setBatches] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
   useEffect(() => {
     const fetchBatchesData = async () => {
       try {
@@ -22,10 +28,16 @@ const Home = () => {
     fetchBatchesData();
   }, []);
 
+  const handleStatusChange = (event) => {
+    setSelectedStatus(event.target.value);
+  };
   const filteredBatches =
     selectedStatus === 'all'
-      ? batches
-      : batches.filter((batch) => batch.status === selectedStatus);
+      ? batches.filter((batch) => batch.id.includes(searchQuery))
+      : batches.filter(
+          (batch) =>
+            batch.status === selectedStatus && batch.id.includes(searchQuery),
+        );
 
   return (
     <div className={styles.dashboardSection}>
@@ -41,12 +53,19 @@ const Home = () => {
               type="text"
               className={styles.searchInput}
               placeholder="Search..."
+              onChange={handleSearchChange}
+              value={searchQuery}
             />
-            <select className={styles.dropdown}>
+            <select
+              className={styles.dropdown}
+              onChange={handleStatusChange}
+              value={selectedStatus}
+            >
               <option value="all">All</option>
               <option value="done">Done</option>
               <option value="queue">In queue</option>
               <option value="stop">Stopped</option>
+              <option value="submitted">Submitted</option>
             </select>
           </div>
         </div>

@@ -21,16 +21,16 @@
 .buttonTransparent {
   border: 2px solid cyan;
   background-color: transparent;
-  color: rgba(245, 246, 184, 1);
+  color: rgb(204, 242, 238);
+  margin-right: 10px;
 }
 
-.buttonGradient {
+.buttonTransparent:hover {
   background-image: radial-gradient(
     farthest-corner at 50% 50%,
     rgba(102, 252, 241, 1) 0%,
     rgba(187, 235, 244, 0.447) 100%
   );
-  margin-left: 10px;
   border: none;
   color: black;
 }
