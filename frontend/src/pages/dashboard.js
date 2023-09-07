@@ -1,33 +1,31 @@
-import React from 'react';
-import Navbar from '@/components/Navbar';
-import Toolbar from '@/components/Toolbar';
-import { FiBookmark, FiDownload, FiShare2 } from 'react-icons/fi';
+import React, { useEffect, useState } from 'react';
+import Navbar from '../components/Navbar';
+import Toolbar from '../components/Toolbar';
 import styles from '../styles/dashboard.module.css';
 import Card from '../components/Card';
 import AddDocsCard from '../components/AddDocsCard';
+import { fetchBatches } from '../services/apiService';
 
 const Home = () => {
-  const cardsData = [
-    {
-      title: 'Student Reports',
-      content: 'This is the content of Card 1.',
-      footer: 'Last Updated: 22/12/2023 18:55:45',
-      imageUrl: 'https://example.com/card1-image.jpg',
-    },
-    {
-      title: 'Govt Docs',
-      content: 'This is the content of Card 2.',
-      footer: 'Last Updated: 22/8/2023 01:50:15',
-      imageUrl: 'https://example.com/card2-image.jpg',
-    },
-    {
-      title: 'ID Cards',
-      content: 'This is the content of Card 2.',
-      footer: 'Last Updated: 5/6/2023 20:06:45',
-      imageUrl: 'https://example.com/card2-image.jpg',
-    },
-    // Add more card data objects here
-  ];
+  const [batches, setBatches] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  useEffect(() => {
+    const fetchBatchesData = async () => {
+      try {
+        const data = await fetchBatches();
+        setBatches(data);
+      } catch (error) {
+        console.error(error.message);
+      }
+    };
+
+    fetchBatchesData();
+  }, []);
+
+  const filteredBatches =
+    selectedStatus === 'all'
+      ? batches
+      : batches.filter((batch) => batch.status === selectedStatus);
 
   return (
     <div className={styles.dashboardSection}>
@@ -45,10 +43,10 @@ const Home = () => {
               placeholder="Search..."
             />
             <select className={styles.dropdown}>
-              <option value="option1">Option 1</option>
-              <option value="option2">Option 2</option>
-              <option value="option3">Option 3</option>
-              <option value="option4">Option 4</option>
+              <option value="all">All</option>
+              <option value="done">Done</option>
+              <option value="queue">In queue</option>
+              <option value="stop">Stopped</option>
             </select>
           </div>
         </div>
@@ -56,13 +54,14 @@ const Home = () => {
         <div className={styles.cardsSection}>
           <AddDocsCard />
 
-          {cardsData.map((card, index) => (
+          {filteredBatches.map((batch, index) => (
             <Card
               key={index}
-              title={card.title}
-              content={card.content}
-              footer={card.footer}
-              imageUrl={card.imageUrl}
+              title={batch.id}
+              content={` Template ID: ${batch.templateID}, Output Type: ${batch.outputType}`}
+              output={`Output: ${batch.output}`}
+              status={`Status: ${batch.status}`}
+              footer={batch.createdAt}
             />
           ))}
         </div>

@@ -55,7 +55,6 @@
 }
 .formInput1 {
   margin-bottom: 10px;
-  text-align: left;
   padding: 10px;
   width: 100%;
   color: white;
@@ -65,12 +64,14 @@
   border-color: #66fcf1;
   border-radius: 5px;
   font-size: 16px;
+  text-align: left;
   text-decoration: none;
   transition: background-color 0.3s ease;
 }
 .formInput1 option {
   background-color: #1f2833;
   color: rgb(215, 246, 244);
+  text-align: left;
 }
 .formInput2 {
   width: 100%;
@@ -160,6 +161,24 @@
   color: rgb(225, 243, 249);
   margin: 10px;
 }
+
+.addInputButton {
+  background-color: transparent;
+  color: #fff;
+  border: solid;
+  border-color: #66fcf283;
+  border-radius: 2px;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+  margin-left: 15px;
+  transition: background-color 0.3s ease;
+}
+.addInputButton:hover {
+  background-color: #33333341;
+}
+
 .templateButton {
   background-image: radial-gradient(
     farthest-corner at 50% 50%,
