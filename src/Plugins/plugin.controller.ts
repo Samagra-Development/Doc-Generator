@@ -96,6 +96,39 @@ export class PluginController {
     }
   }
 
+  @Get('convert-pdf-to-images')
+  async convertPdfToImages(
+    @Query('pdfPath') pdfPath: string,
+  ): Promise<PluginOutput> {
+    try {
+      if (!pdfPath) {
+        console.error('PDF file path not provided.');
+        throw new Error('PDF file path not provided.');
+      }
+
+      // Define the output folder where the images will be saved
+      const outputFolder = './generatedImages'; // Change this path as needed
+
+      // Call a function to convert the PDF to images (you should implement this function)
+      const pluginOutput = await this.pdfInputPlugin.transformPdfToImage(
+        pdfPath,
+      );
+
+      // Check if the plugin output contains the list of image URLs
+      if (pluginOutput.images) {
+        const images = pluginOutput.images;
+        images.forEach((image: { url: string }) => {
+          console.log('Image', image.url);
+        });
+      }
+
+      return { images: pluginOutput.images };
+    } catch (error: any) {
+      console.error('Error converting PDF to images:', error.message);
+      throw new Error('PDF to images conversion failed');
+    }
+  }
+
   @Get('convert-image-to-pdf')
   async convertImageToPdf(
     @Query('imagePath') imagePath: string,
@@ -167,22 +200,6 @@ export class PluginController {
     }
   }
 
-  @Get('convert-drawio-to-pdf')
-  async convertDrawioFileToPdf(): Promise<PluginOutput> {
-    try {
-      const drawioFilePath =
-        'C:/Users/Kartik/Documents/C4gt/Doc-Generator/abc.drawio'; // Adjust the path accordingly
-      const pluginOutput = await this.DrawioInputPlugin.convertDrawioFileToPdf(
-        drawioFilePath,
-      );
-
-      return pluginOutput;
-    } catch (error: any) {
-      console.error('Error converting Draw.io file to PDF:', error.message);
-      throw new Error('Failed to convert Draw.io file to PDF');
-    }
-  }
-
   @Get('convert-excalidraw-to-pdf')
   async convertExcalidrawToPdf(
     @Query('excalidrawpath') excalidrawContent: string,
@@ -202,7 +219,7 @@ export class PluginController {
         throw new Error('Generated PDF file not found.');
       }
 
-      return { file: pluginOutput.file }; // Use the correct property from the pluginOutput
+      return { file: pluginOutput.file }; // Use the correct property from the pluginOutput//
     } catch (error: any) {
       console.error('Error converting Excalidraw to PDF:', error.message);
       throw new Error('Failed to convert Excalidraw to PDF');

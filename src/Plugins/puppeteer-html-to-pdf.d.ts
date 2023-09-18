@@ -13,4 +13,4 @@ declare module 'puppeteer-html-to-pdf' {
   function initBrowser(): Promise<Browser>;
 
   function generatePdfBuffer(page: Page): Promise<Buffer>;
-}
+} //

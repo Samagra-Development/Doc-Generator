@@ -9,10 +9,10 @@ export class DrawioInputPlugin {
     drawioFilePath: string,
   ): Promise<PluginOutput> {
     try {
-      // Read Draw.io file content
+      // Read Draw.io file conten
       const drawioXml = fs.readFileSync(drawioFilePath, 'utf-8');
 
-      // Parse Draw.io XML to JavaScript object
+      // Parse Draw.io XML to JavaScript object//
       let drawioJson;
       parseString(drawioXml, (err, result) => {
         if (err) {
@@ -34,7 +34,7 @@ export class DrawioInputPlugin {
       // Generate a PDF from the rendered HTML content
       const pdfBuffer = await page.pdf();
 
-      // Close the browser
+      // Close the browsers
       await browser.close();
 
       const pdfFilePath = path.join(__dirname, 'generatedDrawio.pdf'); // Adjust the path accordingly

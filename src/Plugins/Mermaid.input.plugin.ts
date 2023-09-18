@@ -10,7 +10,7 @@ export class MermaidInputPlugin {
       const browser = await puppeteer.launch();
       const page = await browser.newPage();
 
-      // Set the content of the page to the Mermaid diagram HTML
+      // Set the content of the page to the Mermaid diagram HTML//
       const htmlContent = `<div class="mermaid">${mermaidContent}</div>`;
       await page.setContent(htmlContent);
 

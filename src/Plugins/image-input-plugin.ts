@@ -9,15 +9,25 @@ export class ImageInputPlugin {
     const doc = new PDFDocument();
     const output = fs.createWriteStream(pdfFilePath);
 
-    try {
-      doc.image(imageFilePath, { fit: [600, 800] }); // Adjust dimensions as needed
-      doc.pipe(output);
-      doc.end();
+    return new Promise<void>((resolve, reject) => {
+      try {
+        doc.image(imageFilePath, { fit: [600, 800] }); // Adjust dimensions as needed//
+        doc.pipe(output);
+        doc.end();
 
-      console.log('Image converted to PDF successfully');
-    } catch (error) {
-      console.error('Error converting image to PDF:', error);
-      throw new Error('Image to PDF conversion failed');
-    }
+        output.on('finish', () => {
+          console.log('Image converted to PDF successfully');
+          resolve();
+        });
+
+        output.on('error', (error) => {
+          console.error('Error converting image to PDF:', error);
+          reject(new Error('Image to PDF conversion failed'));
+        });
+      } catch (error) {
+        console.error('Error converting image to PDF:', error);
+        reject(new Error('Image to PDF conversion failed'));
+      }
+    });
   }
 }

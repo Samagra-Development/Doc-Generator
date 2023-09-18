@@ -17,7 +17,7 @@ export class ExcalidrawInputPlugin {
       // Set the content of the page to the Excalidraw SVG
       await page.setContent(excalidrawContent);
 
-      // Generate a PDF from the SVG
+      // Generate a PDF from the SVG //
       await page.pdf({ path: pdfFilePath, format: 'A4' });
 
       await browser.close();
