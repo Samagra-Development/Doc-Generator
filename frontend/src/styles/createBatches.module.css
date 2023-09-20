@@ -1,0 +1,178 @@
+/* styles/generator.module.css */
+.generatorSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: #1f2833;
+}
+
+.leftColumn {
+  grid-column: 1 / 2;
+  background: linear-gradient(
+    to bottom,
+    rgba(102, 252, 242, 0.608),
+    rgba(102, 252, 242, 0.395),
+    rgba(159, 249, 244, 0.663)
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80%;
+  padding: 40px;
+}
+
+.inputBox {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  margin-bottom: 18px;
+  width: 100%;
+}
+.inputHeading {
+  text-align: left;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+}
+.inputText {
+  color: rgb(225, 225, 233);
+}
+
+.gridContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: left;
+  width: 100%;
+}
+.formInput1 {
+  margin-bottom: 10px;
+  padding: 10px;
+  width: 100%;
+  color: white;
+  background-color: #33333341;
+  border: solid;
+  border-width: 2px;
+  border-color: #66fcf1;
+  border-radius: 5px;
+  font-size: 16px;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+.formInput1 option {
+  background-color: #1f2833;
+  color: rgb(215, 246, 244);
+}
+.formInput2 {
+  width: 100%;
+  height: 100px;
+  min-height: 60px;
+  margin-bottom: 10px;
+  padding: 10px 20px;
+  color: white;
+  background-color: #33333341;
+  border: solid;
+  border-width: 2px;
+  border-color: #66fcf1;
+  border-radius: 5px;
+  font-size: 16px;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+.formInput3 {
+  width: 100%;
+  height: 200px;
+  min-height: 80px;
+  margin-bottom: 10px;
+  padding: 10px 20px;
+  color: white;
+  background-color: #33333341;
+  border: solid;
+  border-width: 2px;
+  border-color: #66fcf1;
+  border-radius: 5px;
+  font-size: 16px;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+.formInput:hover {
+  background-color: #444;
+}
+
+.formInput:focus {
+  outline: none;
+}
+.submitButton {
+  margin-top: 10px;
+  padding: 10px 20px;
+  color: white;
+  background-color: #555;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.submitButton:hover {
+  background-color: #666;
+}
+
+.submitButton:focus {
+  outline: none;
+}
+.rightColumn {
+  grid-column: 2 / 3;
+  background-color: rgba(168, 247, 242, 0.081);
+}
+.nonExpandable {
+  resize: max-width;
+  max-width: 600px;
+  min-width: 600px;
+}
+.responseContainer {
+  margin: 20px;
+  padding: 20px;
+  background-color: #30555b39;
+}
+.responseHeading {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgb(179, 201, 225);
+}
+
+.responseText {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(225, 243, 249);
+  margin: 10px;
+}
+
+.addInputButton {
+  background-color: transparent;
+  color: #fff;
+  border: solid;
+  border-color: #66fcf283;
+  border-radius: 2px;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+  margin-left: 15px;
+  transition: background-color 0.3s ease;
+}
+.addInputButton:hover {
+  background-color: #33333341;
+}
